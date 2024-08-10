@@ -6,13 +6,13 @@ typedef enum {
     COMMAND_INIT,
     COMMAND_ADD,
     COMMAND_LIST,
+    COMMAND_SET,
     COMMAND_DELETE,
     COMMAND_GIT_POPULATE,
 } Command;
 
 Command get_command(char* command);
 void command_init();
-
 void execute_command(int argc, char** argv);
 
 #endif // COMMANDS_H

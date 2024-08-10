@@ -1,4 +1,5 @@
 #include "config.h"
+#include "sqlite.h"
 #define CLIB_IMPLEMENTATION
 #include "clib.h"
 #include "commands.h"
@@ -44,7 +45,9 @@ void command_init()
     if(!directoryExists(CHANGELOG_DIR)) {
         createDirectory(CHANGELOG_DIR);
     } else INFO("%s/ is located in this directory", CHANGELOG_DIR);
-
+    if(!clib_file_exists(SQLITE_DB)) {
+        create_database(SQLITE_DB);
+    } else INFO("%s is already created", SQLITE_DB);
 }
 
 // TODO: add to clib.h
@@ -72,6 +75,8 @@ void execute_command(int argc, char** argv)
     case COMMAND_LIST:
     case COMMAND_DELETE:
     case COMMAND_GIT_POPULATE:
+      break;
+    case COMMAND_SET:
       break;
     }
 }

@@ -1,4 +1,5 @@
-#include "entry.h"
+#include "version.h"
+#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -51,4 +52,42 @@ Version parse_version(char* version_str)
 void free_version(Version* v)
 {
     free(v->version);
+}
+
+int is_valid_version(const char *version) 
+{
+    // Split the version string by the dot (.)
+    char *version_copy = strdup(version); // Create a modifiable copy of the version string
+    if (version_copy == NULL) {
+        perror("Failed to allocate memory");
+        return 0; // Memory allocation failed
+    }
+
+    char *token = strtok(version_copy, ".");
+    int component_count = 0;
+
+    while (token != NULL) {
+        // Check if the token is a valid number
+        for (int i = 0; token[i] != '\0'; i++) {
+            if (!isdigit(token[i])) {
+                free(version_copy);
+                return 0; // Invalid character found
+            }
+        }
+
+        // Convert the token to an integer
+        int value = atoi(token);
+        if (value < 0) {
+            free(version_copy);
+            return 0; // Negative value is invalid
+        }
+
+        component_count++;
+        token = strtok(NULL, ".");
+    }
+
+    free(version_copy);
+
+    // A valid version should have exactly three components
+    return component_count == 3;
 }

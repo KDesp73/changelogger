@@ -1,6 +1,6 @@
 CC = cc
 CFLAGS = -Wall -Iinclude -ggdb
-LDFLAGS = 
+LDFLAGS = -lsqlite3
 
 SRC_DIR = src
 INCLUDE_DIR = include
@@ -20,11 +20,11 @@ all: $(BUILD_DIR) $(TARGET)
 
 # Rule to create the build directory
 $(BUILD_DIR):
-	mkdir -p $(BUILD_DIR) $(LDFLAGS)
+	mkdir -p $(BUILD_DIR)
 
 # Rule to build the executable
 $(TARGET): $(OBJ_FILES)
-	$(CC) -o $@ $^
+	$(CC) -o $@ $^ $(LDFLAGS)
 
 # Rule to build object files from source files
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c

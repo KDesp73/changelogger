@@ -1,4 +1,4 @@
-#include "entry.h"
+#include "date.h"
 #include <stdlib.h>
 #include <time.h>
 

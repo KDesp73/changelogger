@@ -3,5 +3,6 @@ build
 compile_commands.json
 
 changelogger
+.changelog
 
 *.o

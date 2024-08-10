@@ -1,0 +1,13 @@
+#ifndef STATUS_H
+#define STATUS_H
+
+typedef enum {
+    STATUS_CHANGED,
+    STATUS_ADDED,
+    STATUS_DEPRECATED,
+    STATUS_REMOVED,
+    STATUS_FIXED,
+    STATUS_SECURITY
+} Status;
+
+#endif // STATUS_H
