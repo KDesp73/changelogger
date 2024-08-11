@@ -156,9 +156,10 @@ CLIBAPI long clib_file_size(const char *filename);
 CLIBAPI int clib_file_exists(const char *filename);
 
 // STRINGS
-#define ITOA(s, i) sprintf(s, "%d", i);
-#define FTOA(s, f) sprintf(s, "%f", f);
+#define ITOA(s, i) sprintf(s, "%d", i)
+#define FTOA(s, f) sprintf(s, "%f", f)
 #define STR(x) #x
+#define STREQ(x, y) (strcmp(x, y) == 0) 
 CLIBAPI char* clib_format_text(const char *format, ...);
 CLIBAPI char* clib_buffer_init();
 CLIBAPI void clib_str_append_ln(char** buffer, Cstr text);
@@ -188,6 +189,10 @@ CLIBAPI void clib_str_clean(char** buffer);
 CLIBAPI int clib_eu_mod(int a, int b);
 
 // CLI
+
+#define LOOP_ARGS(opt, args) \
+    while((opt = getopt_long(argc, argv, clib_generate_cli_format_string(args), clib_get_options(args), NULL)) != -1)
+
 CLIBAPI char* clib_shift_args(int *argc, char ***argv);
 CLIBAPI CliArg* clib_create_argument(char abr, Cstr full, Cstr help, size_t argument_required);
 CLIBAPI void clib_clean_arguments(CliArguments* arguments);
@@ -611,10 +616,9 @@ CLIBAPI char* clib_generate_cli_format_string(CliArguments args) {
 
     for (size_t i = 0; i < args.count; ++i) {
         char abr[2] = {args.args[i]->abr, 0};
+        if(args.args[i]->argument_required == optional_argument) strcat(fmt, ":");
         strcat(fmt, abr);
-        if (args.args[i]->argument_required) {
-            strcat(fmt, ":");
-        }
+        if (args.args[i]->argument_required) strcat(fmt, ":");
     }
     strcat(fmt, "\0");
 

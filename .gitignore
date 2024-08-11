@@ -1,8 +1,6 @@
 .cache/
 build
 compile_commands.json
-
+*.o
 changelogger
 .changelog
-
-*.o

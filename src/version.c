@@ -2,51 +2,32 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
-Version make_version(size_t major, size_t minor, size_t patch) 
+void make_version(Version* v) 
 {
-    Version v;
-    
-    v.version = (char*)malloc(20 * sizeof(char)); // Adjust size as needed
-    if (v.version == NULL) {
+    v->version = (char*)malloc(20 * sizeof(char)); // Adjust size as needed
+    if (v->version == NULL) {
         perror("Failed to allocate memory for version string");
         exit(EXIT_FAILURE);
     }
 
-    snprintf(v.version, 20, "%zu.%zu.%zu", major, minor, patch);
-    
-    v.version_major = major;
-    v.version_minor = minor;
-    v.version_patch = patch;
-
-    return v;
+    snprintf(v->version, 20, "%zu.%zu.%zu", v->version_major, v->version_minor, v->version_patch);
 }
 
-Version parse_version(char* version_str) 
+void parse_version(Version* version) 
 {
-    Version v;
     char* token;
-    char* rest = version_str;
-
-    // Allocate memory for the version string
-    v.version = (char*)malloc(strlen(version_str) + 1); // +1 for null terminator
-    if (v.version == NULL) {
-        perror("Failed to allocate memory for version string");
-        exit(EXIT_FAILURE);
-    }
-    strcpy(v.version, version_str);
-
-    // Parse the version string
-    token = strtok_r(rest, ".", &rest);
-    v.version_major = (token != NULL) ? atoi(token) : 0;
+    char* rest = version->version;
 
     token = strtok_r(rest, ".", &rest);
-    v.version_minor = (token != NULL) ? atoi(token) : 0;
+    version->version_major = (token != NULL) ? atoi(token) : 0;
 
     token = strtok_r(rest, ".", &rest);
-    v.version_patch = (token != NULL) ? atoi(token) : 0;
+    version->version_minor = (token != NULL) ? atoi(token) : 0;
 
-    return v;
+    token = strtok_r(rest, ".", &rest);
+    version->version_patch = (token != NULL) ? atoi(token) : 0;
 }
 
 void free_version(Version* v)
@@ -54,13 +35,24 @@ void free_version(Version* v)
     free(v->version);
 }
 
+int is_version_set(Version v)
+{
+    return (
+        v.version != NULL ||
+        v.version_major != 0 ||
+        v.version_minor != 0 ||
+        v.version_patch != 0
+    );
+}
+
 int is_valid_version(const char *version) 
 {
-    // Split the version string by the dot (.)
-    char *version_copy = strdup(version); // Create a modifiable copy of the version string
+    if(version == NULL) return 0;
+
+    char *version_copy = strdup(version); 
     if (version_copy == NULL) {
         perror("Failed to allocate memory");
-        return 0; // Memory allocation failed
+        return 0; 
     }
 
     char *token = strtok(version_copy, ".");

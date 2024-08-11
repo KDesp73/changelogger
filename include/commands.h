@@ -2,17 +2,17 @@
 #define COMMANDS_H
 
 typedef enum {
+    COMMAND_UNSET = -2,
     COMMAND_UNKNOWN = -1,
     COMMAND_INIT,
     COMMAND_ADD,
     COMMAND_LIST,
     COMMAND_SET,
     COMMAND_DELETE,
-    COMMAND_GIT_POPULATE,
 } Command;
 
 Command get_command(char* command);
 void command_init();
-void execute_command(int argc, char** argv);
+char* command_to_string(Command command);
 
 #endif // COMMANDS_H

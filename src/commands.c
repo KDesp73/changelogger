@@ -1,4 +1,6 @@
 #include "config.h"
+#include "help.h"
+#include "options.h"
 #include "sqlite.h"
 #define CLIB_IMPLEMENTATION
 #include "clib.h"
@@ -50,33 +52,62 @@ void command_init()
     } else INFO("%s is already created", SQLITE_DB);
 }
 
-// TODO: add to clib.h
-#define STREQ(x, y) (strcmp(x, y) == 0) 
-
 Command get_command(char* command)
 {
-    if(STREQ(command, "init")) return COMMAND_INIT;
-    else if(STREQ(command, "add")) return COMMAND_ADD;
+#define COMPARE_AND_RETURN_COMMAND(c) \
+    else if(STREQ(command, command_to_string(c))) return c;
+
+    if(command == NULL) return COMMAND_UNSET;
+    COMPARE_AND_RETURN_COMMAND(COMMAND_ADD)
+    COMPARE_AND_RETURN_COMMAND(COMMAND_INIT)
+    COMPARE_AND_RETURN_COMMAND(COMMAND_SET)
+    COMPARE_AND_RETURN_COMMAND(COMMAND_LIST)
+    COMPARE_AND_RETURN_COMMAND(COMMAND_DELETE)
     else return COMMAND_UNKNOWN;
+
+#undef COMPARE_AND_RETURN_COMMAND
 }
 
-void execute_command(int argc, char** argv)
+void execute_command(Options options)
 {
-    char* c = argv[argc-1];
-    Command command = get_command(c);
-    switch (command) {
-    case COMMAND_INIT:
-        command_init();
-        break;
-    case COMMAND_UNKNOWN:
-        ERRO("Unknown command: %s", c);
-        break;
-    case COMMAND_ADD:
-    case COMMAND_LIST:
-    case COMMAND_DELETE:
-    case COMMAND_GIT_POPULATE:
-      break;
-    case COMMAND_SET:
-      break;
+    switch (options.command) {
+        case COMMAND_INIT:
+            command_init();
+            return;
+        case COMMAND_UNKNOWN:
+            ERRO("Unknown command: %s", options.argv[1]);
+            return;
+        case COMMAND_UNSET:
+            ERRO("Command not found");
+            break;
+        case COMMAND_ADD:
+        case COMMAND_LIST:
+        case COMMAND_DELETE:
+        case COMMAND_SET:
+            PANIC("Not implemented yet.");
     }
+
+    help();
+}
+
+
+char* command_to_string(Command command)
+{
+    switch (command) {
+    case COMMAND_UNSET:
+    case COMMAND_UNKNOWN:
+        return "";
+    case COMMAND_INIT:
+        return "init";
+    case COMMAND_ADD:
+        return "add";
+    case COMMAND_LIST:
+        return "list";
+    case COMMAND_SET:
+        return "set";
+    case COMMAND_DELETE:
+        return "delete";
+    }
+
+    return "";
 }
