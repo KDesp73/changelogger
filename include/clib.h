@@ -48,7 +48,9 @@
 #define CLIB_VERSION_PATCH 0
 #define CLIB_VERSION  "0.1.0"
 
-#define CLIBAPI static
+#ifndef CLIBAPI
+    #define CLIBAPI static
+#endif
 
 #pragma GCC diagnostic ignored "-Wunused-function"
 
@@ -60,6 +62,7 @@
 #include <errno.h>
 #include <assert.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <getopt.h>
 
 // START [TYPES] START //
@@ -145,6 +148,8 @@ CLIBAPI void* clib_safe_realloc(void *ptr, size_t size);
 CLIBAPI void clib_safe_free(void **ptr);
 
 // FILES
+CLIBAPI int clib_create_directory(const char *path);
+CLIBAPI int clib_directory_exists(const char *path);
 CLIBAPI void clib_create_file(const char *filename);
 CLIBAPI void clib_write_file(const char *filename, const char *data, Cstr mode);
 CLIBAPI char* clib_read_file(const char *filename, const char* mode);
@@ -1017,6 +1022,38 @@ CLIBAPI void clib_append_file(const char *filename, const char *data) {
         exit(EXIT_FAILURE);
     }
     fclose(file);
+}
+
+#ifdef _WIN32
+#include <direct.h>
+#define MKDIR(path) _mkdir(path)
+#else
+#define MKDIR(path) mkdir(path, 0755) // 0755 is the permission mode
+#endif
+
+CLIBAPI int clib_create_directory(const char *path)
+{
+    if (MKDIR(path) == 0) {
+        return 1;
+    } else {
+        if (errno == EEXIST) {
+            printf("Directory already exists: %s\n", path);
+        } else {
+            perror("Error creating directory");
+        }
+        return 0; 
+    }
+}
+
+CLIBAPI int clib_directory_exists(const char *path)
+{
+    struct stat statbuf;
+
+    if (stat(path, &statbuf) != 0) {
+        return 0;
+    }
+
+    return S_ISDIR(statbuf.st_mode);
 }
 
 CLIBAPI void clib_create_file(const char *filename) {

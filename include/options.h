@@ -1,18 +1,31 @@
 #ifndef OPTIONS_H
 #define OPTIONS_H
-#include "commands.h"
 #include "status.h"
 #include "version.h"
+
+typedef enum {
+    ABBR_HELP = 'h',
+    ABBR_VERSION = 'v',
+    ABBR_STATUS = 's',
+    ABBR_VERSION_MAJOR = 'M',
+    ABBR_VERSION_MINOR = 'm',
+    ABBR_VERSION_PATCH = 'p',
+    ABBR_VERSION_FULL = 'V',
+    ABBR_CONFIG_PATH = 'c'
+} ArgumentAbbr;
 
 typedef struct {
     int argc;
     char** argv;
-    Command command;
     Status status;
     Version version;
+    const char* config_path;
 } Options;
 
-void execute_command(Options options);
+int version_full_set(Options options);
+int version_major_set(Options options);
+int version_minor_set(Options options);
+int version_patch_set(Options options);
 void log_options(Options options);
 
 #endif // OPTIONS_H

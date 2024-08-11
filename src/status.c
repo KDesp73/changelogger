@@ -17,10 +17,13 @@ char* status_to_string(Status status)
         return "fixed";
     case STATUS_SECURITY:
         return "security";
+    case STATUS_UNSET:
+    case STATUS_UNKNOWN:
+    case STATUS_NONE:
     default:
         break;
     }
-    return NULL;
+    return "";
 }
 
 
@@ -36,6 +39,7 @@ Status get_status(char* status)
     COMPARE_AND_RETURN_STATUS(STATUS_DEPRECATED)
     COMPARE_AND_RETURN_STATUS(STATUS_CHANGED)
     COMPARE_AND_RETURN_STATUS(STATUS_SECURITY)
+    COMPARE_AND_RETURN_STATUS(STATUS_NONE)
     else return STATUS_UNKNOWN;
 
  #undef COMPARE_AND_RETURN_STATUS

@@ -3,10 +3,10 @@
 
 #include <stdio.h>
 typedef struct {
-    char* version;
-    size_t version_major;
-    size_t version_minor;
-    size_t version_patch;
+    char* full;
+    size_t major;
+    size_t minor;
+    size_t patch;
 } Version;
 
 void make_version(Version* v);

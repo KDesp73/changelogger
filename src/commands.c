@@ -1,56 +1,129 @@
 #include "config.h"
+#include "database.h"
+#include "date.h"
 #include "help.h"
 #include "options.h"
 #include "sqlite.h"
+#include "status.h"
+#include "version.h"
+#include <ctype.h>
 #define CLIB_IMPLEMENTATION
 #include "clib.h"
 #include "commands.h"
-#include <sys/stat.h>
-
-// TODO: add to clib.h
-#ifdef _WIN32
-#include <direct.h>
-#define MKDIR(path) _mkdir(path)
-#else
-#define MKDIR(path) mkdir(path, 0755) // 0755 is the permission mode
-#endif
-
-int createDirectory(const char *path) {
-    if (MKDIR(path) == 0) {
-        return 1;
-    } else {
-        if (errno == EEXIST) {
-            printf("Directory already exists: %s\n", path);
-        } else {
-            perror("Error creating directory");
-        }
-        return 0; 
-    }
-}
-
-// TODO: add to clib.h
-int directoryExists(const char *path) {
-    struct stat statbuf;
-
-    if (stat(path, &statbuf) != 0) {
-        return 0;
-    }
-
-    return S_ISDIR(statbuf.st_mode);
-}
+#include "querybuilder.h"
 
 void command_init()
 {
     if(!clib_file_exists(CHANGELOG_FILE)) {
         clib_write_file(CHANGELOG_FILE, "# CHANGELOG\n", "w");
     } else INFO("%s is located in this directory", CHANGELOG_FILE);
-    if(!directoryExists(CHANGELOG_DIR)) {
-        createDirectory(CHANGELOG_DIR);
+    if(!clib_directory_exists(CHANGELOG_DIR)) {
+        clib_create_directory(CHANGELOG_DIR);
     } else INFO("%s/ is located in this directory", CHANGELOG_DIR);
     if(!clib_file_exists(SQLITE_DB)) {
-        create_database(SQLITE_DB);
+        sqlite_create_database(SQLITE_DB);
     } else INFO("%s is already created", SQLITE_DB);
+    if(!config_exists()){
+        query_builder_t* qb = create_query_builder();
+        insert_q(qb, TABLE_CONFIG);
+        columns_q(qb, "config_path, version_major, version_minor, version_patch");
+        values_q(qb, "'', 0, 0, 0");
+        char* query = build_query(qb);
+        sqlite_execute_sql(SQLITE_DB, query);
+        free(query);
+    } else INFO("Config is already initialized");
+    
 }
+
+// TODO: add to clib.h
+int is_blank(const char *str) {
+    if (str == NULL) {
+        return 1; // NULL is considered blank
+    }
+
+    while (*str) {
+        if (!isspace((unsigned char)*str)) {
+            return 0; // Found a non-whitespace character
+        }
+        str++; 
+    }
+
+    return 1; 
+}
+
+void command_add(Options options)
+{
+    char* message = options.argv[options.argc-1];
+
+    if(STREQ(message, command_to_string(COMMAND_ADD))) 
+        PANIC("Message is not specified. Try: `%s add \"Your message\"`", EXECUTABLE_NAME);
+    if(is_blank(message))
+        PANIC("Message cannot be empty or blank");
+    INFO("message: %s", message);
+
+    
+    sqlite3* db;
+    sqlite3_open(SQLITE_DB, &db);
+    char* version = select_version_full(db);
+    sqlite3_close(db);
+
+    query_builder_t* qb = create_query_builder();
+
+    insert_q(qb, TABLE_ENTRIES);
+    columns_q(qb, "message, status, version, date");
+    char* values = clib_format_text("'%s', %d, '%s', '%s'", message, options.status, version, get_current_date());
+    values_q(qb, values);
+    char* query = build_query(qb);
+    sqlite_execute_sql(SQLITE_DB, query);
+    free(values);
+    free(query);
+}
+
+void command_set(Options options)
+{
+    const char* condition = "id = 1";
+
+    if(version_major_set(options)){
+        char* value = clib_format_text("%zu", options.version.major);
+        update(TABLE_CONFIG, CONFIG_VERSION_MAJOR, value, condition);
+        free(value);
+    }
+
+    if(version_minor_set(options)){
+        char* value = clib_format_text("%zu", options.version.minor);
+        update(TABLE_CONFIG, CONFIG_VERSION_MINOR, value, condition);
+        free(value);
+    }
+
+    if(version_patch_set(options)){
+        char* value = clib_format_text("%zu", options.version.patch);
+        update(TABLE_CONFIG, CONFIG_VERSION_PATCH, value, condition);
+        free(value);
+    }
+
+    if(version_full_set(options)){
+        char* value = clib_format_text("%zu", options.version.major);
+        update(TABLE_CONFIG, CONFIG_VERSION_MAJOR, value, condition);
+        free(value);
+
+        value = clib_format_text("%zu", options.version.minor);
+        update(TABLE_CONFIG, CONFIG_VERSION_MINOR, value, condition);
+        free(value);
+
+        value = clib_format_text("%zu", options.version.patch);
+        update(TABLE_CONFIG, CONFIG_VERSION_PATCH, value, condition);
+        free(value);
+    }
+
+    if(!is_blank(options.config_path)){
+        char* value = clib_format_text("'%s'", options.config_path);
+        update(TABLE_CONFIG, CONFIG_CONFIG_PATH, value, condition);
+        free(value);
+    } else {
+        ERRO("Config path must not be blank");
+    }
+}
+
 
 Command get_command(char* command)
 {
@@ -68,9 +141,9 @@ Command get_command(char* command)
 #undef COMPARE_AND_RETURN_COMMAND
 }
 
-void execute_command(Options options)
+void execute_command(Command command, Options options)
 {
-    switch (options.command) {
+    switch (command) {
         case COMMAND_INIT:
             command_init();
             return;
@@ -81,9 +154,13 @@ void execute_command(Options options)
             ERRO("Command not found");
             break;
         case COMMAND_ADD:
+            command_add(options);
+            return;
+        case COMMAND_SET:
+            command_set(options);
+            return;
         case COMMAND_LIST:
         case COMMAND_DELETE:
-        case COMMAND_SET:
             PANIC("Not implemented yet.");
     }
 

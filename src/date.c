@@ -2,6 +2,13 @@
 #include <stdlib.h>
 #include <time.h>
 
+char* get_current_date()
+{
+    Date date;
+    get_date(&date);
+    return date.date;
+}
+
 void get_date(Date* date)
 {
     time_t now = time(NULL);

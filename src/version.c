@@ -6,42 +6,42 @@
 
 void make_version(Version* v) 
 {
-    v->version = (char*)malloc(20 * sizeof(char)); // Adjust size as needed
-    if (v->version == NULL) {
+    v->full = (char*)malloc(20 * sizeof(char)); // Adjust size as needed
+    if (v->full == NULL) {
         perror("Failed to allocate memory for version string");
         exit(EXIT_FAILURE);
     }
 
-    snprintf(v->version, 20, "%zu.%zu.%zu", v->version_major, v->version_minor, v->version_patch);
+    snprintf(v->full, 20, "%zu.%zu.%zu", v->major, v->minor, v->patch);
 }
 
 void parse_version(Version* version) 
 {
     char* token;
-    char* rest = version->version;
+    char* rest = version->full;
 
     token = strtok_r(rest, ".", &rest);
-    version->version_major = (token != NULL) ? atoi(token) : 0;
+    version->major = (token != NULL) ? atoi(token) : 0;
 
     token = strtok_r(rest, ".", &rest);
-    version->version_minor = (token != NULL) ? atoi(token) : 0;
+    version->minor = (token != NULL) ? atoi(token) : 0;
 
     token = strtok_r(rest, ".", &rest);
-    version->version_patch = (token != NULL) ? atoi(token) : 0;
+    version->patch = (token != NULL) ? atoi(token) : 0;
 }
 
 void free_version(Version* v)
 {
-    free(v->version);
+    free(v->full);
 }
 
 int is_version_set(Version v)
 {
     return (
-        v.version != NULL ||
-        v.version_major != 0 ||
-        v.version_minor != 0 ||
-        v.version_patch != 0
+        v.full != NULL ||
+        v.major != 0 ||
+        v.minor != 0 ||
+        v.patch != 0
     );
 }
 

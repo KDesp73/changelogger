@@ -4,6 +4,7 @@
 typedef enum {
     STATUS_UNSET = -2,
     STATUS_UNKNOWN = -1,
+    STATUS_NONE,
     STATUS_CHANGED,
     STATUS_ADDED,
     STATUS_DEPRECATED,

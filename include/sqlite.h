@@ -2,14 +2,19 @@
 #define SQLITE_H
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <sqlite3.h>
 
-int create_database(const char *db_name);
-int execute_sql(const char *db_name, const char *sql);
-int query_data(const char *db_name, const char *sql, int (*callback)(void*, int, char**, char**));
+#ifndef SQLITEAPI
+    #define SQLITEAPI static
+#endif
 
-int create_database(const char *db_name) 
+#pragma GCC diagnostic ignored "-Wunused-function"
+
+SQLITEAPI int sqlite_create_database(const char *db_name);
+SQLITEAPI int sqlite_execute_sql(const char *db_name, const char *sql);
+SQLITEAPI int sqlite_query_data(const char *db_name, const char *sql, int (*callback)(void*, int, char**, char**));
+
+SQLITEAPI int sqlite_create_database(const char *db_name) 
 {
     sqlite3 *db;
     int rc = sqlite3_open(db_name, &db);
@@ -25,8 +30,7 @@ int create_database(const char *db_name)
     return 0; // Success
 }
 
-// Function to execute a SQL statement
-int execute_sql(const char *db_name, const char *sql) 
+SQLITEAPI int sqlite_execute_sql(const char *db_name, const char *sql) 
 {
     sqlite3 *db;
     char *err_msg = 0;
@@ -51,7 +55,7 @@ int execute_sql(const char *db_name, const char *sql)
 }
 
 // Function to query data from the database
-int query_data(const char *db_name, const char *sql, int (*callback)(void*, int, char**, char**)) 
+SQLITEAPI int sqlite_query_data(const char *db_name, const char *sql, int (*callback)(void*, int, char**, char**)) 
 {
     sqlite3 *db;
     char *err_msg = 0;
