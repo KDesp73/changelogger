@@ -14,19 +14,28 @@
 4. **Integration with Git**: Automatically pull commit messages from Git to populate the changelog.
 5. **Markdown Support**: Use Markdown formatting for better readability in the changelog file.
 
-### Example Command Structure (Not 1-1)
+### Example Command Structure 
 
 ```bash
 # Initialize a new changelog
-$ changelog init
+$ changelogger init
 
 # Add a new entry
-$ changelog add "1.0.0" "2023-10-01" "Initial release with basic features."
+$ changelogger add "Message" --status fixed
+
+# Set variables
+$ changelogger set --version-major 3
 
 # List all entries
-$ changelog list
+$ changelogger list --all # default and not needed
+$ changelogger list -V "0.0.3"
+$ changelogger list -s added
 
 # Delete an entry
-$ changelog delete "1.0.0"
+$ changelogger delete -V "1.0.0"
+$ changelogger delete -I # list (possibly filtered) entries and ask for an index (maybe)
+
+# Manage releases (Github CLI tool integration)
+$ changelogger release --new
 ```
 

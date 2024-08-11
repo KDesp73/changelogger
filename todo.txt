@@ -1,4 +1,8 @@
 TODO: expand sqlite.h functionality
+TODO: fix usage in help message
+TODO: list command
+TODO: delete command
+TODO: release command
 DONE: add methods to clib.h
 DONE: make sqlite.h a proper library
 DONE: make querybuilder.h a proper library

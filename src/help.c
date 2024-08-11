@@ -1,4 +1,5 @@
 #include "help.h"
+#define CLIB_IMPLEMENTATION
 #include "clib.h"
 #include <stdio.h>
 
@@ -8,20 +9,30 @@
         fprintf(stdout, "\n"); \
     } while(0)
 
+// With 2 space indent
+#define PTNI(format, ...) \
+    do { \
+        PTN("  "format, ##__VA_ARGS__); \
+    } while(0);
+
+
 void help()
 {
-    PTN("Usage: changelogger [-h | -v]"); // TODO: update
+    PTN("%sUSAGE%s", BOLD, RESET);
+    PTNI("changelogger [-h | -v] %sTODO%s", COLOR_BG(1), RESET); // TODO: update
     PTN("");
 
-    PTN("%sCommands: %s", BOLD, RESET);
-    PTN("init                                   Initializes the changelog");
-    PTN("list                                   Lists all entries");
-    PTN("add <msg> [<options>]                  Adds an entry");
-    PTN("set <options>                          Sets a variable");     
+    PTN("%sCOMMANDS%s", BOLD, RESET);
+    PTNI("init                       Initializes the changelog");
+    PTNI("list [<options>]           Lists all entries");
+    PTNI("add <msg> [<options>]      Adds an entry");
+    PTNI("set <options>              Sets a variable");     
+    PTNI("delete <options>           Deletes one or more entries");
+    PTNI("release <options>          Creates a new release");
     PTN("");
-    PTN("%sOptions: %s", BOLD, RESET);
-    PTN("-h --help                              Prints this message");
-    PTN("-v --version                           Prints the project version");
+    PTN("%sOPTIONS%s", BOLD, RESET);
+    PTNI("-h --help                  Prints this message");
+    PTNI("-v --version               Prints the project version");
 
     PTN("");
     PTN("Made by KDesp73");
@@ -29,24 +40,43 @@ void help()
 
 void add_help()
 {
-    PTN("%sAdditional Options: %s", BOLD, RESET);
-    PTN("-h --help                  Prints this message");
-    PTN("-s --status <status>       Specify the status of the entry");
-    PTN("            STATUS_CHANGED = 0 or 'changed'");
-    PTN("            STATUS_ADDED = 1 or 'added'");
-    PTN("            STATUS_DEPRECATED = 2 or 'deprecated'");
-    PTN("            STATUS_REMOVED = 3 or 'removed'");
-    PTN("            STATUS_FIXED = 4 or 'fixed'"); 
-    PTN("            STATUS_SECURITY = 5 or 'security'");
+    PTN("%sOPTIONS%s", BOLD, RESET);
+    PTNI("-h --help                  Prints this message");
+    PTNI("-s --status <status>       Specify the status of the entry");
+    PTNI("            STATUS_CHANGED = 1 or 'changed'");
+    PTNI("            STATUS_ADDED = 2 or 'added'");
+    PTNI("            STATUS_DEPRECATED = 3 or 'deprecated'");
+    PTNI("            STATUS_REMOVED = 4 or 'removed'");
+    PTNI("            STATUS_FIXED = 5 or 'fixed'"); 
+    PTNI("            STATUS_SECURITY = 6 or 'security'");
 }
 
 void set_help()
 {
-    PTN("%sVariables to set: %s", BOLD, RESET);
-    PTN("-h --help                          Prints this message");
-    PTN("--version-major <major>            Specify the value of the major version");
-    PTN("--version-minor <minor>            Specify the value of the minor version");
-    PTN("--version-patch <patch>            Specify the value of the patch version");
-    PTN("--version-full <full-version>      Specify the value of the full version");
-    PTN("--config-dir <directory>           Specify the configuration file path"); // Not implemented
+    PTN("%sVARIABLES%s", BOLD, RESET);
+    PTNI("-h --help                          Prints this message");
+    PTNI("--version-major <major>            Specify the value of the major version");
+    PTNI("--version-minor <minor>            Specify the value of the minor version");
+    PTNI("--version-patch <patch>            Specify the value of the patch version");
+    PTNI("--version-full <full-version>      Specify the value of the full version");
+    PTNI("--config-dir <directory>           Specify the configuration file path"); // Not implemented
 }
+
+void list_help()
+{
+    PTN("%sOPTIONS%s", BOLD, RESET);
+    PTNI("-h --help                          Prints this message");
+}
+
+void delete_help()
+{
+    PTN("%sOPTIONS%s", BOLD, RESET);
+    PTNI("-h --help                          Prints this message");
+}
+
+void release_help()
+{
+    PTN("%sOPTIONS%s", BOLD, RESET);
+    PTNI("-h --help                          Prints this message");
+}
+

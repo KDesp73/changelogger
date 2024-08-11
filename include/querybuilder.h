@@ -1,6 +1,8 @@
 #ifndef QUERYBUILDER_H
 #define QUERYBUILDER_H
 
+#include "clib.h"
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -135,28 +137,43 @@ QBAPI query_builder_t* values_q(query_builder_t *qb, const char *values)
         qb->values_capacity *= 2;
         qb->values = (char **)realloc(qb->values, qb->values_capacity * sizeof(char *));
     }
-    char *token = strtok(strdup(values), ", ");
+
+    char *values_copy = strdup(values); 
+    char *token = strtok(values_copy, ",");
+    size_t value_count = 0;
+
     while (token != NULL) {
-        if (token[0] == '\"' || token[0] == '\'') {
-            qb->values[qb->values_count++] = strdup(token);
-        } else {
-            char *value = (char *)malloc(20);
-            sprintf(value, "%s", token);
-            qb->values[qb->values_count++] = value;
+        char *value = (char *)malloc(strlen(token) + 1);
+        strcpy(value, token);
+        
+        char *start = value;
+        while (isspace(*start)) {
+            start++;
         }
-        token = strtok(NULL, ", ");
+        char *end = value + strlen(value) - 1;
+        while (end > value && isspace(*end)) {
+            *end-- = '\0';
+        }
+        
+        qb->values[value_count++] = start;
+        token = strtok(NULL, ",");
     }
+
+    qb->values_count = value_count;
+
     strcat(qb->query, " VALUES (");
-    for (int i = 0; i < qb->values_count; i++) {
+    for (size_t i = 0; i < qb->values_count; i++) {
         strcat(qb->query, qb->values[i]);
         if (i < qb->values_count - 1) {
             strcat(qb->query, ", ");
         }
     }
     strcat(qb->query, ")");
+
+    free(values_copy);
+
     return qb;
 }
-
 QBAPI query_builder_t* update_q(query_builder_t *qb, const char *table)
 {
     qb->table = strdup(table);

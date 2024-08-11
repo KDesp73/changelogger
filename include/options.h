@@ -11,7 +11,11 @@ typedef enum {
     ABBR_VERSION_MINOR = 'm',
     ABBR_VERSION_PATCH = 'p',
     ABBR_VERSION_FULL = 'V',
-    ABBR_CONFIG_PATH = 'c'
+    ABBR_CONFIG_PATH = 'c',
+    ABBR_ALL = 'A',
+    ABBR_NEW = 'N',
+    ABBR_NO = 'n',
+    ABBR_YES = 'y',
 } ArgumentAbbr;
 
 typedef struct {

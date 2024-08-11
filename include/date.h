@@ -16,9 +16,9 @@ typedef struct {
     char* time;
 } Date;
 
-char* get_current_date();
 void get_date(Date* date);
 void free_date(Date* date);
+Date parse_date(const char* date);
 void log_date(Date date);
 
 #endif // DATE_H

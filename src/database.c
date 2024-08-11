@@ -9,7 +9,7 @@
 
 size_t select_version_major(sqlite3 *db)
 {
-    const char *sql = "SELECT version_major FROM Config WHERE id = 0;";
+    const char *sql = "SELECT version_major FROM Config WHERE id = 1;";
     sqlite3_stmt *stmt;
     size_t major = 0;
 
@@ -25,7 +25,7 @@ size_t select_version_major(sqlite3 *db)
 // Function to select the minor version
 size_t select_version_minor(sqlite3 *db)
 {
-    const char *sql = "SELECT version_minor FROM Config WHERE id = 0;";
+    const char *sql = "SELECT version_minor FROM Config WHERE id = 1;";
     sqlite3_stmt *stmt;
     size_t minor = 0;
 
@@ -41,7 +41,7 @@ size_t select_version_minor(sqlite3 *db)
 // Function to select the patch version
 size_t select_version_patch(sqlite3 *db)
 {
-    const char *sql = "SELECT version_patch FROM Config WHERE id = 0;";
+    const char *sql = "SELECT version_patch FROM Config WHERE id = 1;";
     sqlite3_stmt *stmt;
     size_t patch = 0;
 

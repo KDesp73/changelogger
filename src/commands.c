@@ -22,6 +22,7 @@ void command_init()
     } else INFO("%s/ is located in this directory", CHANGELOG_DIR);
     if(!clib_file_exists(SQLITE_DB)) {
         sqlite_create_database(SQLITE_DB);
+        sqlite_execute_sql(SQLITE_DB, GENERATION_QUERY);
     } else INFO("%s is already created", SQLITE_DB);
     if(!config_exists()){
         query_builder_t* qb = create_query_builder();
@@ -69,14 +70,23 @@ void command_add(Options options)
 
     query_builder_t* qb = create_query_builder();
 
+    Date date;
+    get_date(&date);
+
     insert_q(qb, TABLE_ENTRIES);
     columns_q(qb, "message, status, version, date");
-    char* values = clib_format_text("'%s', %d, '%s', '%s'", message, options.status, version, get_current_date());
+    char* values = clib_format_text("'%s', %d, '%s', '%s'", message, options.status, version, date.full);
     values_q(qb, values);
     char* query = build_query(qb);
     sqlite_execute_sql(SQLITE_DB, query);
+    INFO("query: %s", query);
     free(values);
     free(query);
+}
+
+void command_list(Options options)
+{
+    INFO("list");
 }
 
 void command_set(Options options)
@@ -120,7 +130,8 @@ void command_set(Options options)
         update(TABLE_CONFIG, CONFIG_CONFIG_PATH, value, condition);
         free(value);
     } else {
-        ERRO("Config path must not be blank");
+        if(options.config_path != NULL) // Only when it set blank by the user
+            ERRO("Config path must not be blank");
     }
 }
 
@@ -136,6 +147,7 @@ Command get_command(char* command)
     COMPARE_AND_RETURN_COMMAND(COMMAND_SET)
     COMPARE_AND_RETURN_COMMAND(COMMAND_LIST)
     COMPARE_AND_RETURN_COMMAND(COMMAND_DELETE)
+    COMPARE_AND_RETURN_COMMAND(COMMAND_RELEASE)
     else return COMMAND_UNKNOWN;
 
 #undef COMPARE_AND_RETURN_COMMAND
@@ -160,9 +172,13 @@ void execute_command(Command command, Options options)
             command_set(options);
             return;
         case COMMAND_LIST:
+            command_list(options);
+            return;
         case COMMAND_DELETE:
+        case COMMAND_RELEASE:
             PANIC("Not implemented yet.");
-    }
+          break;
+        }
 
     help();
 }
@@ -184,6 +200,9 @@ char* command_to_string(Command command)
         return "set";
     case COMMAND_DELETE:
         return "delete";
+    case COMMAND_RELEASE:
+        return "release";
+      break;
     }
 
     return "";

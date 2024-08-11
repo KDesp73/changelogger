@@ -20,6 +20,26 @@
 #define CONFIG_VERSION_PATCH "version_patch"
 #define CONFIG_CONFIG_PATH "config_path"
 
+#define GENERATION_QUERY \
+"BEGIN TRANSACTION;" \
+"CREATE TABLE IF NOT EXISTS \"Entries\" (" \
+	"\"status\"	INTEGER," \
+	"\"version\"	TEXT," \
+	"\"message\"	TEXT," \
+	"\"id\"	INTEGER NOT NULL UNIQUE," \
+	"\"date\"	TEXT," \
+	"PRIMARY KEY(\"id\" AUTOINCREMENT)" \
+");" \
+"CREATE TABLE IF NOT EXISTS \"Config\" (" \
+	"\"version_major\"	INTEGER," \
+	"\"version_minor\"	INTEGER," \
+	"\"version_patch\"	INTEGER," \
+	"\"config_path\"	TEXT," \
+	"\"id\"	INTEGER DEFAULT 0 UNIQUE," \
+	"PRIMARY KEY(\"id\" AUTOINCREMENT)" \
+");" \
+"COMMIT;"
+
 char* select_version_full(sqlite3* db);
 size_t select_version_major(sqlite3* db);
 size_t select_version_minor(sqlite3* db);

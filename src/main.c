@@ -21,7 +21,7 @@ Options parse_options(int argc, char** argv, Command* command)
 
     // NOTE: The help fields are not set since 
     // the help message is written by hand
-    CliArguments args = clib_make_cli_arguments(8,  
+    CliArguments args = clib_make_cli_arguments(12,  
         clib_create_argument(ABBR_HELP, "help", "", no_argument),
         clib_create_argument(ABBR_VERSION, "version", "", no_argument),
         clib_create_argument(ABBR_STATUS, "status", "", required_argument),
@@ -29,7 +29,11 @@ Options parse_options(int argc, char** argv, Command* command)
         clib_create_argument(ABBR_VERSION_MINOR, "version-minor", "", required_argument),
         clib_create_argument(ABBR_VERSION_PATCH, "version-patch", "", required_argument),
         clib_create_argument(ABBR_VERSION_FULL, "version-full", "", required_argument),
-        clib_create_argument(ABBR_CONFIG_PATH, "config-path", "", required_argument)
+        clib_create_argument(ABBR_CONFIG_PATH, "config-path", "", required_argument),
+        clib_create_argument(ABBR_ALL, "all", "", no_argument),
+        clib_create_argument(ABBR_NEW, "new", "", no_argument),
+        clib_create_argument(ABBR_NO, "no", "", no_argument),
+        clib_create_argument(ABBR_YES, "yes", "", no_argument)
     );
 
     int opt;
@@ -38,6 +42,9 @@ Options parse_options(int argc, char** argv, Command* command)
         case ABBR_HELP:
             if(*command == COMMAND_SET) set_help();
             else if(*command == COMMAND_ADD) add_help();
+            else if(*command == COMMAND_LIST) list_help();
+            else if(*command == COMMAND_DELETE) delete_help();
+            else if(*command == COMMAND_RELEASE) release_help();
             else help();
             exit(0);
         case ABBR_VERSION:
@@ -68,8 +75,12 @@ Options parse_options(int argc, char** argv, Command* command)
             options.version.patch = atoi(optarg);
             break;
         case ABBR_VERSION_FULL:
-            if(*command != COMMAND_SET) PANIC("--version-full can only be used with `set`");
-            if(!is_valid_version(optarg)) PANIC("Version is not valid");
+            if(
+                *command != COMMAND_SET && 
+                *command != COMMAND_DELETE &&
+                *command != COMMAND_ADD    
+            ) PANIC("--version-full can only be used with `set`, `delete` or `add`");
+            if(!is_valid_version(optarg)) PANIC("Version '%s' is not valid", optarg);
 
             options.version.full = optarg;
             parse_version(&options.version);
