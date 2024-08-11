@@ -109,7 +109,7 @@ Options parse_options(int argc, char** argv)
 int main(int argc, char** argv)
 {
     Options options = parse_options(argc, argv);
-    log_options(options);
+    // log_options(options);
     execute_command(options);
 
     return 0;

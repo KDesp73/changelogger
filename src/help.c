@@ -21,7 +21,7 @@ void help()
     PTN("");
     PTN("%sOptions: %s", BOLD, RESET);
     PTN("-h --help                              Prints this message");
-    PTN("-V                                     Prints the project version");
+    PTN("-v --version                           Prints the project version");
 
     PTN("");
     PTN("Made by KDesp73");
@@ -43,10 +43,10 @@ void add_help()
 void set_help()
 {
     PTN("%sVariables to set: %s", BOLD, RESET);
-    PTN("-h --help                  Prints this message");
-    PTN("--version-major <major>    Specify the value of the major version");
-    PTN("--version-minor <minor>    Specify the value of the minor version");
-    PTN("--version-patch <patch>    Specify the value of the patch version");
-    PTN("--version <full-version>   Specify the value of the full version");
-    PTN("--config-dir <directory>   Specify the configuration file path"); // Not implemented
+    PTN("-h --help                          Prints this message");
+    PTN("--version-major <major>            Specify the value of the major version");
+    PTN("--version-minor <minor>            Specify the value of the minor version");
+    PTN("--version-patch <patch>            Specify the value of the patch version");
+    PTN("--version-full <full-version>      Specify the value of the full version");
+    PTN("--config-dir <directory>           Specify the configuration file path"); // Not implemented
 }
