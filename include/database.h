@@ -73,6 +73,13 @@ Entry* select_entries_date_less(sqlite3* db, const char* date, size_t *count);
 Entry* select_entries_date_greater(sqlite3* db, const char* date, size_t *count);
 void update(const char* table, const char* column, const char* value, const char* condition); // One value;
 char* select_str(const char* table, const char* column, const char* condition);
+int select_int(const char* table, const char* column, const char* condition);
 int config_exists();
+
+#define SELECT_CONFIG_REMOTE \
+    select_str(TABLE_CONFIG, CONFIG_REMOTE_REPO, CONFIG_CONDITION)
+
+#define SELECT_CONFIG_EXPORT \
+    select_int(TABLE_CONFIG, CONFIG_ALWAYS_EXPORT, CONFIG_CONDITION)
 
 #endif // DATABASE_H

@@ -26,6 +26,10 @@ $ changelogger add "Message" --status fixed
 # Set variables
 $ changelogger set --version-major 3
 
+# Get variables
+$ changelogger get {version | remote | config | export}
+
+
 # List all entries
 $ changelogger list --all # default and not needed
 $ changelogger list -V "0.0.3"
@@ -36,6 +40,6 @@ $ changelogger delete -V "1.0.0"
 $ changelogger delete -I # list (possibly filtered) entries and ask for an index (maybe)
 
 # Manage releases (Github CLI tool integration)
-$ changelogger release --new
+$ changelogger release --new {major | minor | patch}
 ```
 

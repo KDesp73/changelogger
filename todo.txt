@@ -2,9 +2,11 @@ TODO: expand sqlite.h functionality
 TODO: list command
 TODO: delete command
 TODO: disable sqlite logging
-TODO: get command
+TODO: resolve memory leaks
 DONE: add methods to clib.h
 DONE: make sqlite.h a proper library
 DONE: make querybuilder.h a proper library
 DONE: release command
 DONE: fix usage in help message
+DONE: export command
+DONE: get command

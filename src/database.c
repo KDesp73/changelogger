@@ -260,6 +260,45 @@ Entry* select_entries_date_greater(sqlite3 *db, const char* date, size_t *count)
 }
 
 
+int select_int(const char* table, const char* column, const char* condition)
+{
+    sqlite3 *db;
+    sqlite3_stmt *stmt;
+    int result = 0; // Default result value
+    int rc;
+
+    // Open the SQLite database
+    rc = sqlite3_open(SQLITE_DB, &db);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Cannot open database: %s\n", sqlite3_errmsg(db));
+        return -1; // Return an error code
+    }
+
+    // Prepare the SQL statement
+    char *sql;
+    asprintf(&sql, "SELECT %s FROM %s WHERE %s;", column, table, condition);
+
+    rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db));
+        sqlite3_free(sql);
+        sqlite3_close(db);
+        return -1; // Return an error code
+    }
+
+    // Execute the statement and fetch the result
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
+        result = sqlite3_column_int(stmt, 0); // Get the integer value
+    }
+
+    // Clean up
+    sqlite3_finalize(stmt);
+    sqlite3_free(sql);
+    sqlite3_close(db);
+
+    return result; // Return the integer result
+}
+
 char* select_str(const char* table, const char* column, const char* condition) 
 {
     sqlite3 *db;

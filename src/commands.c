@@ -9,6 +9,7 @@
 #include "templates.h"
 #include "version.h"
 #include <ctype.h>
+#include <stdio.h>
 #define CLIB_IMPLEMENTATION
 #include "extern/clib.h"
 #include "utils.h"
@@ -59,6 +60,8 @@ void command_add(Options options)
     values_q(qb, values);
     char* query = build_query(qb);
     sqlite_execute_sql(SQLITE_DB, query);
+
+    free_date(&date);
     free(values);
     free(query);
 }
@@ -183,6 +186,7 @@ void command_export(Options options)
         }
         clib_str_append_ln(&buffer, "");
     }
+    free(url);
 
     clib_write_file(CHANGELOG_FILE, buffer, "w");
     free(buffer);
@@ -193,7 +197,34 @@ void command_export(Options options)
 
 void command_get(Options options)
 {
+    char* key = options.argv[options.argc-1];
+    sqlite3* db;
+    sqlite3_open(SQLITE_DB, &db);
 
+    if(
+        !STREQ(key, "version") &&
+        !STREQ(key, "config") &&
+        !STREQ(key, "remote") &&
+        !STREQ(key, "export")
+    ) { 
+        PANIC("Invalid key: '%s'. Try %s get -h", key, EXECUTABLE_NAME);
+    }
+
+    if(STREQ(key, "version")){
+        char* version = select_version_full(db);
+        printf("%s\n", version);
+    } else if(STREQ(key, "config")) {
+        char* config_path = select_config_path(db);
+        printf("%s\n", (config_path == NULL) ? "" : config_path);
+    } else if(STREQ(key, "remote")) {
+        char* remote = SELECT_CONFIG_REMOTE;
+        printf("%s\n", (remote == NULL) ? "" : remote);
+    } else if(STREQ(key, "export")) {
+        int export = SELECT_CONFIG_EXPORT;
+        printf("%d\n", export);
+    }
+        
+    sqlite3_close(db);
 }
 
 void command_release(Options options)
@@ -337,12 +368,11 @@ void execute_command(Command command, Options options)
         return;
     case COMMAND_GET:
         command_get(options);
-        break;
+        return;
     }
 
     help();
 }
-
 
 char* command_to_string(Command command)
 {

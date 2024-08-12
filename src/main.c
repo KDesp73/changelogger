@@ -52,15 +52,18 @@ Options parse_options(int argc, char** argv, Command* command)
             else if(*command == COMMAND_DELETE) delete_help();
             else if(*command == COMMAND_RELEASE) release_help();
             else if(*command == COMMAND_EXPORT) export_help();
+            else if(*command == COMMAND_GET) get_help();
             else help();
             exit(0);
         case ABBR_VERSION:
             printf("%s v%s\n", EXECUTABLE_NAME, VERSION);
             exit(0);
         case ABBR_STATUS:
-            if(is_number(optarg))
+            if(is_number(optarg)){
                 options.status = atoi(optarg);
-            else
+                if(options.status < 1 || options.status > 6) 
+                    PANIC("Status should be between 1 and 6");
+            } else
                 options.status = get_status(optarg);
             break;
         case ABBR_VERSION_MAJOR:
@@ -155,7 +158,12 @@ int main(int argc, char** argv)
     _Bool export = select_always_export(db);
     sqlite3_close(db);
 
-    if(export) {
+    if(
+        export &&
+        (command == COMMAND_RELEASE ||
+         command == COMMAND_ADD ||
+         command == COMMAND_DELETE)
+    ) {
         execute_command(COMMAND_EXPORT, options);
     }
 

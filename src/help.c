@@ -71,7 +71,7 @@ void set_help()
     PTNI("--config-dir <directory>           Specify the configuration file path");
     PTNI("--remote-repo <url>                Specify the url of the remote repo");
     PTNI("--always-export <value>            Specify whether to export the %s file", CHANGELOG_FILE); 
-    PTNI("                                   after every command (WARNING: Always means ALWAYS)");
+    PTNI("                                   after 'add', 'delete', 'release'");
     PTNI("      Where always_export is set to 1 for: 1, true, TRUE, True, yes, y, YES, Yes");
     PTNI("                          is set to 0 for every other value (even NULL)");
 }
@@ -86,6 +86,15 @@ void delete_help()
 {
     PTN("%sOPTIONS%s", BOLD, RESET);
     PTNI("-h --help                          Prints this message");
+}
+
+void get_help()
+{
+    PTN("%sUSAGE%s", BOLD, RESET);
+    PTNI("%s get {version | export | remote | config}", EXECUTABLE_NAME);
+    PTN("");
+    PTN("%sOPTIONS%s", BOLD, RESET);
+    PTNI("-h --help             Prints this message");
 }
 
 void export_help()
