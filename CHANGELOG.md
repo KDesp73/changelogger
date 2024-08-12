@@ -6,16 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
 - Test 8
 - Test 7
 - Test 6
 
 ## [0.0.2] - 2024-08-12
 
-- Test 5
+### Changed
+
 - Test 4
+### Fixed
+
+- Test 5
 
 ## [0.0.1] - 2024-08-12
+
+### Added
 
 - Test 3
 - Test 2

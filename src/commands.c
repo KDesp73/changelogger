@@ -5,6 +5,7 @@
 #include "help.h"
 #include "options.h"
 #include "extern/sqlite.h"
+#include "status.h"
 #include "templates.h"
 #include "version.h"
 #include <ctype.h>
@@ -152,8 +153,9 @@ void command_export(Options options)
     sqlite3* db;
     sqlite3_open(SQLITE_DB, &db);
     size_t count;
-    Entry* entries = select_entries_order_by(db, "version DESC, date DESC", &count);
+    Entry* entries = select_entries_order_by(db, "version DESC, status ASC, date DESC", &count);
     char* version = entries[0].version.full;
+    Status status = entries[0].status;
 
     for(size_t i = 0; i < count; ++i){
         if(i == 0 || !STREQ(version, entries[i].version.full)){
@@ -166,13 +168,23 @@ void command_export(Options options)
             }
             clib_str_append_ln(&buffer, "");
         }
+
+        if(i == 0 || status != entries[i].status){
+            clib_str_append_ln(&buffer, "");
+            clib_str_append_ln(&buffer, TEMPLATE_STATUS(entries[i].status));
+            clib_str_append_ln(&buffer, "");
+        }
+        
         clib_str_append_ln(&buffer, TEMPLATE_ENTRY(entries[i].message));
+
+        status = entries[i].status;
         version = entries[i].version.full;
     }
 
     clib_str_append_ln(&buffer, "");
     clib_str_append_ln(&buffer, "");
     clib_write_file(CHANGELOG_FILE, buffer, "w");
+    free(buffer);
     sqlite3_close(db);
 
     INFO("Export complete.");
