@@ -71,7 +71,7 @@ void set_help()
     PTNI("--config-dir <directory>           Specify the configuration file path");
     PTNI("--remote-repo <url>                Specify the url of the remote repo");
     PTNI("--always-export <value>            Specify whether to export the %s file", CHANGELOG_FILE); 
-    PTNI("                                   after 'add', 'delete', 'release'");
+    PTNI("                                   after 'add', 'delete'");
     PTNI("      Where always_export is set to 1 for: 1, true, TRUE, True, yes, y, YES, Yes");
     PTNI("                          is set to 0 for every other value (even NULL)");
 }

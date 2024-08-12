@@ -160,8 +160,7 @@ int main(int argc, char** argv)
 
     if(
         export &&
-        (command == COMMAND_RELEASE ||
-         command == COMMAND_ADD ||
+        (command == COMMAND_ADD ||
          command == COMMAND_DELETE)
     ) {
         execute_command(COMMAND_EXPORT, options);

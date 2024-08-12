@@ -148,6 +148,7 @@ void command_export(Options options)
     }
     char* version = entries[0].version.full;
     Status status = entries[0].status;
+    char* release_buffer = clib_buffer_init();
 
     for(size_t i = 0; i < count; ++i){
         if(i == 0 || !STREQ(version, entries[i].version.full)){
@@ -155,26 +156,41 @@ void command_export(Options options)
             if(STREQ(entries[i].version.full, "0.0.0")){
                 clib_str_append_ln(&buffer, TEMPLATE_UNRELEASED);
             } else {
+                release_buffer = clib_buffer_init();
                 char* condition = clib_format_text("version = '%s'", entries[i].version.full);
                 char* date_str = select_str(TABLE_RELEASES, RELEASES_DATE, condition);
                 free(condition);
                 Date date = parse_date(date_str);
-                clib_str_append_ln(&buffer, TEMPLATE_RELEASE(entries[i].version.full, date.date));
+                char* line = TEMPLATE_RELEASE(entries[i].version.full, date.date);
+
+                clib_str_append_ln(&buffer, line);
             }
-            clib_str_append_ln(&buffer, "");
+            clib_str_append_ln(&release_buffer, "");
         }
 
         if(i == 0 || status != entries[i].status){
             clib_str_append_ln(&buffer, "");
+            clib_str_append_ln(&release_buffer, "");
             clib_str_append_ln(&buffer, TEMPLATE_STATUS(entries[i].status));
+            clib_str_append_ln(&release_buffer, TEMPLATE_STATUS(entries[i].status));
             clib_str_append_ln(&buffer, "");
+            clib_str_append_ln(&release_buffer, "");
         }
         
         clib_str_append_ln(&buffer, TEMPLATE_ENTRY(entries[i].message));
+        if(!STREQ(entries[i].version.full, "0.0.0")) {
+            clib_str_append_ln(&release_buffer, TEMPLATE_ENTRY(entries[i].message));
+        }
 
         status = entries[i].status;
         version = entries[i].version.full;
+
+
+        char* file = clib_format_text("%s/%s.md", CHANGELOG_DIR, version);
+        clib_write_file(file, release_buffer, "w");
+        free(file);
     }
+    free(release_buffer);
 
     clib_str_append_ln(&buffer, "");
     clib_str_append_ln(&buffer, "");
@@ -253,7 +269,11 @@ void command_release(Options options)
     char* query = clib_format_text("UPDATE Entries SET version = '%s' WHERE version = 'unknown'", version);
     sqlite_execute_sql(SQLITE_DB, query);
 
-    // TODO: $ gh release create...
+    command_export(options);
+
+    char* gh_command = clib_format_text("gh release create v%s -F %s/%s.md -t v%s", version, CHANGELOG_DIR, version, version);
+    clib_execute_command(gh_command);
+    free(gh_command);
 }
 
 void command_list(Options options)
