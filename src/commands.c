@@ -18,9 +18,6 @@
 
 void command_init(Options options)
 {
-    if(!clib_file_exists(CHANGELOG_FILE)) {
-        clib_write_file(CHANGELOG_FILE, "# CHANGELOG\n\n\n", "w");
-    } else INFO("%s is located in this directory", CHANGELOG_FILE);
     if(!clib_directory_exists(CHANGELOG_DIR)) {
         clib_create_directory(CHANGELOG_DIR);
     } else INFO("%s/ is located in this directory", CHANGELOG_DIR);
@@ -142,6 +139,13 @@ void command_export(Options options)
     sqlite3_open(SQLITE_DB, &db);
     size_t count;
     Entry* entries = select_entries_order_by(db, "version DESC, status ASC, date DESC", &count);
+    if(entries == NULL) {
+        INFO("Nothing to export");
+        clib_write_file(CHANGELOG_FILE, buffer, "w");
+        free(buffer);
+        sqlite3_close(db);
+        exit(0);
+    }
     char* version = entries[0].version.full;
     Status status = entries[0].status;
 
