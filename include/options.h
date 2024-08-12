@@ -18,6 +18,7 @@ typedef enum {
     ABBR_VERSION_MINOR = 'm',
     ABBR_VERSION_PATCH = 'p',
     ABBR_YES = 'y',
+    ABBR_REMOTE_REPO = 'R',
 } ArgumentAbbr;
 
 typedef struct {
@@ -31,6 +32,7 @@ typedef struct {
     _Bool no;
     const char* new;
     _Bool always_export;
+    const char* remote_repo;
 } Options;
 
 int always_export_set(Options options);

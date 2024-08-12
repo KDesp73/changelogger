@@ -11,6 +11,7 @@
 #include <ctype.h>
 #define CLIB_IMPLEMENTATION
 #include "extern/clib.h"
+#include "utils.h"
 #include "commands.h"
 #include "extern/querybuilder.h"
 
@@ -36,22 +37,6 @@ void command_init(Options options)
         free(query);
     } else INFO("Config is already initialized");
     
-}
-
-// TODO: add to clib.h
-int is_blank(const char *str) {
-    if (str == NULL) {
-        return 1; // NULL is considered blank
-    }
-
-    while (*str) {
-        if (!isspace((unsigned char)*str)) {
-            return 0; // Found a non-whitespace character
-        }
-        str++; 
-    }
-
-    return 1; 
 }
 
 void command_add(Options options)
@@ -163,7 +148,10 @@ void command_export(Options options)
             if(STREQ(entries[i].version.full, "0.0.0")){
                 clib_str_append_ln(&buffer, TEMPLATE_UNRELEASED);
             } else {
-                Date date = parse_date(entries[i].date.full);
+                char* condition = clib_format_text("version = '%s'", entries[i].version.full);
+                char* date_str = select_str(TABLE_RELEASES, RELEASES_DATE, condition);
+                free(condition);
+                Date date = parse_date(date_str);
                 clib_str_append_ln(&buffer, TEMPLATE_RELEASE(entries[i].version.full, date.date));
             }
             clib_str_append_ln(&buffer, "");
@@ -272,6 +260,15 @@ void command_set(Options options)
     } else {
         if(options.config_path != NULL) // Only when it set blank by the user
             ERRO("Config path must not be blank");
+    }
+
+    if(!is_blank(options.remote_repo)) {
+        char* value = clib_format_text("'%s'", options.remote_repo);
+        update(TABLE_CONFIG, CONFIG_REMOTE_REPO, value, CONFIG_CONDITION);
+        free(value);
+    } else {
+        if(options.config_path != NULL) // Only when it set blank by the user
+            ERRO("Remote repo must not be blank");
     }
 }
 

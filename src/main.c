@@ -24,7 +24,7 @@ Options parse_options(int argc, char** argv, Command* command)
 
     // NOTE: The help fields are not set since 
     // the help message is written by hand
-    CliArguments args = clib_make_cli_arguments(14,  
+    CliArguments args = clib_make_cli_arguments(15,  
         clib_create_argument(ABBR_HELP, "help", "", no_argument),
         clib_create_argument(ABBR_VERSION, "version", "", no_argument),
         clib_create_argument(ABBR_STATUS, "status", "", required_argument),
@@ -38,6 +38,7 @@ Options parse_options(int argc, char** argv, Command* command)
         clib_create_argument(ABBR_NO, "no", "", no_argument),
         clib_create_argument(ABBR_YES, "yes", "", no_argument),
         clib_create_argument(ABBR_INDEX, "index", "", no_argument),
+        clib_create_argument(ABBR_REMOTE_REPO, "remote-repo", "", required_argument),
         clib_create_argument(ABBR_ALWAYS_EXPORT, "always-export", "", required_argument)
     );
 
@@ -107,6 +108,9 @@ Options parse_options(int argc, char** argv, Command* command)
             break;
         case ABBR_INDEX:
             options.index = true;
+            break;
+        case ABBR_REMOTE_REPO:
+            options.remote_repo = optarg;
             break;
         case ABBR_ALWAYS_EXPORT:
             if(

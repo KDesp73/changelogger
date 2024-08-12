@@ -119,3 +119,20 @@ void append_line(const char* file, const char* line, size_t index)
     free(lines); // Free the array of lines
     fclose(fp);
 }
+
+// TODO: add to clib.h
+int is_blank(const char *str) 
+{
+    if (str == NULL) {
+        return 1; // NULL is considered blank
+    }
+
+    while (*str) {
+        if (!isspace((unsigned char)*str)) {
+            return 0; // Found a non-whitespace character
+        }
+        str++; 
+    }
+
+    return 1; 
+}

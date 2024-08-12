@@ -259,6 +259,45 @@ Entry* select_entries_date_greater(sqlite3 *db, const char* date, size_t *count)
     return entries;
 }
 
+
+char* select_str(const char* table, const char* column, const char* condition) 
+{
+    sqlite3 *db;
+    sqlite3_stmt *stmt;
+    char *result = NULL;
+    char *sql;
+    int rc;
+
+    rc = sqlite3_open(SQLITE_DB, &db);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Cannot open database: %s\n", sqlite3_errmsg(db));
+        return NULL;
+    }
+
+    asprintf(&sql, "SELECT %s FROM %s WHERE %s;", column, table, condition);
+
+    rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db));
+        sqlite3_free(sql);
+        sqlite3_close(db);
+        return NULL;
+    }
+
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
+        const char *text = (const char *)sqlite3_column_text(stmt, 0);
+        if (text) {
+            result = strdup(text); // Duplicate the string to return
+        }
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_free(sql);
+    sqlite3_close(db);
+
+    return result; 
+}
+
 void update(const char* table, const char* column, const char* value, const char* condition)
 {
     query_builder_t* qb = create_query_builder();

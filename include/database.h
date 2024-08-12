@@ -8,7 +8,7 @@
 #define TABLE_ENTRIES "Entries"
 #define FIELDS_ENTRIES "message, status, version, date"
 #define TABLE_CONFIG "Config"
-#define FIELDS_CONFIG "config_path, version_major, version_minor, version_patch, always_export"
+#define FIELDS_CONFIG "config_path, version_major, version_minor, version_patch, always_export, remote_repo"
 #define TABLE_RELEASES "Releases"
 #define FIELDS_RELEASES "version, date"
 
@@ -22,6 +22,7 @@
 #define CONFIG_VERSION_PATCH "version_patch"
 #define CONFIG_CONFIG_PATH "config_path"
 #define CONFIG_ALWAYS_EXPORT "always_export"
+#define CONFIG_REMOTE_REPO "remote_repo"
 
 #define RELEASES_VERSION "version"
 #define RELEASES_TITLE "title"
@@ -44,6 +45,7 @@
 	"\"version_minor\"	INTEGER," \
 	"\"version_patch\"	INTEGER," \
 	"\"config_path\"	TEXT," \
+	"\"remote_repo\"	TEXT," \
 	"\"id\"	INTEGER DEFAULT 0 UNIQUE," \
 	"\"always_export\"	INTEGER," \
 	"PRIMARY KEY(\"id\" AUTOINCREMENT)" \
@@ -69,6 +71,7 @@ Entry* select_entries_status(sqlite3* db, Status status, size_t *count);
 Entry* select_entries_date_less(sqlite3* db, const char* date, size_t *count);
 Entry* select_entries_date_greater(sqlite3* db, const char* date, size_t *count);
 void update(const char* table, const char* column, const char* value, const char* condition); // One value;
+char* select_str(const char* table, const char* column, const char* condition);
 int config_exists();
 
 #endif // DATABASE_H

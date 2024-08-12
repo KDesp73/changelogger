@@ -69,6 +69,7 @@ void set_help()
     PTNI("--version-patch <patch>            Specify the value of the patch version");
     PTNI("--version-full <full-version>      Specify the value of the full version");
     PTNI("--config-dir <directory>           Specify the configuration file path");
+    PTNI("--remote-repo <url>                Specify the url of the remote repo");
     PTNI("--always-export <value>            Specify whether to export the %s file", CHANGELOG_FILE); 
     PTNI("                                   after every command (WARNING: Always means ALWAYS)");
     PTNI("      Where always_export is set to 1 for: 1, true, TRUE, True, yes, y, YES, Yes");

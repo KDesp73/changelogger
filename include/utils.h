@@ -4,5 +4,6 @@
 #include <stdio.h>
 int is_number(const char *str);
 void append_line(const char* file, const char* line, size_t index);
+int is_blank(const char *str);
 
 #endif // UTILS_H
