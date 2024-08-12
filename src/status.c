@@ -1,5 +1,5 @@
 #include "status.h"
-#include "clib.h"
+#include "extern/clib.h"
 #include <stdlib.h>
 
 char* status_to_string(Status status)

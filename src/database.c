@@ -1,8 +1,8 @@
 #include "database.h"
-#include "clib.h"
+#include "extern/clib.h"
 #include "config.h"
-#include "querybuilder.h"
-#include "sqlite.h"
+#include "extern/querybuilder.h"
+#include "extern/sqlite.h"
 #include "version.h"
 #include <stdlib.h>
 #include <string.h>
@@ -38,6 +38,23 @@ size_t select_version_minor(sqlite3 *db)
     }
     sqlite3_finalize(stmt);
     return minor;
+}
+
+_Bool select_always_export(sqlite3* db)
+{
+    sqlite_disable_logging(db);
+    const char *sql = "SELECT always_export FROM Config WHERE id = 1;";
+    sqlite3_stmt *stmt;
+    _Bool always_export = 0;
+
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) == SQLITE_OK) {
+        if (sqlite3_step(stmt) == SQLITE_ROW) {
+            always_export = sqlite3_column_int(stmt, 0);
+        }
+    }
+    sqlite3_finalize(stmt);
+    return always_export;
+    
 }
 
 // Function to select the patch version

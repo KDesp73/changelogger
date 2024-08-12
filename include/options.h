@@ -5,6 +5,7 @@
 
 typedef enum {
     ABBR_ALL = 'A',
+    ABBR_ALWAYS_EXPORT = 'E',
     ABBR_CONFIG_PATH = 'c',
     ABBR_HELP = 'h',
     ABBR_INDEX = 'I',
@@ -29,8 +30,10 @@ typedef struct {
     _Bool yes;
     _Bool no;
     const char* new;
+    _Bool always_export;
 } Options;
 
+int always_export_set(Options options);
 int version_full_set(Options options);
 int version_major_set(Options options);
 int version_minor_set(Options options);

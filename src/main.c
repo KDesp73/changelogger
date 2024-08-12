@@ -1,6 +1,7 @@
 #include "commands.h"
 #include "config.h"
-#include "sqlite.h"
+#include "database.h"
+#include "extern/sqlite.h"
 #include "utils.h"
 #include "help.h"
 #include "options.h"
@@ -9,7 +10,7 @@
 #include <stdio.h>
 
 #define CLIB_IMPLEMENTATION
-#include "clib.h"
+#include "extern/clib.h"
 
 Options parse_options(int argc, char** argv, Command* command) 
 {
@@ -22,7 +23,7 @@ Options parse_options(int argc, char** argv, Command* command)
 
     // NOTE: The help fields are not set since 
     // the help message is written by hand
-    CliArguments args = clib_make_cli_arguments(13,  
+    CliArguments args = clib_make_cli_arguments(14,  
         clib_create_argument(ABBR_HELP, "help", "", no_argument),
         clib_create_argument(ABBR_VERSION, "version", "", no_argument),
         clib_create_argument(ABBR_STATUS, "status", "", required_argument),
@@ -35,7 +36,8 @@ Options parse_options(int argc, char** argv, Command* command)
         clib_create_argument(ABBR_NEW, "new", "", required_argument),
         clib_create_argument(ABBR_NO, "no", "", no_argument),
         clib_create_argument(ABBR_YES, "yes", "", no_argument),
-        clib_create_argument(ABBR_INDEX, "index", "", no_argument)
+        clib_create_argument(ABBR_INDEX, "index", "", no_argument),
+        clib_create_argument(ABBR_ALWAYS_EXPORT, "always-export", "", required_argument)
     );
 
     int opt;
@@ -106,6 +108,19 @@ Options parse_options(int argc, char** argv, Command* command)
         case ABBR_INDEX:
             options.index = true;
             break;
+        case ABBR_ALWAYS_EXPORT:
+            if(
+                STREQ(optarg, "1") ||
+                STREQ(optarg, "true") ||
+                STREQ(optarg, "TRUE") ||
+                STREQ(optarg, "True") ||
+                STREQ(optarg, "yes") ||
+                STREQ(optarg, "y") ||
+                STREQ(optarg, "YES") ||
+                STREQ(optarg, "Yes")
+            ) options.always_export = true;
+            else options.always_export = false;
+            break;
         default:
             exit(1);
         }
@@ -128,8 +143,17 @@ int main(int argc, char** argv)
 {
     Command command;
     Options options = parse_options(argc, argv, &command);
-    // log_options(options);
+
     execute_command(command, options);
+
+    sqlite3* db;
+    sqlite3_open(SQLITE_DB, &db);
+    _Bool export = select_always_export(db);
+    sqlite3_close(db);
+
+    if(export) {
+        execute_command(COMMAND_EXPORT, options);
+    }
 
     return 0;
 }

@@ -1,7 +1,7 @@
 #include "help.h"
 #include "config.h"
 #define CLIB_IMPLEMENTATION
-#include "clib.h"
+#include "extern/clib.h"
 #include <stdio.h>
 
 #define PTN(format, ...) \
@@ -68,7 +68,11 @@ void set_help()
     PTNI("--version-minor <minor>            Specify the value of the minor version");
     PTNI("--version-patch <patch>            Specify the value of the patch version");
     PTNI("--version-full <full-version>      Specify the value of the full version");
-    PTNI("--config-dir <directory>           Specify the configuration file path"); // Not implemented
+    PTNI("--config-dir <directory>           Specify the configuration file path");
+    PTNI("--always-export <value>            Specify whether to export the %s file", CHANGELOG_FILE); 
+    PTNI("                                   after every command (WARNING: Always means ALWAYS)");
+    PTNI("      Where always_export is set to 1 for: 1, true, TRUE, True, yes, y, YES, Yes");
+    PTNI("                          is set to 0 for every other value (even NULL)");
 }
 
 void list_help()

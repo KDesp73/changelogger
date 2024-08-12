@@ -8,7 +8,7 @@
 #define TABLE_ENTRIES "Entries"
 #define FIELDS_ENTRIES "message, status, version, date"
 #define TABLE_CONFIG "Config"
-#define FIELDS_CONFIG "config_path, version_major, version_minor, version_patch"
+#define FIELDS_CONFIG "config_path, version_major, version_minor, version_patch, always_export"
 #define TABLE_RELEASES "Releases"
 #define FIELDS_RELEASES "version, date"
 
@@ -21,6 +21,7 @@
 #define CONFIG_VERSION_MINOR "version_minor"
 #define CONFIG_VERSION_PATCH "version_patch"
 #define CONFIG_CONFIG_PATH "config_path"
+#define CONFIG_ALWAYS_EXPORT "always_export"
 
 #define RELEASES_VERSION "version"
 #define RELEASES_TITLE "title"
@@ -44,6 +45,7 @@
 	"\"version_patch\"	INTEGER," \
 	"\"config_path\"	TEXT," \
 	"\"id\"	INTEGER DEFAULT 0 UNIQUE," \
+	"\"always_export\"	INTEGER," \
 	"PRIMARY KEY(\"id\" AUTOINCREMENT)" \
 ");" \
 "CREATE TABLE IF NOT EXISTS \"Releases\" (" \
@@ -58,6 +60,7 @@ char* select_version_full(sqlite3* db);
 size_t select_version_major(sqlite3* db);
 size_t select_version_minor(sqlite3* db);
 size_t select_version_patch(sqlite3* db);
+_Bool select_always_export(sqlite3* db);
 char* select_config_path(sqlite3* db);
 Entry* select_entries_version(sqlite3* db, size_t *count);
 Entry* select_entries_status(sqlite3* db, Status status, size_t *count);

@@ -3,13 +3,13 @@
 #include "date.h"
 #include "help.h"
 #include "options.h"
-#include "sqlite.h"
+#include "extern/sqlite.h"
 #include "version.h"
 #include <ctype.h>
 #define CLIB_IMPLEMENTATION
-#include "clib.h"
+#include "extern/clib.h"
 #include "commands.h"
-#include "querybuilder.h"
+#include "extern/querybuilder.h"
 
 void command_init(Options options)
 {
@@ -211,6 +211,12 @@ void command_set(Options options)
 
         value = clib_format_text("%zu", options.version.patch);
         update(TABLE_CONFIG, CONFIG_VERSION_PATCH, value, CONFIG_CONDITION);
+        free(value);
+    }
+
+    if(always_export_set(options)){
+        char* value = clib_format_text("%d", options.always_export);
+        update(TABLE_CONFIG, CONFIG_ALWAYS_EXPORT, value, CONFIG_CONDITION);
         free(value);
     }
 
