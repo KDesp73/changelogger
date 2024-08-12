@@ -6,6 +6,11 @@ SRC_DIR = src
 INCLUDE_DIR = include
 BUILD_DIR = build
 
+ifdef SANITIZE
+	CFLAGS += -fsanitize=address,undefined
+	LDFLAGS += -fsanitize=address,undefined
+endif
+
 # List all the source files
 SRC_FILES = $(wildcard $(SRC_DIR)/*.c)
 
