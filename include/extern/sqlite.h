@@ -1,7 +1,6 @@
 #ifndef SQLITE_H
 #define SQLITE_H
 
-#include "config.h"
 #include "database.h"
 #include <stdio.h>
 #include <sqlite3.h>
