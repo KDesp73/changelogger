@@ -7,5 +7,6 @@ void set_help();
 void list_help();
 void delete_help();
 void release_help();
+void export_help();
 
 #endif // HELP_H

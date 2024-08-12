@@ -4,7 +4,6 @@
 #include "help.h"
 #include "options.h"
 #include "sqlite.h"
-#include "status.h"
 #include "version.h"
 #include <ctype.h>
 #define CLIB_IMPLEMENTATION
@@ -12,10 +11,10 @@
 #include "commands.h"
 #include "querybuilder.h"
 
-void command_init()
+void command_init(Options options)
 {
     if(!clib_file_exists(CHANGELOG_FILE)) {
-        clib_write_file(CHANGELOG_FILE, "# CHANGELOG\n", "w");
+        clib_write_file(CHANGELOG_FILE, "# CHANGELOG\n\n\n", "w");
     } else INFO("%s is located in this directory", CHANGELOG_FILE);
     if(!clib_directory_exists(CHANGELOG_DIR)) {
         clib_create_directory(CHANGELOG_DIR);
@@ -28,7 +27,7 @@ void command_init()
         query_builder_t* qb = create_query_builder();
         insert_q(qb, TABLE_CONFIG);
         columns_q(qb, "config_path, version_major, version_minor, version_patch");
-        values_q(qb, "'', 0, 0, 1"); // "Starting with version 0.0.1"
+        values_q(qb, "'', 0, 0, 0"); // "Starting with version 0.0.0"
         char* query = build_query(qb);
         sqlite_execute_sql(SQLITE_DB, query);
         free(query);
@@ -61,19 +60,14 @@ void command_add(Options options)
     if(is_blank(message))
         PANIC("Message cannot be empty or blank");
     
-    sqlite3* db;
-    sqlite3_open(SQLITE_DB, &db);
-    char* version = select_version_full(db);
-    sqlite3_close(db);
-
-    query_builder_t* qb = create_query_builder();
 
     Date date;
     get_date(&date);
 
+    query_builder_t* qb = create_query_builder();
     insert_q(qb, TABLE_ENTRIES);
     columns_q(qb, "message, status, version, date");
-    char* values = clib_format_text("'%s', %d, '%s', '%s'", message, options.status, version, date.full);
+    char* values = clib_format_text("'%s', %d, '%s', '%s'", message, options.status, "unknown", date.full);
     values_q(qb, values);
     char* query = build_query(qb);
     sqlite_execute_sql(SQLITE_DB, query);
@@ -86,17 +80,16 @@ void command_delete(Options options)
     INFO("delete");
 }
 
-void update_config_version(const char* release_type)
+char* update_config_version(const char* release_type)
 {
+    sqlite3* db;
+    sqlite3_open(SQLITE_DB, &db);
     if(STREQ(release_type, "major")){
         // Reset minor and patch versions
         update(TABLE_CONFIG, CONFIG_VERSION_MINOR, "0", CONFIG_CONDITION);
         update(TABLE_CONFIG, CONFIG_VERSION_PATCH, "0", CONFIG_CONDITION);
 
-        sqlite3* db;
-        sqlite3_open(SQLITE_DB, &db);
         size_t major = select_version_major(db);
-        sqlite3_close(db);
         char* major_inc = clib_format_text("%zu", major+1);
         update(TABLE_CONFIG, CONFIG_VERSION_MAJOR, major_inc, CONFIG_CONDITION);
         free(major_inc);
@@ -106,38 +99,38 @@ void update_config_version(const char* release_type)
         // Reset patch version
         update(TABLE_CONFIG, CONFIG_VERSION_PATCH, "0", CONFIG_CONDITION);
 
-        sqlite3* db;
-        sqlite3_open(SQLITE_DB, &db);
         size_t minor = select_version_minor(db);
-        sqlite3_close(db);
         char* minor_inc = clib_format_text("%zu", minor+1);
         update(TABLE_CONFIG, CONFIG_VERSION_MINOR, minor_inc, CONFIG_CONDITION);
         free(minor_inc);
     }
 
     if(STREQ(release_type, "patch")) {
-        sqlite3* db;
-        sqlite3_open(SQLITE_DB, &db);
         size_t patch = select_version_patch(db);
-        sqlite3_close(db);
         char* patch_inc = clib_format_text("%zu", patch+1);
         update(TABLE_CONFIG, CONFIG_VERSION_PATCH, patch_inc, CONFIG_CONDITION);
         free(patch_inc);
     }
+
+    char* version = select_version_full(db);
+    sqlite3_close(db);
+    return version;
 }
 
-void insert_release(const char* title)
+void insert_release()
 {
     sqlite3* db;
     sqlite3_open(SQLITE_DB, &db);
     char* version = select_version_full(db);
     sqlite3_close(db);
 
+    Date date;
+    get_date(&date);
 
     query_builder_t* qb = create_query_builder();
     insert_q(qb, TABLE_RELEASES);
     columns_q(qb, FIELDS_RELEASES);
-    char* values = clib_format_text("'%s', '%s'", version, title);
+    char* values = clib_format_text("'%s', '%s'", version, date.full);
     values_q(qb, values);
     char* query = build_query(qb);
     
@@ -147,13 +140,20 @@ void insert_release(const char* title)
     free(values);
 }
 
+void command_export(Options options)
+{
+    INFO("Exporting %s...", CHANGELOG_FILE);
+}
+
+void command_get(Options options)
+{
+
+}
 
 void command_release(Options options)
 {
-    const char* title = options.argv[options.argc-1];
-    
     if(options.new == NULL) {
-        ERRO("Options other than --new are not implemented or accepted");
+        ERRO("Options other than '--new' are not implemented or accepted");
         return;
     }
 
@@ -167,12 +167,12 @@ void command_release(Options options)
         PANIC("Release type '%s' should be 'major', 'minor' or 'patch'. Try %s release -h", release_type, EXECUTABLE_NAME);
     }
 
-    if(is_blank(title) || STREQ(title, command_to_string(COMMAND_RELEASE))){
-        PANIC("title should not be blank");
-    }
+    char* version = update_config_version(release_type);
+    insert_release();
+    char* query = clib_format_text("UPDATE Entries SET version = '%s' WHERE version = 'unknown'", version);
+    sqlite_execute_sql(SQLITE_DB, query);
 
-    update_config_version(release_type);
-    insert_release(title);
+    // TODO: $ gh release create...
 }
 
 void command_list(Options options)
@@ -231,6 +231,7 @@ Command get_command(char* command)
     else if(STREQ(command, command_to_string(c))) return c;
 
     if(command == NULL) return COMMAND_UNSET;
+    COMPARE_AND_RETURN_COMMAND(COMMAND_EXPORT)
     COMPARE_AND_RETURN_COMMAND(COMMAND_ADD)
     COMPARE_AND_RETURN_COMMAND(COMMAND_GET)
     COMPARE_AND_RETURN_COMMAND(COMMAND_INIT)
@@ -246,33 +247,37 @@ Command get_command(char* command)
 void execute_command(Command command, Options options)
 {
     switch (command) {
-        case COMMAND_INIT:
-            command_init();
-            return;
-        case COMMAND_UNKNOWN:
-            ERRO("Unknown command: %s", options.argv[1]);
-            return;
-        case COMMAND_UNSET:
-            ERRO("Command not found");
-            break;
-        case COMMAND_ADD:
-            command_add(options);
-            return;
-        case COMMAND_SET:
-            command_set(options);
-            return;
-        case COMMAND_LIST:
-            command_list(options);
-            return;
-        case COMMAND_DELETE:
-            command_delete(options);
-            return;
-        case COMMAND_RELEASE:
-            command_release(options);
-            return;
-        case COMMAND_GET:
-          break;
-        }
+    case COMMAND_UNKNOWN:
+        ERRO("Unknown command: %s", options.argv[1]);
+        break;
+    case COMMAND_UNSET:
+        ERRO("Command not found");
+        break;
+    case COMMAND_INIT:
+        command_init(options);
+        return;
+    case COMMAND_ADD:
+        command_add(options);
+        return;
+    case COMMAND_SET:
+        command_set(options);
+        return;
+    case COMMAND_LIST:
+        command_list(options);
+        return;
+    case COMMAND_DELETE:
+        command_delete(options);
+        return;
+    case COMMAND_RELEASE:
+        command_release(options);
+        return;
+    case COMMAND_EXPORT:
+        command_export(options);
+        return;
+    case COMMAND_GET:
+        command_get(options);
+        break;
+    }
 
     help();
 }
@@ -298,6 +303,8 @@ char* command_to_string(Command command)
         return "release";
     case COMMAND_GET:
         return "get";
+    case COMMAND_EXPORT:
+        return "export";
     }
 
     return "";

@@ -10,7 +10,7 @@
 #define TABLE_CONFIG "Config"
 #define FIELDS_CONFIG "config_path, version_major, version_minor, version_patch"
 #define TABLE_RELEASES "Releases"
-#define FIELDS_RELEASES "version, title"
+#define FIELDS_RELEASES "version, date"
 
 #define ENTRIES_MESSAGE "message"
 #define ENTRIES_VERSION "version"
@@ -24,17 +24,18 @@
 
 #define RELEASES_VERSION "version"
 #define RELEASES_TITLE "title"
+#define RELEASES_DATE "date"
 
 #define CONFIG_CONDITION "id = 1"
 
 #define GENERATION_QUERY \
 "BEGIN TRANSACTION;" \
 "CREATE TABLE IF NOT EXISTS \"Entries\" (" \
-	"\"status\"	INTEGER," \
-	"\"version\"	TEXT," \
-	"\"message\"	TEXT," \
+	"\"status\"	INTEGER NOT NULL," \
+	"\"version\"	TEXT NOT NULL," \
+	"\"message\"	TEXT NOT NULL," \
 	"\"id\"	INTEGER NOT NULL UNIQUE," \
-	"\"date\"	TEXT," \
+	"\"date\"	TEXT NOT NULL," \
 	"PRIMARY KEY(\"id\" AUTOINCREMENT)" \
 ");" \
 "CREATE TABLE IF NOT EXISTS \"Config\" (" \
@@ -47,8 +48,8 @@
 ");" \
 "CREATE TABLE IF NOT EXISTS \"Releases\" (" \
 	"\"version\"	TEXT NOT NULL UNIQUE," \
-	"\"title\"	TEXT NOT NULL," \
 	"\"id\"	INTEGER NOT NULL UNIQUE," \
+    "\"date\" TEXT NOT NULL," \
 	"PRIMARY KEY(\"id\" AUTOINCREMENT)" \
 ");" \
 "COMMIT;"

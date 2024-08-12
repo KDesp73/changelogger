@@ -17,7 +17,7 @@ Options parse_options(int argc, char** argv, Command* command)
     options.argc = argc;
     options.argv = argv;
     options.version.full = NULL;
-    options.status = STATUS_NONE;
+    options.status = STATUS_ADDED;
     *command = get_command(argv[1]);
 
     // NOTE: The help fields are not set since 
@@ -47,6 +47,7 @@ Options parse_options(int argc, char** argv, Command* command)
             else if(*command == COMMAND_LIST) list_help();
             else if(*command == COMMAND_DELETE) delete_help();
             else if(*command == COMMAND_RELEASE) release_help();
+            else if(*command == COMMAND_EXPORT) export_help();
             else help();
             exit(0);
         case ABBR_VERSION:

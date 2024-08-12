@@ -1,4 +1,7 @@
 #include <ctype.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 int is_number(const char *str) 
 {
@@ -28,4 +31,91 @@ int is_number(const char *str)
     }
 
     return has_digits; 
+}
+void append_line(const char* file, const char* line, size_t index)
+{
+    FILE *fp = fopen(file, "r");
+    if (fp == NULL) {
+        perror("Failed to open file for reading");
+        return;
+    }
+
+    // Read existing lines into a dynamic array
+    char **lines = NULL;
+    size_t line_count = 0;
+    size_t capacity = 10;
+
+    lines = malloc(capacity * sizeof(char*));
+    if (lines == NULL) {
+        perror("Failed to allocate memory");
+        fclose(fp);
+        return;
+    }
+
+    char buffer[1024];
+    while (fgets(buffer, sizeof(buffer), fp)) {
+        // Remove newline character if present
+        buffer[strcspn(buffer, "\n")] = 0;
+
+        // Resize if necessary
+        if (line_count >= capacity) {
+            capacity *= 2;
+            lines = realloc(lines, capacity * sizeof(char*));
+            if (lines == NULL) {
+                perror("Failed to reallocate memory");
+                fclose(fp);
+                return;
+            }
+        }
+
+        // Allocate memory for the line and copy it
+        lines[line_count] = strdup(buffer);
+        if (lines[line_count] == NULL) {
+            perror("Failed to duplicate string");
+            fclose(fp);
+            return;
+        }
+        line_count++;
+    }
+    fclose(fp);
+
+    // Insert the new line at the specified index
+    if (index > line_count) {
+        index = line_count; // Append to the end if index is out of bounds
+    }
+
+    // Resize the array to accommodate the new line
+    lines = realloc(lines, (line_count + 1) * sizeof(char*));
+    if (lines == NULL) {
+        perror("Failed to reallocate memory");
+        return;
+    }
+
+    // Shift lines to make space for the new line
+    for (size_t i = line_count; i > index; i--) {
+        lines[i] = lines[i - 1];
+    }
+
+    // Insert the new line
+    lines[index] = strdup(line);
+    if (lines[index] == NULL) {
+        perror("Failed to duplicate string");
+        return;
+    }
+    line_count++;
+
+    // Write the updated lines back to the file
+    fp = fopen(file, "w");
+    if (fp == NULL) {
+        perror("Failed to open file for writing");
+        return;
+    }
+
+    for (size_t i = 0; i < line_count; i++) {
+        fprintf(fp, "%s\n", lines[i]);
+        free(lines[i]); // Free each line after writing
+    }
+
+    free(lines); // Free the array of lines
+    fclose(fp);
 }

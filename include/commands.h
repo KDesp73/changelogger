@@ -12,16 +12,19 @@ typedef enum {
     COMMAND_GET,
     COMMAND_DELETE,
     COMMAND_RELEASE,
+    COMMAND_EXPORT,
 } Command;
 
 void execute_command(Command command, Options options);
 Command get_command(char* command);
-void command_init();
+void command_init(Options options);
 void command_add(Options options);
 void command_set(Options options);
 void command_list(Options options);
 void command_delete(Options options);
 void command_release(Options options);
+void command_export(Options options);
+void command_get(Options options);
 char* command_to_string(Command command);
 
 #endif // COMMANDS_H

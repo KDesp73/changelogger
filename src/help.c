@@ -24,32 +24,36 @@ void help()
     PTN("");
 
     PTN("%sCOMMANDS%s", BOLD, RESET);
-    PTNI("init                       Initializes the changelog");
-    PTNI("list [<options>]           Lists all entries");
-    PTNI("add <msg> [<options>]      Adds an entry");
-    PTNI("set <options>              Sets a variable");     
-    PTNI("get <options>              Returns a variable");
-    PTNI("delete <options>           Deletes one or more entries");
-    PTNI("release <options>          Creates a new release");
+    PTNI("init                          Initializes the changelog");
+    PTNI("list [<options>]              Lists all entries");
+    PTNI("add <msg> [<options>]         Adds an entry");
+    PTNI("set <options>                 Sets a variable");     
+    PTNI("get <options>                 Returns a variable");
+    PTNI("delete <options>              Deletes one or more entries");
+    PTNI("release <options>             Creates a new release");
+    PTNI("export [<options>]            Exports the CHANGELOG.md file")
+
     PTN("");
+
     PTN("%sOPTIONS%s", BOLD, RESET);
-    PTNI("-h --help                  Prints this message");
-    PTNI("-v --version               Prints the project version");
+    PTNI("-h --help                     Prints this message");
+    PTNI("-v --version                  Prints the project version");
 
     PTN("");
     PTN("Made by KDesp73");
+    PTN("Check out https://keepachangelog.com/en/1.0.0/ for more information on changelogs");
 }
 
 void add_help()
 {
     PTN("%sOPTIONS%s", BOLD, RESET);
-    PTNI("-h --help                  Prints this message");
-    PTNI("-s --status <status>       Specify the status of the entry");
-    PTNI("            STATUS_CHANGED = 1 or 'changed'");
-    PTNI("            STATUS_ADDED = 2 or 'added'");
-    PTNI("            STATUS_DEPRECATED = 3 or 'deprecated'");
-    PTNI("            STATUS_REMOVED = 4 or 'removed'");
-    PTNI("            STATUS_FIXED = 5 or 'fixed'"); 
+    PTNI("-h --help                     Prints this message");
+    PTNI("-s --status <status>          Specify the status of the entry (default is 'added')");
+    PTNI("            STATUS_ADDED = 1 or 'added'");
+    PTNI("            STATUS_CHANGED = 2 or 'changed'");
+    PTNI("            STATUS_REMOVED = 3 or 'removed'");
+    PTNI("            STATUS_FIXED = 4 or 'fixed'"); 
+    PTNI("            STATUS_DEPRECATED = 5 or 'deprecated'");
     PTNI("            STATUS_SECURITY = 6 or 'security'");
 }
 
@@ -79,14 +83,19 @@ void delete_help()
     PTNI("-h --help                          Prints this message");
 }
 
+void export_help()
+{
+    PTN("%sOPTIONS%s", BOLD, RESET);
+    PTNI("-h --help                          Prints this message");
+}
+
 void release_help()
 {
     PTN("%sUSAGE%s", BOLD, RESET);
-    PTNI("%s release --new {major | minor | patch} <title>", EXECUTABLE_NAME);
+    PTNI("%s release --new {major | minor | patch}", EXECUTABLE_NAME);
     PTN("");
     PTN("%sOPTIONS%s", BOLD, RESET);
     PTNI("-h --help             Prints this message");
     PTNI("-N --new              Creates a new release");
-
 }
 

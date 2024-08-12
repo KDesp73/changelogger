@@ -4,3 +4,4 @@ compile_commands.json
 *.o
 changelogger
 .changelog
+clean_dir.sh
