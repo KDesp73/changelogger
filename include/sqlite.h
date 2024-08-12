@@ -1,8 +1,11 @@
 #ifndef SQLITE_H
 #define SQLITE_H
 
+#include "config.h"
+#include "database.h"
 #include <stdio.h>
 #include <sqlite3.h>
+#include <stdlib.h>
 
 #ifndef SQLITEAPI
     #define SQLITEAPI static
@@ -13,6 +16,17 @@
 SQLITEAPI int sqlite_create_database(const char *db_name);
 SQLITEAPI int sqlite_execute_sql(const char *db_name, const char *sql);
 SQLITEAPI int sqlite_query_data(const char *db_name, const char *sql, int (*callback)(void*, int, char**, char**));
+SQLITEAPI void sqlite_disable_logging(sqlite3* db);
+
+SQLITEAPI void sqlite_disable_logging(sqlite3* db)
+{
+    int rc = sqlite3_db_config(db, SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION, 0, NULL);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Failed to disable load extension for db: %s\n", sqlite3_errmsg(db));
+        sqlite3_close(db);
+        exit(1);
+    }
+}
 
 SQLITEAPI int sqlite_create_database(const char *db_name) 
 {
@@ -40,6 +54,7 @@ SQLITEAPI int sqlite_execute_sql(const char *db_name, const char *sql)
         fprintf(stderr, "Cannot open database: %s\n", sqlite3_errmsg(db));
         return rc;
     }
+    sqlite_disable_logging(db);
 
     // Execute SQL statement
     rc = sqlite3_exec(db, sql, 0, 0, &err_msg);
@@ -65,6 +80,7 @@ SQLITEAPI int sqlite_query_data(const char *db_name, const char *sql, int (*call
         fprintf(stderr, "Cannot open database: %s\n", sqlite3_errmsg(db));
         return rc;
     }
+    sqlite_disable_logging(db);
 
     // Execute SQL statement
     rc = sqlite3_exec(db, sql, callback, 0, &err_msg);

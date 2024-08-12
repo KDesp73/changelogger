@@ -1,4 +1,5 @@
 #include "help.h"
+#include "config.h"
 #define CLIB_IMPLEMENTATION
 #include "clib.h"
 #include <stdio.h>
@@ -27,6 +28,7 @@ void help()
     PTNI("list [<options>]           Lists all entries");
     PTNI("add <msg> [<options>]      Adds an entry");
     PTNI("set <options>              Sets a variable");     
+    PTNI("get <options>              Returns a variable");
     PTNI("delete <options>           Deletes one or more entries");
     PTNI("release <options>          Creates a new release");
     PTN("");
@@ -53,6 +55,9 @@ void add_help()
 
 void set_help()
 {
+    PTN("%sUSAGE%s", BOLD, RESET);
+    PTNI("%s set <option> <value>", EXECUTABLE_NAME);
+    PTN("");
     PTN("%sVARIABLES%s", BOLD, RESET);
     PTNI("-h --help                          Prints this message");
     PTNI("--version-major <major>            Specify the value of the major version");
@@ -76,7 +81,12 @@ void delete_help()
 
 void release_help()
 {
+    PTN("%sUSAGE%s", BOLD, RESET);
+    PTNI("%s release --new {major | minor | patch} <title>", EXECUTABLE_NAME);
+    PTN("");
     PTN("%sOPTIONS%s", BOLD, RESET);
-    PTNI("-h --help                          Prints this message");
+    PTNI("-h --help             Prints this message");
+    PTNI("-N --new              Creates a new release");
+
 }
 

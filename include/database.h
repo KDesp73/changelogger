@@ -2,13 +2,15 @@
 #define DATABASE_H
 
 #include "entry.h"
-#include "sqlite.h"
+#include <sqlite3.h>
 #include <stdio.h>
 
 #define TABLE_ENTRIES "Entries"
-#define TABLE_CONFIG "Config"
 #define FIELDS_ENTRIES "message, status, version, date"
+#define TABLE_CONFIG "Config"
 #define FIELDS_CONFIG "config_path, version_major, version_minor, version_patch"
+#define TABLE_RELEASES "Releases"
+#define FIELDS_RELEASES "version, title"
 
 #define ENTRIES_MESSAGE "message"
 #define ENTRIES_VERSION "version"
@@ -19,6 +21,11 @@
 #define CONFIG_VERSION_MINOR "version_minor"
 #define CONFIG_VERSION_PATCH "version_patch"
 #define CONFIG_CONFIG_PATH "config_path"
+
+#define RELEASES_VERSION "version"
+#define RELEASES_TITLE "title"
+
+#define CONFIG_CONDITION "id = 1"
 
 #define GENERATION_QUERY \
 "BEGIN TRANSACTION;" \
@@ -38,6 +45,12 @@
 	"\"id\"	INTEGER DEFAULT 0 UNIQUE," \
 	"PRIMARY KEY(\"id\" AUTOINCREMENT)" \
 ");" \
+"CREATE TABLE IF NOT EXISTS \"Releases\" (" \
+	"\"version\"	TEXT NOT NULL UNIQUE," \
+	"\"title\"	TEXT NOT NULL," \
+	"\"id\"	INTEGER NOT NULL UNIQUE," \
+	"PRIMARY KEY(\"id\" AUTOINCREMENT)" \
+");" \
 "COMMIT;"
 
 char* select_version_full(sqlite3* db);
@@ -49,7 +62,7 @@ Entry* select_entries_version(sqlite3* db, size_t *count);
 Entry* select_entries_status(sqlite3* db, Status status, size_t *count);
 Entry* select_entries_date_less(sqlite3* db, const char* date, size_t *count);
 Entry* select_entries_date_greater(sqlite3* db, const char* date, size_t *count);
-void update(const char* table, const char* column, const char* value, const char* condition);
+void update(const char* table, const char* column, const char* value, const char* condition); // One value;
 int config_exists();
 
 #endif // DATABASE_H

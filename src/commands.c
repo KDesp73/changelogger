@@ -28,7 +28,7 @@ void command_init()
         query_builder_t* qb = create_query_builder();
         insert_q(qb, TABLE_CONFIG);
         columns_q(qb, "config_path, version_major, version_minor, version_patch");
-        values_q(qb, "'', 0, 0, 0");
+        values_q(qb, "'', 0, 0, 1"); // "Starting with version 0.0.1"
         char* query = build_query(qb);
         sqlite_execute_sql(SQLITE_DB, query);
         free(query);
@@ -60,8 +60,6 @@ void command_add(Options options)
         PANIC("Message is not specified. Try: `%s add \"Your message\"`", EXECUTABLE_NAME);
     if(is_blank(message))
         PANIC("Message cannot be empty or blank");
-    INFO("message: %s", message);
-
     
     sqlite3* db;
     sqlite3_open(SQLITE_DB, &db);
@@ -79,9 +77,102 @@ void command_add(Options options)
     values_q(qb, values);
     char* query = build_query(qb);
     sqlite_execute_sql(SQLITE_DB, query);
-    INFO("query: %s", query);
     free(values);
     free(query);
+}
+
+void command_delete(Options options)
+{
+    INFO("delete");
+}
+
+void update_config_version(const char* release_type)
+{
+    if(STREQ(release_type, "major")){
+        // Reset minor and patch versions
+        update(TABLE_CONFIG, CONFIG_VERSION_MINOR, "0", CONFIG_CONDITION);
+        update(TABLE_CONFIG, CONFIG_VERSION_PATCH, "0", CONFIG_CONDITION);
+
+        sqlite3* db;
+        sqlite3_open(SQLITE_DB, &db);
+        size_t major = select_version_major(db);
+        sqlite3_close(db);
+        char* major_inc = clib_format_text("%zu", major+1);
+        update(TABLE_CONFIG, CONFIG_VERSION_MAJOR, major_inc, CONFIG_CONDITION);
+        free(major_inc);
+    }
+
+    if(STREQ(release_type, "minor")) {
+        // Reset patch version
+        update(TABLE_CONFIG, CONFIG_VERSION_PATCH, "0", CONFIG_CONDITION);
+
+        sqlite3* db;
+        sqlite3_open(SQLITE_DB, &db);
+        size_t minor = select_version_minor(db);
+        sqlite3_close(db);
+        char* minor_inc = clib_format_text("%zu", minor+1);
+        update(TABLE_CONFIG, CONFIG_VERSION_MINOR, minor_inc, CONFIG_CONDITION);
+        free(minor_inc);
+    }
+
+    if(STREQ(release_type, "patch")) {
+        sqlite3* db;
+        sqlite3_open(SQLITE_DB, &db);
+        size_t patch = select_version_patch(db);
+        sqlite3_close(db);
+        char* patch_inc = clib_format_text("%zu", patch+1);
+        update(TABLE_CONFIG, CONFIG_VERSION_PATCH, patch_inc, CONFIG_CONDITION);
+        free(patch_inc);
+    }
+}
+
+void insert_release(const char* title)
+{
+    sqlite3* db;
+    sqlite3_open(SQLITE_DB, &db);
+    char* version = select_version_full(db);
+    sqlite3_close(db);
+
+
+    query_builder_t* qb = create_query_builder();
+    insert_q(qb, TABLE_RELEASES);
+    columns_q(qb, FIELDS_RELEASES);
+    char* values = clib_format_text("'%s', '%s'", version, title);
+    values_q(qb, values);
+    char* query = build_query(qb);
+    
+    sqlite_execute_sql(SQLITE_DB, query);
+
+    free(query);
+    free(values);
+}
+
+
+void command_release(Options options)
+{
+    const char* title = options.argv[options.argc-1];
+    
+    if(options.new == NULL) {
+        ERRO("Options other than --new are not implemented or accepted");
+        return;
+    }
+
+    const char* release_type = options.new;
+
+    if(
+        !STREQ(release_type, "major") &&
+        !STREQ(release_type, "minor") &&
+        !STREQ(release_type, "patch")
+    ){
+        PANIC("Release type '%s' should be 'major', 'minor' or 'patch'. Try %s release -h", release_type, EXECUTABLE_NAME);
+    }
+
+    if(is_blank(title) || STREQ(title, command_to_string(COMMAND_RELEASE))){
+        PANIC("title should not be blank");
+    }
+
+    update_config_version(release_type);
+    insert_release(title);
 }
 
 void command_list(Options options)
@@ -91,43 +182,41 @@ void command_list(Options options)
 
 void command_set(Options options)
 {
-    const char* condition = "id = 1";
-
     if(version_major_set(options)){
         char* value = clib_format_text("%zu", options.version.major);
-        update(TABLE_CONFIG, CONFIG_VERSION_MAJOR, value, condition);
+        update(TABLE_CONFIG, CONFIG_VERSION_MAJOR, value, CONFIG_CONDITION);
         free(value);
     }
 
     if(version_minor_set(options)){
         char* value = clib_format_text("%zu", options.version.minor);
-        update(TABLE_CONFIG, CONFIG_VERSION_MINOR, value, condition);
+        update(TABLE_CONFIG, CONFIG_VERSION_MINOR, value, CONFIG_CONDITION);
         free(value);
     }
 
     if(version_patch_set(options)){
         char* value = clib_format_text("%zu", options.version.patch);
-        update(TABLE_CONFIG, CONFIG_VERSION_PATCH, value, condition);
+        update(TABLE_CONFIG, CONFIG_VERSION_PATCH, value, CONFIG_CONDITION);
         free(value);
     }
 
     if(version_full_set(options)){
         char* value = clib_format_text("%zu", options.version.major);
-        update(TABLE_CONFIG, CONFIG_VERSION_MAJOR, value, condition);
+        update(TABLE_CONFIG, CONFIG_VERSION_MAJOR, value, CONFIG_CONDITION);
         free(value);
 
         value = clib_format_text("%zu", options.version.minor);
-        update(TABLE_CONFIG, CONFIG_VERSION_MINOR, value, condition);
+        update(TABLE_CONFIG, CONFIG_VERSION_MINOR, value, CONFIG_CONDITION);
         free(value);
 
         value = clib_format_text("%zu", options.version.patch);
-        update(TABLE_CONFIG, CONFIG_VERSION_PATCH, value, condition);
+        update(TABLE_CONFIG, CONFIG_VERSION_PATCH, value, CONFIG_CONDITION);
         free(value);
     }
 
     if(!is_blank(options.config_path)){
         char* value = clib_format_text("'%s'", options.config_path);
-        update(TABLE_CONFIG, CONFIG_CONFIG_PATH, value, condition);
+        update(TABLE_CONFIG, CONFIG_CONFIG_PATH, value, CONFIG_CONDITION);
         free(value);
     } else {
         if(options.config_path != NULL) // Only when it set blank by the user
@@ -143,6 +232,7 @@ Command get_command(char* command)
 
     if(command == NULL) return COMMAND_UNSET;
     COMPARE_AND_RETURN_COMMAND(COMMAND_ADD)
+    COMPARE_AND_RETURN_COMMAND(COMMAND_GET)
     COMPARE_AND_RETURN_COMMAND(COMMAND_INIT)
     COMPARE_AND_RETURN_COMMAND(COMMAND_SET)
     COMPARE_AND_RETURN_COMMAND(COMMAND_LIST)
@@ -175,8 +265,12 @@ void execute_command(Command command, Options options)
             command_list(options);
             return;
         case COMMAND_DELETE:
+            command_delete(options);
+            return;
         case COMMAND_RELEASE:
-            PANIC("Not implemented yet.");
+            command_release(options);
+            return;
+        case COMMAND_GET:
           break;
         }
 
@@ -202,7 +296,8 @@ char* command_to_string(Command command)
         return "delete";
     case COMMAND_RELEASE:
         return "release";
-      break;
+    case COMMAND_GET:
+        return "get";
     }
 
     return "";

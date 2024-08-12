@@ -4,17 +4,18 @@
 #include "version.h"
 
 typedef enum {
+    ABBR_ALL = 'A',
+    ABBR_CONFIG_PATH = 'c',
     ABBR_HELP = 'h',
-    ABBR_VERSION = 'v',
+    ABBR_INDEX = 'I',
+    ABBR_NEW = 'N',
+    ABBR_NO = 'n',
     ABBR_STATUS = 's',
+    ABBR_VERSION = 'v',
+    ABBR_VERSION_FULL = 'V',
     ABBR_VERSION_MAJOR = 'M',
     ABBR_VERSION_MINOR = 'm',
     ABBR_VERSION_PATCH = 'p',
-    ABBR_VERSION_FULL = 'V',
-    ABBR_CONFIG_PATH = 'c',
-    ABBR_ALL = 'A',
-    ABBR_NEW = 'N',
-    ABBR_NO = 'n',
     ABBR_YES = 'y',
 } ArgumentAbbr;
 
@@ -24,6 +25,10 @@ typedef struct {
     Status status;
     Version version;
     const char* config_path;
+    _Bool index;
+    _Bool yes;
+    _Bool no;
+    const char* new;
 } Options;
 
 int version_full_set(Options options);

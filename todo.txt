@@ -3,6 +3,7 @@ TODO: fix usage in help message
 TODO: list command
 TODO: delete command
 TODO: release command
+TODO: disable sqlite logging
 DONE: add methods to clib.h
 DONE: make sqlite.h a proper library
 DONE: make querybuilder.h a proper library

@@ -9,6 +9,7 @@ typedef enum {
     COMMAND_ADD,
     COMMAND_LIST,
     COMMAND_SET,
+    COMMAND_GET,
     COMMAND_DELETE,
     COMMAND_RELEASE,
 } Command;
@@ -19,6 +20,8 @@ void command_init();
 void command_add(Options options);
 void command_set(Options options);
 void command_list(Options options);
+void command_delete(Options options);
+void command_release(Options options);
 char* command_to_string(Command command);
 
 #endif // COMMANDS_H

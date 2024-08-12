@@ -1,5 +1,5 @@
 CC = cc
-CFLAGS = -Wall -Iinclude -ggdb
+CFLAGS = -Wall -Iinclude -ggdb -DDEBUG
 LDFLAGS = -lsqlite3
 
 SRC_DIR = src

@@ -9,6 +9,7 @@
 
 size_t select_version_major(sqlite3 *db)
 {
+    sqlite_disable_logging(db);
     const char *sql = "SELECT version_major FROM Config WHERE id = 1;";
     sqlite3_stmt *stmt;
     size_t major = 0;
@@ -25,6 +26,7 @@ size_t select_version_major(sqlite3 *db)
 // Function to select the minor version
 size_t select_version_minor(sqlite3 *db)
 {
+    sqlite_disable_logging(db);
     const char *sql = "SELECT version_minor FROM Config WHERE id = 1;";
     sqlite3_stmt *stmt;
     size_t minor = 0;
@@ -41,6 +43,7 @@ size_t select_version_minor(sqlite3 *db)
 // Function to select the patch version
 size_t select_version_patch(sqlite3 *db)
 {
+    sqlite_disable_logging(db);
     const char *sql = "SELECT version_patch FROM Config WHERE id = 1;";
     sqlite3_stmt *stmt;
     size_t patch = 0;
@@ -66,7 +69,9 @@ char* select_version_full(sqlite3* db)
 }
 
 // Function to select the config path
-char* select_config_path(sqlite3 *db) {
+char* select_config_path(sqlite3 *db)
+{
+    sqlite_disable_logging(db);
     const char *sql = "SELECT config_path FROM Config WHERE id = 0;";
     sqlite3_stmt *stmt;
     char *config_path = NULL;
@@ -82,7 +87,9 @@ char* select_config_path(sqlite3 *db) {
 }
 
 // Function to select entries by version
-Entry* select_entries_version(sqlite3 *db, size_t *count) {
+Entry* select_entries_version(sqlite3 *db, size_t *count)
+{
+    sqlite_disable_logging(db);
     const char *sql = "SELECT version_major, version_minor, version_patch, message FROM Entries;";
     sqlite3_stmt *stmt;
     Entry *entries = NULL;
@@ -104,7 +111,9 @@ Entry* select_entries_version(sqlite3 *db, size_t *count) {
 }
 
 // Function to select entries by status
-Entry* select_entries_status(sqlite3 *db, Status status, size_t *count) {
+Entry* select_entries_status(sqlite3 *db, Status status, size_t *count)
+{
+    sqlite_disable_logging(db);
     const char *sql = "SELECT version_major, version_minor, version_patch, message FROM Entries WHERE status = ?;";
     sqlite3_stmt *stmt;
     Entry *entries = NULL;
@@ -127,7 +136,9 @@ Entry* select_entries_status(sqlite3 *db, Status status, size_t *count) {
 }
 
 // Function to select entries with date less than a given date
-Entry* select_entries_date_less(sqlite3 *db, const char* date, size_t *count) {
+Entry* select_entries_date_less(sqlite3 *db, const char* date, size_t *count)
+{
+    sqlite_disable_logging(db);
     const char *sql = "SELECT version_major, version_minor, version_patch, message FROM Entries WHERE date < ?;";
     sqlite3_stmt *stmt;
     Entry *entries = NULL;
@@ -150,7 +161,9 @@ Entry* select_entries_date_less(sqlite3 *db, const char* date, size_t *count) {
 }
 
 // Function to select entries with date greater than a given date
-Entry* select_entries_date_greater(sqlite3 *db, const char* date, size_t *count) {
+Entry* select_entries_date_greater(sqlite3 *db, const char* date, size_t *count) 
+{
+    sqlite_disable_logging(db);
     const char *sql = "SELECT version_major, version_minor, version_patch, message FROM Entries WHERE date > ?;";
     sqlite3_stmt *stmt;
     Entry *entries = NULL;
@@ -192,6 +205,7 @@ int config_exists() {
         fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
         return -1;
     }
+    sqlite_disable_logging(db);
 
     const char *sql = "SELECT COUNT(*) FROM Config WHERE id = 1;";
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {

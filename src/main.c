@@ -1,5 +1,6 @@
 #include "commands.h"
 #include "config.h"
+#include "sqlite.h"
 #include "utils.h"
 #include "help.h"
 #include "options.h"
@@ -16,12 +17,12 @@ Options parse_options(int argc, char** argv, Command* command)
     options.argc = argc;
     options.argv = argv;
     options.version.full = NULL;
-    options.status = STATUS_UNSET;
+    options.status = STATUS_NONE;
     *command = get_command(argv[1]);
 
     // NOTE: The help fields are not set since 
     // the help message is written by hand
-    CliArguments args = clib_make_cli_arguments(12,  
+    CliArguments args = clib_make_cli_arguments(13,  
         clib_create_argument(ABBR_HELP, "help", "", no_argument),
         clib_create_argument(ABBR_VERSION, "version", "", no_argument),
         clib_create_argument(ABBR_STATUS, "status", "", required_argument),
@@ -31,9 +32,10 @@ Options parse_options(int argc, char** argv, Command* command)
         clib_create_argument(ABBR_VERSION_FULL, "version-full", "", required_argument),
         clib_create_argument(ABBR_CONFIG_PATH, "config-path", "", required_argument),
         clib_create_argument(ABBR_ALL, "all", "", no_argument),
-        clib_create_argument(ABBR_NEW, "new", "", no_argument),
+        clib_create_argument(ABBR_NEW, "new", "", required_argument),
         clib_create_argument(ABBR_NO, "no", "", no_argument),
-        clib_create_argument(ABBR_YES, "yes", "", no_argument)
+        clib_create_argument(ABBR_YES, "yes", "", no_argument),
+        clib_create_argument(ABBR_INDEX, "index", "", no_argument)
     );
 
     int opt;
@@ -90,6 +92,18 @@ Options parse_options(int argc, char** argv, Command* command)
             if(*command != COMMAND_SET) PANIC("--config-path can only be used with `set`");
 
             options.config_path = optarg;
+            break;
+        case ABBR_NO:
+            options.no = true;
+            break;
+        case ABBR_YES:
+            options.yes = true;
+            break;
+        case ABBR_NEW:
+            options.new = optarg;
+            break;
+        case ABBR_INDEX:
+            options.index = true;
             break;
         default:
             exit(1);
