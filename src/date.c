@@ -71,8 +71,8 @@ Date parse_date(const char* date_str) {
     date.date = (char *)malloc(11); // Format: YYYY-MM-DD
     date.time = (char *)malloc(9);  // Format: HH:MM:SS
 
-    snprintf(date.date, 11, "%zu-%zu-%zu", date.year, date.month, date.day);
-    snprintf(date.time, 9, "%zu:%zu:%zu", date.hours, date.minutes, date.seconds);
+    snprintf(date.date, 11, "%zu-%02zu-%02zu", date.year, date.month, date.day);
+    snprintf(date.time, 9, "%02zu:%02zu:%02zu", date.hours, date.minutes, date.seconds);
 
     return date;
 }

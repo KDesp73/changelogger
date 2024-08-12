@@ -1,4 +1,5 @@
 #include "database.h"
+#define CLIB_IMPLEMENTATION
 #include "extern/clib.h"
 #include "config.h"
 #include "extern/querybuilder.h"
@@ -103,11 +104,11 @@ char* select_config_path(sqlite3 *db)
     return config_path;
 }
 
-// Function to select entries by version
-Entry* select_entries_version(sqlite3 *db, size_t *count)
+
+Entry* select_entries_order_by(sqlite3* db, const char* column, size_t *count)
 {
     sqlite_disable_logging(db);
-    const char *sql = "SELECT version_major, version_minor, version_patch, message FROM Entries;";
+    char *sql = clib_format_text("SELECT * FROM Entries ORDER BY %s;", column);
     sqlite3_stmt *stmt;
     Entry *entries = NULL;
     size_t entry_count = 0;
@@ -115,13 +116,69 @@ Entry* select_entries_version(sqlite3 *db, size_t *count)
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) == SQLITE_OK) {
         while (sqlite3_step(stmt) == SQLITE_ROW) {
             entries = realloc(entries, sizeof(Entry) * (entry_count + 1));
-            entries[entry_count].version.major = sqlite3_column_int(stmt, 0);
-            entries[entry_count].version.minor = sqlite3_column_int(stmt, 1);
-            entries[entry_count].version.patch = sqlite3_column_int(stmt, 2);
-            entries[entry_count].message = strdup((const char *)sqlite3_column_text(stmt, 3));
+            entries[entry_count].status = sqlite3_column_int(stmt, 0);
+            entries[entry_count].version.full = strdup((char*) sqlite3_column_text(stmt, 1));
+            entries[entry_count].message = strdup((const char *)sqlite3_column_text(stmt, 2));
+            entries[entry_count].date.full = strdup((char*) sqlite3_column_text(stmt, 4));
+
+            parse_version(&entries[entry_count].version);
             entry_count++;
         }
     }
+    sqlite3_finalize(stmt);
+    *count = entry_count;
+
+    free(sql);
+    return entries;
+}
+
+Entry* select_entries(sqlite3* db, size_t *count)
+{
+    sqlite_disable_logging(db);
+    const char *sql = "SELECT * FROM Entries;";
+    sqlite3_stmt *stmt;
+    Entry *entries = NULL;
+    size_t entry_count = 0;
+
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) == SQLITE_OK) {
+        while (sqlite3_step(stmt) == SQLITE_ROW) {
+            entries = realloc(entries, sizeof(Entry) * (entry_count + 1));
+            entries[entry_count].status = sqlite3_column_int(stmt, 0);
+            entries[entry_count].version.full = strdup((char*) sqlite3_column_text(stmt, 1));
+            entries[entry_count].message = strdup((const char *)sqlite3_column_text(stmt, 2));
+            entries[entry_count].date.full = strdup((char*) sqlite3_column_text(stmt, 4));
+
+            parse_version(&entries[entry_count].version);
+            entry_count++;
+        }
+    }
+    sqlite3_finalize(stmt);
+    *count = entry_count;
+    return entries;
+}
+
+// Function to select entries by version
+Entry* select_entries_version(sqlite3* db, const char* version, size_t *count)
+{
+    sqlite_disable_logging(db);
+    char *sql = clib_format_text("SELECT * FROM Entries WHERE version = %s;", version);
+    sqlite3_stmt *stmt;
+    Entry *entries = NULL;
+    size_t entry_count = 0;
+
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) == SQLITE_OK) {
+        while (sqlite3_step(stmt) == SQLITE_ROW) {
+            entries = realloc(entries, sizeof(Entry) * (entry_count + 1));
+            entries[entry_count].status = sqlite3_column_int(stmt, 0);
+            entries[entry_count].version.full = strdup((char*) sqlite3_column_text(stmt, 1));
+            entries[entry_count].message = strdup((const char *)sqlite3_column_text(stmt, 2));
+            entries[entry_count].date.full = strdup((char*) sqlite3_column_text(stmt, 4));
+
+            parse_version(&entries[entry_count].version);
+            entry_count++;
+        }
+    }
+    free(sql);
     sqlite3_finalize(stmt);
     *count = entry_count;
     return entries;

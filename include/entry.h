@@ -13,4 +13,6 @@ typedef struct {
     char* message;
 } Entry;
 
+void log_entry(Entry e);
+
 #endif // ENTRY_H

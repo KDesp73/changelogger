@@ -28,6 +28,8 @@ void parse_version(Version* version)
 
     token = strtok_r(rest, ".", &rest);
     version->patch = (token != NULL) ? atoi(token) : 0;
+
+    make_version(version);
 }
 
 void free_version(Version* v)

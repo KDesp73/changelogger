@@ -1,9 +1,11 @@
 #include "config.h"
 #include "database.h"
 #include "date.h"
+#include "entry.h"
 #include "help.h"
 #include "options.h"
 #include "extern/sqlite.h"
+#include "templates.h"
 #include "version.h"
 #include <ctype.h>
 #define CLIB_IMPLEMENTATION
@@ -143,6 +145,37 @@ void insert_release()
 void command_export(Options options)
 {
     INFO("Exporting %s...", CHANGELOG_FILE);
+    char* buffer = clib_buffer_init();
+    clib_str_append_ln(&buffer, TEMPLATE_HEADER);
+    clib_str_append_ln(&buffer, TEMPLATE_NOTE);
+    
+    sqlite3* db;
+    sqlite3_open(SQLITE_DB, &db);
+    size_t count;
+    Entry* entries = select_entries_order_by(db, "version DESC, date DESC", &count);
+    char* version = entries[0].version.full;
+
+    for(size_t i = 0; i < count; ++i){
+        if(i == 0 || !STREQ(version, entries[i].version.full)){
+            clib_str_append_ln(&buffer, "");
+            if(STREQ(entries[i].version.full, "0.0.0")){
+                clib_str_append_ln(&buffer, TEMPLATE_UNRELEASED);
+            } else {
+                Date date = parse_date(entries[i].date.full);
+                clib_str_append_ln(&buffer, TEMPLATE_RELEASE(entries[i].version.full, date.date));
+            }
+            clib_str_append_ln(&buffer, "");
+        }
+        clib_str_append_ln(&buffer, TEMPLATE_ENTRY(entries[i].message));
+        version = entries[i].version.full;
+    }
+
+    clib_str_append_ln(&buffer, "");
+    clib_str_append_ln(&buffer, "");
+    clib_write_file(CHANGELOG_FILE, buffer, "w");
+    sqlite3_close(db);
+
+    INFO("Export complete.");
 }
 
 void command_get(Options options)

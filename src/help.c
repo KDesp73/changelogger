@@ -20,7 +20,7 @@
 void help()
 {
     PTN("%sUSAGE%s", BOLD, RESET);
-    PTNI("changelogger [-h | -v] %sTODO%s", COLOR_BG(1), RESET); // TODO: update
+    PTNI("changelogger <command> <options> <value>");
     PTN("");
 
     PTN("%sCOMMANDS%s", BOLD, RESET);
@@ -41,7 +41,7 @@ void help()
 
     PTN("");
     PTN("Made by KDesp73");
-    PTN("Check out https://keepachangelog.com/en/1.0.0/ for more information on changelogs");
+    PTN("Check out https://keepachangelog.com/en/1.1.0/ for more information on changelogs");
 }
 
 void add_help()

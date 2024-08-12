@@ -18,8 +18,11 @@ char* status_to_string(Status status)
     case STATUS_SECURITY:
         return "security";
     case STATUS_UNSET:
+        return "unset";
     case STATUS_UNKNOWN:
+        return "unknown";
     case STATUS_NONE:
+        return "none";
     default:
         break;
     }

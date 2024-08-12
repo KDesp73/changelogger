@@ -1,6 +1,7 @@
 #include "commands.h"
 #include "config.h"
 #include "database.h"
+#include "date.h"
 #include "extern/sqlite.h"
 #include "utils.h"
 #include "help.h"
@@ -89,7 +90,6 @@ Options parse_options(int argc, char** argv, Command* command)
 
             options.version.full = optarg;
             parse_version(&options.version);
-            make_version(&options.version);
             break;
         case ABBR_CONFIG_PATH:
             if(*command != COMMAND_SET) PANIC("--config-path can only be used with `set`");
