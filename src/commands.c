@@ -171,6 +171,19 @@ void command_export(Options options)
 
     clib_str_append_ln(&buffer, "");
     clib_str_append_ln(&buffer, "");
+    
+    char* url = select_str(TABLE_CONFIG, CONFIG_REMOTE_REPO, CONFIG_CONDITION);
+    if(url != NULL){
+        size_t versions_count;
+        char** versions = select_releases_version(db, &versions_count);
+        for(size_t i = 0; i < versions_count; ++i){
+            char* release_url = clib_format_text("%s/releases/tag/v%s", url, versions[i]);
+            clib_str_append_ln(&buffer, TEMPLATE_RELEASE_LINK(versions[i], release_url));
+            free(release_url);
+        }
+        clib_str_append_ln(&buffer, "");
+    }
+
     clib_write_file(CHANGELOG_FILE, buffer, "w");
     free(buffer);
     sqlite3_close(db);

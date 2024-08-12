@@ -64,6 +64,7 @@ size_t select_version_minor(sqlite3* db);
 size_t select_version_patch(sqlite3* db);
 _Bool select_always_export(sqlite3* db);
 char* select_config_path(sqlite3* db);
+char** select_releases_version(sqlite3* db, size_t* count);
 Entry* select_entries_order_by(sqlite3* db, const char* order_by, size_t *count);
 Entry* select_entries(sqlite3* db, size_t *count);
 Entry* select_entries_version(sqlite3* db, const char* version, size_t *count);

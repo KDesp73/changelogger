@@ -337,3 +337,84 @@ int config_exists() {
 
     return exists;
 }
+
+char** select_releases_version(sqlite3* db, size_t* count) {
+    sqlite3_stmt *stmt;
+    char **versions = NULL;
+    int rc;
+    int capacity = 10;
+    *count = 0; // Initialize count to 0
+
+    const char *sql = "SELECT version FROM releases;";
+
+    // Prepare the SQL statement
+    rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db));
+        return NULL;
+    }
+
+    // Allocate initial memory for the versions array
+    versions = malloc(capacity * sizeof(char*));
+    if (versions == NULL) {
+        fprintf(stderr, "Failed to allocate memory for versions array.\n");
+        sqlite3_finalize(stmt);
+        return NULL;
+    }
+
+    // Execute the statement and fetch the results
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        const char *version = (const char *)sqlite3_column_text(stmt, 0);
+        if (version) {
+            // Resize the array if necessary
+            if (*count >= capacity) {
+                capacity *= 2;
+                char **temp = realloc(versions, capacity * sizeof(char*));
+                if (temp == NULL) {
+                    fprintf(stderr, "Failed to reallocate memory for versions array.\n");
+                    // Free previously allocated versions
+                    for (size_t i = 0; i < *count; i++) {
+                        free(versions[i]);
+                    }
+                    free(versions);
+                    sqlite3_finalize(stmt);
+                    return NULL;
+                }
+                versions = temp;
+            }
+            // Duplicate the version string and store it in the array
+            versions[*count] = strdup(version);
+            if (versions[*count] == NULL) {
+                fprintf(stderr, "Failed to duplicate version string.\n");
+                // Free previously allocated versions
+                for (size_t i = 0; i < *count; i++) {
+                    free(versions[i]);
+                }
+                free(versions);
+                sqlite3_finalize(stmt);
+                return NULL;
+            }
+            (*count)++; // Increment the count correctly
+        }
+    }
+
+    // Finalize the statement
+    sqlite3_finalize(stmt);
+
+    // Resize the array to the actual number of versions found
+    char **temp = realloc(versions, (*count + 1) * sizeof(char*)); // +1 for NULL terminator
+    if (temp == NULL) {
+        fprintf(stderr, "Failed to reallocate memory for versions array.\n");
+        // Free previously allocated versions
+        for (size_t i = 0; i < *count; i++) {
+            free(versions[i]);
+        }
+        free(versions);
+        return NULL;
+    }
+    versions = temp;
+    versions[*count] = NULL; // NULL-terminate the array
+
+    return versions; // Caller is responsible for freeing the array and its contents
+}
+
