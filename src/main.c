@@ -13,6 +13,38 @@
 #define CLIB_IMPLEMENTATION
 #include "extern/clib.h"
 
+void help_message(Command command)
+{
+    switch (command) {
+        case COMMAND_UNSET:
+        case COMMAND_UNKNOWN:
+        case COMMAND_INIT:
+            help();
+            break;
+        case COMMAND_ADD:
+            add_help();
+            break;
+        case COMMAND_LIST:
+            list_help();
+            break;
+        case COMMAND_SET:
+            set_help();
+            break;
+        case COMMAND_GET:
+            get_help();
+            break;
+        case COMMAND_DELETE:
+            delete_help();
+            break;
+        case COMMAND_RELEASE:
+            release_help();
+            break;
+        case COMMAND_EXPORT:
+            export_help();
+            break;
+    }
+}
+
 Options parse_options(int argc, char** argv, Command* command) 
 {
     Options options = {0};
@@ -46,14 +78,7 @@ Options parse_options(int argc, char** argv, Command* command)
     LOOP_ARGS(opt, args){
         switch (opt) {
         case ABBR_HELP:
-            if(*command == COMMAND_SET) set_help();
-            else if(*command == COMMAND_ADD) add_help();
-            else if(*command == COMMAND_LIST) list_help();
-            else if(*command == COMMAND_DELETE) delete_help();
-            else if(*command == COMMAND_RELEASE) release_help();
-            else if(*command == COMMAND_EXPORT) export_help();
-            else if(*command == COMMAND_GET) get_help();
-            else help();
+            help_message(*command);
             exit(0);
         case ABBR_VERSION:
             printf("%s v%s\n", EXECUTABLE_NAME, VERSION);
