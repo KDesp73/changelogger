@@ -11,8 +11,7 @@ if [ "$1" == "clean" ]; then
 fi
 
 install_exe() {
-    sudo cp "./$1" "/usr/bin/$1"
-    if [ $? -ne 0 ]; then
+    if ! sudo cp "./$1" "/usr/bin/$1"; then
         echo "[ERRO] Failed to copy the executable to /usr/bin/"
         exit 1
     fi
