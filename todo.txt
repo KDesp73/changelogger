@@ -4,6 +4,8 @@ TODO: delete command
 TODO: disable sqlite logging
 TODO: resolve memory leaks
 TODO: parse CHANGELOG.md into the database
+TODO: use existing releases to populate the changelog
+TODO: edit command
 DONE: add methods to clib.h
 DONE: make sqlite.h a proper library
 DONE: make querybuilder.h a proper library
