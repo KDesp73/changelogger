@@ -16,11 +16,6 @@
 void help_message(Command command)
 {
     switch (command) {
-        case COMMAND_UNSET:
-        case COMMAND_UNKNOWN:
-        case COMMAND_INIT:
-            help();
-            break;
         case COMMAND_ADD:
             add_help();
             break;
@@ -42,6 +37,15 @@ void help_message(Command command)
         case COMMAND_EXPORT:
             export_help();
             break;
+        case COMMAND_EDIT:
+            edit_help();
+            break;
+        case COMMAND_UNSET:
+        case COMMAND_UNKNOWN:
+        case COMMAND_INIT:
+        default:
+            help();
+            break;
     }
 }
 
@@ -56,7 +60,7 @@ Options parse_options(int argc, char** argv, Command* command)
 
     // NOTE: The help fields are not set since 
     // the help message is written by hand
-    CliArguments args = clib_make_cli_arguments(11,
+    CliArguments args = clib_make_cli_arguments(12,
         clib_create_argument(ABBR_HELP, "help", "", no_argument),
         clib_create_argument(ABBR_VERSION, "version", "", no_argument),
         clib_create_argument(ABBR_STATUS, "status", "", required_argument),
@@ -67,7 +71,8 @@ Options parse_options(int argc, char** argv, Command* command)
         clib_create_argument(ABBR_NO, "no", "", no_argument),
         clib_create_argument(ABBR_YES, "yes", "", no_argument),
         clib_create_argument(ABBR_INDEX, "index", "", no_argument),
-        clib_create_argument(ABBR_ALWAYS_EXPORT, "always-export", "", required_argument)
+        clib_create_argument(ABBR_ALWAYS_EXPORT, "always-export", "", required_argument),
+        clib_create_argument(ABBR_VERSION_FULL, "version-full", "", required_argument)
     );
 
     int opt;
@@ -86,6 +91,15 @@ Options parse_options(int argc, char** argv, Command* command)
                     PANIC("Status should be between 1 and 6");
             } else
                 options.status = get_status(optarg);
+            break;
+        case ABBR_VERSION_FULL:
+            if(
+                *command != COMMAND_LIST
+            ) PANIC("--version-full can only be used with `list`");
+            if(!STREQ(optarg, VERSION_UNRELEASED) && !is_valid_version(optarg)) PANIC("Version '%s' is not valid", optarg);
+
+            options.version.full = optarg;
+            parse_version(&options.version);
             break;
         case ABBR_CONFIG_PATH:
             if(*command != COMMAND_SET) PANIC("--config-path can only be used with `set`");

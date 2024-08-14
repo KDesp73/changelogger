@@ -13,6 +13,7 @@ typedef enum {
     ABBR_NO = 'n',
     ABBR_STATUS = 's',
     ABBR_VERSION = 'v',
+    ABBR_VERSION_FULL = 'V',
     ABBR_YES = 'y',
     ABBR_REMOTE_REPO = 'R',
 } ArgumentAbbr;
@@ -33,9 +34,7 @@ typedef struct {
 
 int always_export_set(Options options);
 int version_full_set(Options options);
-int version_major_set(Options options);
-int version_minor_set(Options options);
-int version_patch_set(Options options);
+int status_set(Options options);
 void log_options(Options options);
 
 #endif // OPTIONS_H

@@ -24,14 +24,14 @@ $ changelogger init
 $ changelogger add "Message" --status fixed
 
 # Set variables
-$ changelogger set --version-major 3
+$ changelogger set --remote-repo https://github.com/KDesp73/changelogger
 
 # Get variables
 $ changelogger get {version | remote | config | export}
 
 
 # List all entries
-$ changelogger list --all # default and not needed
+$ changelogger list # lists every entry
 $ changelogger list -V "0.0.3"
 $ changelogger list -s added
 

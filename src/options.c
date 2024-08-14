@@ -28,3 +28,28 @@ int always_export_set(Options options)
     return false;
 }
 
+int status_set(Options options)
+{
+    char* option = clib_format_text("-%c", ABBR_STATUS);
+    for(size_t i = 0; i < options.argc; ++i){
+        if(
+            STREQ(options.argv[i], "--status") ||
+            STREQ(options.argv[i], option)
+        ) return true;
+    }
+    free(option);
+    return false;
+}
+
+int version_full_set(Options options)
+{
+    char* option = clib_format_text("-%c", ABBR_VERSION_FULL);
+    for(size_t i = 0; i < options.argc; ++i){
+        if(
+            STREQ(options.argv[i], "--version-full") ||
+            STREQ(options.argv[i], option)
+        ) return true;
+    }
+    free(option);
+    return false;
+}

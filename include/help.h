@@ -9,5 +9,6 @@ void delete_help();
 void release_help();
 void export_help();
 void get_help();
+void edit_help();
 
 #endif // HELP_H

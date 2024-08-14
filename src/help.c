@@ -29,9 +29,10 @@ void help()
     PTNI("add <msg> [<options>]         Adds an entry");
     PTNI("set <options>                 Sets a variable");     
     PTNI("get <options>                 Returns a variable");
-    PTNI("delete <options>              Deletes one or more entries");
+    PTNI("delete <options>              Delete any of the unreleased entries");
     PTNI("release <options>             Creates a new release");
     PTNI("export [<options>]            Exports the CHANGELOG.md file")
+    PTNI("edit <options>                Edit any of the unreleased entries");
 
     PTN("");
 
@@ -74,12 +75,20 @@ void set_help()
 
 void list_help()
 {
+    PTN("%sUSAGE%s", BOLD, RESET);
+    PTNI("%s list <option> <value>", EXECUTABLE_NAME);
+    PTN("");
     PTN("%sOPTIONS%s", BOLD, RESET);
-    PTNI("-h --help                          Prints this message");
+    PTNI("-h --help                     Prints this message");
+    PTNI("-V --version-full <value>     Set the version to filter the list");
+    PTNI("-s --status <value>           Set the status to filter the list")
 }
 
 void delete_help()
 {
+    PTN("%sUSAGE%s", BOLD, RESET);
+    PTNI("%s list ", EXECUTABLE_NAME);
+    PTN("");
     PTN("%sOPTIONS%s", BOLD, RESET);
     PTNI("-h --help                          Prints this message");
 }
@@ -109,3 +118,11 @@ void release_help()
     PTNI("-N --new              Creates a new release");
 }
 
+void edit_help()
+{
+    PTN("%sUSAGE%s", BOLD, RESET);
+    PTNI("%s edit <options>", EXECUTABLE_NAME);
+    PTN("");
+    PTN("%sOPTIONS%s", BOLD, RESET);
+    PTNI("-h --help             Prints this message");
+}

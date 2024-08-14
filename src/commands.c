@@ -53,7 +53,7 @@ void command_add(Options options)
     query_builder_t* qb = create_query_builder();
     insert_q(qb, TABLE_ENTRIES);
     columns_q(qb, "message, status, version, date");
-    char* values = clib_format_text("'%s', %d, '%s', '%s'", message, options.status, "unknown", date.full);
+    char* values = clib_format_text("'%s', %d, '%s', '%s'", message, options.status, VERSION_UNRELEASED, date.full);
     values_q(qb, values);
     char* query = build_query(qb);
     sqlite_execute_sql(SQLITE_DB, query);
@@ -215,6 +215,11 @@ void command_export(Options options)
     INFO("Export complete.");
 }
 
+void command_edit(Options options)
+{
+    
+}
+
 void command_get(Options options)
 {
     char* key = options.argv[options.argc-1];
@@ -266,7 +271,7 @@ void command_release(Options options)
 
     char* version = update_config_version(release_type);
     insert_release();
-    char* query = clib_format_text("UPDATE Entries SET version = '%s' WHERE version = 'unknown'", version);
+    char* query = clib_format_text("UPDATE Entries SET version = '%s' WHERE version = 'unreleased'", version);
     sqlite_execute_sql(SQLITE_DB, query);
 
     command_export(options);
@@ -278,7 +283,66 @@ void command_release(Options options)
 
 void command_list(Options options)
 {
-    INFO("list");
+    char* condition = NULL;
+    char* order_by= "date DESC";
+
+    if(version_full_set(options) || status_set(options)) {
+        condition = clib_buffer_init();
+    }
+
+    if(version_full_set(options)){
+        char* version = clib_format_text("version = '%s'", (STREQ(options.version.full, "0.0.0")) ? VERSION_UNRELEASED : options.version.full);
+        clib_str_append(&condition, version);
+        free(version);
+    }
+
+    if(status_set(options)){
+        if(version_full_set(options)) clib_str_append(&condition, " AND ");
+        char* status = clib_format_text("status = %d", options.status);
+        clib_str_append(&condition, status);
+        free(status);
+    }
+
+    sqlite3* db;
+    sqlite3_open(SQLITE_DB, &db);
+
+    size_t count;
+    Entry* entries = select_entries(db, condition, order_by, &count);
+
+    if(count == 0){
+        INFO("No entries found");
+    } else {
+        int index_offset = -5;
+        int title_offset = -50;
+        int status_offset = -10;
+        int version_offset = -10;
+        int date_offset = -19;
+        printf("| Index | %*s | %*s | %*s | %*s |\n", title_offset, "Title", status_offset, "Status", version_offset, "Version", date_offset, "Date");
+        printf("|%s+%s+%s+%s+%s|\n", 
+            char_repeat('-', -index_offset + 2),
+            char_repeat('-', -title_offset + 2),
+            char_repeat('-', -status_offset + 2),
+            char_repeat('-', -version_offset + 2),
+            char_repeat('-', -date_offset + 2)
+        );
+        for(size_t i = 0; i < count; ++i){
+            printf(
+                "| %*zu | %*s | %*s | %*s | %*s |\n", 
+                index_offset,
+                i+1, 
+                title_offset,
+                entries[i].message, 
+                status_offset,
+                status_to_string(entries[i].status), 
+                version_offset,
+                (STREQ(entries[i].version.full, "0.0.0")) ? VERSION_UNRELEASED : entries[i].version.full, 
+                date_offset,
+                entries[i].date.full
+            );
+        }
+    }
+
+    sqlite3_close(db);
 }
 
 void command_set(Options options)
@@ -323,6 +387,7 @@ Command get_command(char* command)
     COMPARE_AND_RETURN_COMMAND(COMMAND_LIST)
     COMPARE_AND_RETURN_COMMAND(COMMAND_DELETE)
     COMPARE_AND_RETURN_COMMAND(COMMAND_RELEASE)
+    COMPARE_AND_RETURN_COMMAND(COMMAND_EDIT)
     else return COMMAND_UNKNOWN;
 
 #undef COMPARE_AND_RETURN_COMMAND
@@ -361,6 +426,9 @@ void execute_command(Command command, Options options)
     case COMMAND_GET:
         command_get(options);
         return;
+    case COMMAND_EDIT:
+        command_edit(options);
+        return;
     }
 
     help();
@@ -388,6 +456,9 @@ char* command_to_string(Command command)
         return "get";
     case COMMAND_EXPORT:
         return "export";
+    case COMMAND_EDIT:
+        return "edit";
+      break;
     }
 
     return "";

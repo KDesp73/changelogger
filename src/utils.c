@@ -136,3 +136,19 @@ int is_blank(const char *str)
 
     return 1; 
 }
+char* char_repeat(char c, size_t count)
+{
+    char* result = (char*)malloc(count + 1);
+    if (result == NULL) {
+        return NULL;
+    }
+
+    for (size_t i = 0; i < count; i++) {
+        result[i] = c;
+    }
+
+    result[count] = '\0';
+
+    return result;
+}
+

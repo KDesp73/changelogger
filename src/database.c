@@ -1,4 +1,5 @@
 #include "database.h"
+#include "date.h"
 #define CLIB_IMPLEMENTATION
 #include "extern/clib.h"
 #include "config.h"
@@ -132,10 +133,23 @@ Entry* select_entries_order_by(sqlite3* db, const char* column, size_t *count)
     return entries;
 }
 
-Entry* select_entries(sqlite3* db, size_t *count)
+Entry* select_entries(sqlite3* db, const char* condition, const char* order_by, size_t *count)
 {
     sqlite_disable_logging(db);
-    const char *sql = "SELECT * FROM Entries;";
+    char *sql = clib_buffer_init();
+    clib_str_append(&sql, "SELECT * FROM Entries");
+    if(condition != NULL){
+        char* where = clib_format_text(" WHERE %s", condition);
+        clib_str_append(&sql, where);
+        free(where);
+    }
+    if(order_by != NULL){
+        char* orderby = clib_format_text(" ORDER BY %s", order_by);
+        clib_str_append(&sql, orderby);
+        free(orderby);
+    }
+    clib_str_append(&sql, ";");
+
     sqlite3_stmt *stmt;
     Entry *entries = NULL;
     size_t entry_count = 0;
@@ -149,6 +163,7 @@ Entry* select_entries(sqlite3* db, size_t *count)
             entries[entry_count].date.full = strdup((char*) sqlite3_column_text(stmt, 4));
 
             parse_version(&entries[entry_count].version);
+            entries[entry_count].date = parse_date(entries[entry_count].date.full);
             entry_count++;
         }
     }

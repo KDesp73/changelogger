@@ -7,9 +7,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- list command implemented
+
 ### Changed
 
 - Following bash conventions on install.sh
+
+### Removed
+
+- Removed the ability to set the version directly
 
 ### Fixed
 
