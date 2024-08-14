@@ -16,6 +16,7 @@ typedef enum {
     ABBR_VERSION_FULL = 'V',
     ABBR_YES = 'y',
     ABBR_REMOTE_REPO = 'R',
+    ABBR_TITLE = 't',
 } ArgumentAbbr;
 
 typedef struct {
@@ -30,6 +31,7 @@ typedef struct {
     const char* new;
     _Bool always_export;
     const char* remote_repo;
+    const char* title;
 } Options;
 
 int always_export_set(Options options);

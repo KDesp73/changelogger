@@ -9,7 +9,7 @@ A cli tool to help you keep a changelog in all your projects
 $ git clone https://github.com/KDesp73/changelogger --depth=1
 
 # Checkout to the latest release
-$ git checkout v0.0.2
+$ git checkout v0.0.4
 
 # Build and Install
 $ ./install.sh

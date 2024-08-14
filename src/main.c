@@ -60,7 +60,7 @@ Options parse_options(int argc, char** argv, Command* command)
 
     // NOTE: The help fields are not set since 
     // the help message is written by hand
-    CliArguments args = clib_make_cli_arguments(12,
+    CliArguments args = clib_make_cli_arguments(13,
         clib_create_argument(ABBR_HELP, "help", "", no_argument),
         clib_create_argument(ABBR_VERSION, "version", "", no_argument),
         clib_create_argument(ABBR_STATUS, "status", "", required_argument),
@@ -72,7 +72,8 @@ Options parse_options(int argc, char** argv, Command* command)
         clib_create_argument(ABBR_YES, "yes", "", no_argument),
         clib_create_argument(ABBR_INDEX, "index", "", no_argument),
         clib_create_argument(ABBR_ALWAYS_EXPORT, "always-export", "", required_argument),
-        clib_create_argument(ABBR_VERSION_FULL, "version-full", "", required_argument)
+        clib_create_argument(ABBR_VERSION_FULL, "version-full", "", required_argument),
+        clib_create_argument(ABBR_TITLE, "title", "", required_argument)
     );
 
     int opt;
@@ -134,6 +135,11 @@ Options parse_options(int argc, char** argv, Command* command)
             ) options.always_export = true;
             else options.always_export = false;
             break;
+        case ABBR_TITLE:
+            if(*command != COMMAND_EDIT) PANIC("--title can only be used with `edit`");
+
+            options.title = optarg;
+            break;
         default:
             exit(1);
         }
@@ -166,8 +172,11 @@ int main(int argc, char** argv)
 
     if(
         export &&
-        (command == COMMAND_ADD ||
-         command == COMMAND_DELETE)
+        (
+         command == COMMAND_ADD ||
+         command == COMMAND_EDIT ||
+         command == COMMAND_DELETE
+        )
     ) {
         execute_command(COMMAND_EXPORT, options);
     }

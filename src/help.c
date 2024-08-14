@@ -125,4 +125,6 @@ void edit_help()
     PTN("");
     PTN("%sOPTIONS%s", BOLD, RESET);
     PTNI("-h --help             Prints this message");
+    PTNI("-s --status           Specify new status");
+    PTNI("-t --title            Specify new title/message")
 }
