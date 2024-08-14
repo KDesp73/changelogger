@@ -308,6 +308,7 @@ void command_list(Options options)
 
     size_t count;
     Entry* entries = select_entries(db, condition, order_by, &count);
+    if(condition != NULL) free(condition);
 
     if(count == 0){
         INFO("No entries found");
@@ -317,14 +318,21 @@ void command_list(Options options)
         int status_offset = -10;
         int version_offset = -10;
         int date_offset = -19;
+        char* index_dashes = char_repeat('-', -index_offset + 2);
+        char* title_dashes = char_repeat('-', -title_offset + 2);
+        char* status_dashes = char_repeat('-', -status_offset + 2);
+        char* version_dashes = char_repeat('-', -version_offset + 2);
+        char* date_dashes = char_repeat('-', -date_offset + 2);
+
         printf("| Index | %*s | %*s | %*s | %*s |\n", title_offset, "Title", status_offset, "Status", version_offset, "Version", date_offset, "Date");
         printf("|%s+%s+%s+%s+%s|\n", 
-            char_repeat('-', -index_offset + 2),
-            char_repeat('-', -title_offset + 2),
-            char_repeat('-', -status_offset + 2),
-            char_repeat('-', -version_offset + 2),
-            char_repeat('-', -date_offset + 2)
+            index_dashes,
+            title_dashes,
+            status_dashes,
+            version_dashes,
+            date_dashes
         );
+
         for(size_t i = 0; i < count; ++i){
             printf(
                 "| %*zu | %*s | %*s | %*s | %*s |\n", 
@@ -340,6 +348,12 @@ void command_list(Options options)
                 entries[i].date.full
             );
         }
+
+        free(index_dashes);
+        free(title_dashes);
+        free(status_dashes);
+        free(version_dashes);
+        free(date_dashes);
     }
 
     sqlite3_close(db);
