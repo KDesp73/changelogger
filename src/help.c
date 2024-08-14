@@ -64,10 +64,6 @@ void set_help()
     PTN("");
     PTN("%sVARIABLES%s", BOLD, RESET);
     PTNI("-h --help                          Prints this message");
-    PTNI("--version-major <major>            Specify the value of the major version");
-    PTNI("--version-minor <minor>            Specify the value of the minor version");
-    PTNI("--version-patch <patch>            Specify the value of the patch version");
-    PTNI("--version-full <full-version>      Specify the value of the full version");
     PTNI("--config-dir <directory>           Specify the configuration file path");
     PTNI("--remote-repo <url>                Specify the url of the remote repo");
     PTNI("--always-export <value>            Specify whether to export the %s file", CHANGELOG_FILE); 

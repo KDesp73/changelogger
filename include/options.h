@@ -13,10 +13,6 @@ typedef enum {
     ABBR_NO = 'n',
     ABBR_STATUS = 's',
     ABBR_VERSION = 'v',
-    ABBR_VERSION_FULL = 'V',
-    ABBR_VERSION_MAJOR = 'M',
-    ABBR_VERSION_MINOR = 'm',
-    ABBR_VERSION_PATCH = 'p',
     ABBR_YES = 'y',
     ABBR_REMOTE_REPO = 'R',
 } ArgumentAbbr;

@@ -283,38 +283,6 @@ void command_list(Options options)
 
 void command_set(Options options)
 {
-    if(version_major_set(options)){
-        char* value = clib_format_text("%zu", options.version.major);
-        update(TABLE_CONFIG, CONFIG_VERSION_MAJOR, value, CONFIG_CONDITION);
-        free(value);
-    }
-
-    if(version_minor_set(options)){
-        char* value = clib_format_text("%zu", options.version.minor);
-        update(TABLE_CONFIG, CONFIG_VERSION_MINOR, value, CONFIG_CONDITION);
-        free(value);
-    }
-
-    if(version_patch_set(options)){
-        char* value = clib_format_text("%zu", options.version.patch);
-        update(TABLE_CONFIG, CONFIG_VERSION_PATCH, value, CONFIG_CONDITION);
-        free(value);
-    }
-
-    if(version_full_set(options)){
-        char* value = clib_format_text("%zu", options.version.major);
-        update(TABLE_CONFIG, CONFIG_VERSION_MAJOR, value, CONFIG_CONDITION);
-        free(value);
-
-        value = clib_format_text("%zu", options.version.minor);
-        update(TABLE_CONFIG, CONFIG_VERSION_MINOR, value, CONFIG_CONDITION);
-        free(value);
-
-        value = clib_format_text("%zu", options.version.patch);
-        update(TABLE_CONFIG, CONFIG_VERSION_PATCH, value, CONFIG_CONDITION);
-        free(value);
-    }
-
     if(always_export_set(options)){
         char* value = clib_format_text("%d", options.always_export);
         update(TABLE_CONFIG, CONFIG_ALWAYS_EXPORT, value, CONFIG_CONDITION);

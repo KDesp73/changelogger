@@ -56,21 +56,17 @@ Options parse_options(int argc, char** argv, Command* command)
 
     // NOTE: The help fields are not set since 
     // the help message is written by hand
-    CliArguments args = clib_make_cli_arguments(15,  
+    CliArguments args = clib_make_cli_arguments(11,
         clib_create_argument(ABBR_HELP, "help", "", no_argument),
         clib_create_argument(ABBR_VERSION, "version", "", no_argument),
         clib_create_argument(ABBR_STATUS, "status", "", required_argument),
-        clib_create_argument(ABBR_VERSION_MAJOR, "version-major", "", required_argument),
-        clib_create_argument(ABBR_VERSION_MINOR, "version-minor", "", required_argument),
-        clib_create_argument(ABBR_VERSION_PATCH, "version-patch", "", required_argument),
-        clib_create_argument(ABBR_VERSION_FULL, "version-full", "", required_argument),
         clib_create_argument(ABBR_CONFIG_PATH, "config-path", "", required_argument),
+        clib_create_argument(ABBR_REMOTE_REPO, "remote-repo", "", required_argument),
         clib_create_argument(ABBR_ALL, "all", "", no_argument),
         clib_create_argument(ABBR_NEW, "new", "", required_argument),
         clib_create_argument(ABBR_NO, "no", "", no_argument),
         clib_create_argument(ABBR_YES, "yes", "", no_argument),
         clib_create_argument(ABBR_INDEX, "index", "", no_argument),
-        clib_create_argument(ABBR_REMOTE_REPO, "remote-repo", "", required_argument),
         clib_create_argument(ABBR_ALWAYS_EXPORT, "always-export", "", required_argument)
     );
 
@@ -90,35 +86,6 @@ Options parse_options(int argc, char** argv, Command* command)
                     PANIC("Status should be between 1 and 6");
             } else
                 options.status = get_status(optarg);
-            break;
-        case ABBR_VERSION_MAJOR:
-            if(*command != COMMAND_SET) PANIC("--version-major can only be used with `set`");
-            if(!is_number(optarg)) PANIC("Major version value should be a number");
-
-            options.version.major = atoi(optarg);
-            break;
-        case ABBR_VERSION_MINOR:
-            if(*command != COMMAND_SET) PANIC("--version-minor can only be used with `set`");
-            if(!is_number(optarg)) PANIC("Minor version value should be a number");
-
-            options.version.minor = atoi(optarg);
-            break;
-        case ABBR_VERSION_PATCH:
-            if(*command != COMMAND_SET) PANIC("--version-patch can only be used with `set`");
-            if(!is_number(optarg)) PANIC("Patch version value should be a number");
-
-            options.version.patch = atoi(optarg);
-            break;
-        case ABBR_VERSION_FULL:
-            if(
-                *command != COMMAND_SET && 
-                *command != COMMAND_DELETE &&
-                *command != COMMAND_ADD    
-            ) PANIC("--version-full can only be used with `set`, `delete` or `add`");
-            if(!is_valid_version(optarg)) PANIC("Version '%s' is not valid", optarg);
-
-            options.version.full = optarg;
-            parse_version(&options.version);
             break;
         case ABBR_CONFIG_PATH:
             if(*command != COMMAND_SET) PANIC("--config-path can only be used with `set`");
