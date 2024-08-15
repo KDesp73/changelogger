@@ -51,6 +51,23 @@ $ changelogger push -V 0.0.3
 $ changelogger export
 ```
 
+## Config file
+
+The default location for the config file is `~/.changelogger.yml`
+
+### Example file
+
+```yml
+# ~/.changelogger.yml
+
+always-export: true
+always-push: false
+release-warning-message: "Remember to update the version and commit everything important!"
+# config-path: /path/to/another/config/to/be/used
+```
+
+Adding the `config-path` label will redirect changelogger to use that file as a config instead of the default one
+
 ## Help
 
 Try `changelogger -h` or `changelogger <command> -h` 
