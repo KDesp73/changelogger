@@ -9,9 +9,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- --all to have all entries available
+
+
+## [0.0.4] - 2024-08-15
+
+### Added
+
 - delete command implemented
-- Updated version to 0.0.4
 - edit command implemented
+
+### Changed
+
+- Updated version to 0.0.4
 
 
 ## [0.0.3] - 2024-08-15
@@ -68,4 +78,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 [0.0.1]: https://github.com/KDesp73/changelogger/releases/tag/v0.0.1
 [0.0.2]: https://github.com/KDesp73/changelogger/releases/tag/v0.0.2
 [0.0.3]: https://github.com/KDesp73/changelogger/releases/tag/v0.0.3
+[0.0.4]: https://github.com/KDesp73/changelogger/releases/tag/v0.0.4
 

@@ -140,6 +140,9 @@ Options parse_options(int argc, char** argv, Command* command)
 
             options.title = optarg;
             break;
+        case ABBR_ALL:
+            options.all = true;
+            break;
         default:
             exit(1);
         }

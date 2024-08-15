@@ -67,7 +67,7 @@ void command_delete(Options options)
 {
    Options list_options = {
         .version.full = VERSION_UNRELEASED,
-        .argc = 1,
+        .argc = !options.all,
         .argv = (char**) malloc(sizeof(char*) * 4)
     };
 
@@ -90,7 +90,7 @@ void command_delete(Options options)
     sqlite3_open(SQLITE_DB, &db);
 
     size_t count;
-    Entry* entries = select_entries(db, "version = 'unreleased'", "date DESC", &count);
+    Entry* entries = select_entries(db, options.all ? NULL : "version = 'unreleased'", "date DESC", &count);
     sqlite3_close(db);
 
     int index = -1;
@@ -281,9 +281,9 @@ void command_export(Options options)
 
 void command_edit(Options options)
 {
-   Options list_options = {
+    Options list_options = {
         .version.full = VERSION_UNRELEASED,
-        .argc = 1,
+        .argc = !options.all,
         .argv = (char**) malloc(sizeof(char*) * 4)
     };
 
@@ -306,8 +306,9 @@ void command_edit(Options options)
     sqlite3_open(SQLITE_DB, &db);
 
     size_t count;
-    Entry* entries = select_entries(db, "version = 'unreleased'", "date DESC", &count);
+    Entry* entries = select_entries(db, options.all ? NULL : "version = 'unreleased'", "date DESC", &count);
     sqlite3_close(db);
+
 
     int index = -1;
     char index_str[10];
@@ -526,29 +527,31 @@ void command_list(Options options)
 
     if(count == 0){
         INFO("No entries found");
-    } else {
-        int index_offset = -5;
-        int title_offset = -50;
-        int status_offset = -10;
-        int version_offset = -10;
-        int date_offset = -19;
-        char* index_dashes = char_repeat('-', -index_offset + 2); // +2 for left and right padding
-        char* title_dashes = char_repeat('-', -title_offset + 2);
-        char* status_dashes = char_repeat('-', -status_offset + 2);
-        char* version_dashes = char_repeat('-', -version_offset + 2);
-        char* date_dashes = char_repeat('-', -date_offset + 2);
+        exit(0);
+    }
 
-        printf("| Index | %*s | %*s | %*s | %*s |\n", title_offset, "Title", status_offset, "Status", version_offset, "Version", date_offset, "Date");
-        printf("|%s+%s+%s+%s+%s|\n", 
+    int index_offset = -5;
+    int title_offset = -50;
+    int status_offset = -10;
+    int version_offset = -10;
+    int date_offset = -19;
+    char* index_dashes = char_repeat('-', -index_offset + 2); // +2 for left and right padding
+    char* title_dashes = char_repeat('-', -title_offset + 2);
+    char* status_dashes = char_repeat('-', -status_offset + 2);
+    char* version_dashes = char_repeat('-', -version_offset + 2);
+    char* date_dashes = char_repeat('-', -date_offset + 2);
+
+    printf("| Index | %*s | %*s | %*s | %*s |\n", title_offset, "Title", status_offset, "Status", version_offset, "Version", date_offset, "Date");
+    printf("|%s+%s+%s+%s+%s|\n", 
             index_dashes,
             title_dashes,
             status_dashes,
             version_dashes,
             date_dashes
-        );
+          );
 
-        for(size_t i = 0; i < count; ++i){
-            printf(
+    for(size_t i = 0; i < count; ++i){
+        printf(
                 "| %*zu | %*s | %*s | %*s | %*s |\n", 
                 index_offset,
                 i+1, 
@@ -560,16 +563,15 @@ void command_list(Options options)
                 (STREQ(entries[i].version.full, "0.0.0")) ? VERSION_UNRELEASED : entries[i].version.full, 
                 date_offset,
                 entries[i].date.full
-            );
-        }
-
-        free(entries);
-        free(index_dashes);
-        free(title_dashes);
-        free(status_dashes);
-        free(version_dashes);
-        free(date_dashes);
+              );
     }
+
+    free(entries);
+    free(index_dashes);
+    free(title_dashes);
+    free(status_dashes);
+    free(version_dashes);
+    free(date_dashes);
 
 }
 

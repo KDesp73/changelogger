@@ -90,7 +90,8 @@ void delete_help()
     PTNI("%s delete <options>", EXECUTABLE_NAME);
     PTN("");
     PTN("%sOPTIONS%s", BOLD, RESET);
-    PTNI("-h --help                          Prints this message");
+    PTNI("-h --help                     Prints this message");
+    PTNI("-A --all                      List all entries and have them available for deletion");
 }
 
 void get_help()
@@ -127,4 +128,5 @@ void edit_help()
     PTNI("-h --help             Prints this message");
     PTNI("-s --status           Specify new status");
     PTNI("-t --title            Specify new title/message")
+    PTNI("-A --all              List all entries and have them available for editing");
 }

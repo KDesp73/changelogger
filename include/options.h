@@ -32,6 +32,7 @@ typedef struct {
     _Bool always_export;
     const char* remote_repo;
     const char* title;
+    _Bool all;
 } Options;
 
 int always_export_set(Options options);
