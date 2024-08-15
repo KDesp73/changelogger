@@ -93,8 +93,8 @@ void delete_help()
     PTNI("%s delete <options>", EXECUTABLE_NAME);
     PTN("");
     PTN("%sOPTIONS%s", BOLD, RESET);
-    PTNI("-h --help                     Prints this message");
-    PTNI("-A --all                      List all entries and have them available for deletion");
+    PTNI("-h --help             Prints this message");
+    PTNI("-A --all              List all entries and have them available for deletion");
 }
 
 void get_help()
@@ -103,11 +103,11 @@ void get_help()
     PTNI("%s get <variable>", EXECUTABLE_NAME);
     PTN("");
     PTN("%sVARIABLES%s", BOLD, RESET);
-    PTNI("version       Latest release");
-    PTNI("export        Always export CHANGELOG.md");
-    PTNI("remote        The remote git repo url");
-    PTNI("config        The path to the configuration file");
-    PTNI("push          Always push the release on Github");
+    PTNI("version               Latest release");
+    PTNI("export                Always export CHANGELOG.md");
+    PTNI("remote                The remote git repo url");
+    PTNI("config                The path to the configuration file");
+    PTNI("push                  Always push the release on Github");
     PTN("");
     PTN("%sOPTIONS%s", BOLD, RESET);
     PTNI("-h --help             Prints this message");
@@ -116,7 +116,7 @@ void get_help()
 void export_help()
 {
     PTN("%sOPTIONS%s", BOLD, RESET);
-    PTNI("-h --help                          Prints this message");
+    PTNI("-h --help             Prints this message");
 }
 
 void push_help()
