@@ -169,7 +169,7 @@ char* update_config_version(const char* release_type)
     return version;
 }
 
-void insert_release()
+void insert_release(_Bool pushed)
 {
     sqlite3* db;
     sqlite3_open(SQLITE_DB, &db);
@@ -182,7 +182,7 @@ void insert_release()
     query_builder_t* qb = create_query_builder();
     insert_q(qb, TABLE_RELEASES);
     columns_q(qb, FIELDS_RELEASES);
-    char* values = clib_format_text("'%s', '%s'", version, date.full);
+    char* values = clib_format_text("'%s', '%s', %d", version, date.full, pushed);
     values_q(qb, values);
     char* query = build_query(qb);
     
@@ -488,24 +488,25 @@ void command_release(Options options)
         PANIC("Release type '%s' should be 'major', 'minor' or 'patch'. Try %s release -h", release_type, EXECUTABLE_NAME);
     }
 
+    sqlite3* db;
+    sqlite3_open(SQLITE_DB, &db);
+    _Bool release = select_always_push(db);
+    sqlite3_close(db);
+
+    _Bool should_push = release || options.push;
+
     char* version = update_config_version(release_type);
-    insert_release();
+    insert_release(should_push);
     char* query = clib_format_text("UPDATE Entries SET version = '%s' WHERE version = 'unreleased'", version);
     sqlite_execute_sql(SQLITE_DB, query);
 
     command_export(options);
 
-    
-    sqlite3* db;
-    sqlite3_open(SQLITE_DB, &db);
-    _Bool release = select_always_export(db);
-    sqlite3_close(db);
+    if(!should_push) return; // Do not push the release on Github
 
-    if(release || options.push) {
-        char* gh_command = clib_format_text("gh release create v%s -F %s/%s.md -t v%s", version, CHANGELOG_DIR, version, version);
-        clib_execute_command(gh_command);
-        free(gh_command);
-    }
+    char* gh_command = clib_format_text("gh release create v%s -F %s/%s.md -t v%s", version, CHANGELOG_DIR, version, version);
+    clib_execute_command(gh_command);
+    free(gh_command);
 }
 
 void list_releases(sqlite3* db, Options options, char* condition, char* order_by)

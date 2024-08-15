@@ -9,12 +9,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
-- Added pushed fieled in Releases table
+- Implemented set/get for always_push
+- Added pushed field in Releases table
 - list --releases added
 - --all to have all entries available
 
 ### Changed
 
+- Release is not pushed unless its specified
 - Refactored command_list
 - Updated version to 0.0.5
 
