@@ -87,7 +87,7 @@ void list_help()
 void delete_help()
 {
     PTN("%sUSAGE%s", BOLD, RESET);
-    PTNI("%s list ", EXECUTABLE_NAME);
+    PTNI("%s delete <options>", EXECUTABLE_NAME);
     PTN("");
     PTN("%sOPTIONS%s", BOLD, RESET);
     PTNI("-h --help                          Prints this message");

@@ -152,3 +152,8 @@ char* char_repeat(char c, size_t count)
     return result;
 }
 
+void clear_input_buffer() 
+{
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF); // Discard characters until newline or EOF
+}

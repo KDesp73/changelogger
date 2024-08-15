@@ -9,11 +9,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
-- edit command implemented
-
-### Changed
-
 - Updated version to 0.0.4
+- edit command implemented
 
 
 ## [0.0.3] - 2024-08-15
