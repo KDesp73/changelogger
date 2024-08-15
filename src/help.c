@@ -25,15 +25,15 @@ void help()
 
     PTN("%sCOMMANDS%s", BOLD, RESET);
     PTNI("init                          Initializes the changelog");
-    PTNI("list [<options>]              Lists all entries");
     PTNI("add <msg> [<options>]         Adds an entry");
+    PTNI("list [<options>]              Lists all entries");
+    PTNI("edit <options>                Edit any of the unreleased entries");
+    PTNI("delete <options>              Delete any of the unreleased entries");
     PTNI("set <options>                 Sets a variable");     
     PTNI("get <options>                 Returns a variable");
-    PTNI("delete <options>              Delete any of the unreleased entries");
     PTNI("release <options>             Creates a new release");
-    PTNI("export [<options>]            Exports the CHANGELOG.md file");
-    PTNI("edit <options>                Edit any of the unreleased entries");
     PTNI("push <options>                Push an unpushed release to Github");
+    PTNI("export [<options>]            Exports the CHANGELOG.md file");
 
     PTN("");
 

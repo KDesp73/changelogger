@@ -11,7 +11,6 @@
 
 size_t select_version_major(sqlite3 *db)
 {
-    sqlite_disable_logging(db);
     const char *sql = "SELECT version_major FROM Config WHERE id = 1;";
     sqlite3_stmt *stmt;
     size_t major = 0;
@@ -28,7 +27,6 @@ size_t select_version_major(sqlite3 *db)
 // Function to select the minor version
 size_t select_version_minor(sqlite3 *db)
 {
-    sqlite_disable_logging(db);
     const char *sql = "SELECT version_minor FROM Config WHERE id = 1;";
     sqlite3_stmt *stmt;
     size_t minor = 0;
@@ -44,7 +42,6 @@ size_t select_version_minor(sqlite3 *db)
 
 _Bool select_always_push(sqlite3* db)
 {
-    sqlite_disable_logging(db);
     const char *sql = "SELECT always_push FROM Config WHERE id = 1;";
     sqlite3_stmt *stmt;
     _Bool always_push = 0;
@@ -61,7 +58,6 @@ _Bool select_always_push(sqlite3* db)
 
 _Bool select_always_export(sqlite3* db)
 {
-    sqlite_disable_logging(db);
     const char *sql = "SELECT always_export FROM Config WHERE id = 1;";
     sqlite3_stmt *stmt;
     _Bool always_export = 0;
@@ -79,7 +75,6 @@ _Bool select_always_export(sqlite3* db)
 // Function to select the patch version
 size_t select_version_patch(sqlite3 *db)
 {
-    sqlite_disable_logging(db);
     const char *sql = "SELECT version_patch FROM Config WHERE id = 1;";
     sqlite3_stmt *stmt;
     size_t patch = 0;
@@ -107,7 +102,6 @@ char* select_version_full(sqlite3* db)
 // Function to select the config path
 char* select_config_path(sqlite3 *db)
 {
-    sqlite_disable_logging(db);
     const char *sql = "SELECT config_path FROM Config WHERE id = 0;";
     sqlite3_stmt *stmt;
     char *config_path = NULL;
@@ -125,7 +119,6 @@ char* select_config_path(sqlite3 *db)
 
 Entry* select_entries_order_by(sqlite3* db, const char* column, size_t *count)
 {
-    sqlite_disable_logging(db);
     char *sql = clib_format_text("SELECT * FROM Entries ORDER BY %s;", column);
     sqlite3_stmt *stmt;
     Entry *entries = NULL;
@@ -152,7 +145,6 @@ Entry* select_entries_order_by(sqlite3* db, const char* column, size_t *count)
 
 Release* select_releases(sqlite3* db, const char* condition, const char* order_by, size_t *count)
 {
-    sqlite_disable_logging(db);
     char *sql = clib_buffer_init();
     clib_str_append(&sql, "SELECT * FROM Releases");
     if(condition != NULL){
@@ -191,7 +183,6 @@ Release* select_releases(sqlite3* db, const char* condition, const char* order_b
 
 Entry* select_entries(sqlite3* db, const char* condition, const char* order_by, size_t *count)
 {
-    sqlite_disable_logging(db);
     char *sql = clib_buffer_init();
     clib_str_append(&sql, "SELECT * FROM Entries");
     if(condition != NULL){
@@ -231,7 +222,6 @@ Entry* select_entries(sqlite3* db, const char* condition, const char* order_by, 
 // Function to select entries by version
 Entry* select_entries_version(sqlite3* db, const char* version, size_t *count)
 {
-    sqlite_disable_logging(db);
     char *sql = clib_format_text("SELECT * FROM Entries WHERE version = %s;", version);
     sqlite3_stmt *stmt;
     Entry *entries = NULL;
@@ -258,7 +248,6 @@ Entry* select_entries_version(sqlite3* db, const char* version, size_t *count)
 // Function to select entries by status
 Entry* select_entries_status(sqlite3 *db, Status status, size_t *count)
 {
-    sqlite_disable_logging(db);
     const char *sql = "SELECT version_major, version_minor, version_patch, message FROM Entries WHERE status = ?;";
     sqlite3_stmt *stmt;
     Entry *entries = NULL;
@@ -283,7 +272,6 @@ Entry* select_entries_status(sqlite3 *db, Status status, size_t *count)
 // Function to select entries with date less than a given date
 Entry* select_entries_date_less(sqlite3 *db, const char* date, size_t *count)
 {
-    sqlite_disable_logging(db);
     const char *sql = "SELECT version_major, version_minor, version_patch, message FROM Entries WHERE date < ?;";
     sqlite3_stmt *stmt;
     Entry *entries = NULL;
@@ -308,7 +296,6 @@ Entry* select_entries_date_less(sqlite3 *db, const char* date, size_t *count)
 // Function to select entries with date greater than a given date
 Entry* select_entries_date_greater(sqlite3 *db, const char* date, size_t *count) 
 {
-    sqlite_disable_logging(db);
     const char *sql = "SELECT version_major, version_minor, version_patch, message FROM Entries WHERE date > ?;";
     sqlite3_stmt *stmt;
     Entry *entries = NULL;
@@ -428,7 +415,6 @@ int config_exists() {
         fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
         return -1;
     }
-    sqlite_disable_logging(db);
 
     const char *sql = "SELECT COUNT(*) FROM Config WHERE id = 1;";
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
@@ -528,3 +514,22 @@ char** select_releases_version(sqlite3* db, size_t* count) {
     return versions; // Caller is responsible for freeing the array and its contents
 }
 
+void load_config(Config config)
+{
+    char* sql = clib_buffer_init();
+    clib_str_append(&sql, "UPDATE Config SET ");
+
+    char* value = clib_format_text("%s = %d", CONFIG_ALWAYS_EXPORT, config.always_export);
+    clib_str_append(&sql, value);
+    free(value);
+
+    clib_str_append(&sql, ", ");
+
+    value = clib_format_text("%s = %d", CONFIG_ALWAYS_PUSH, config.always_push);
+    clib_str_append(&sql, value);
+    free(value);
+
+    clib_str_append(&sql, " WHERE id = 1;");
+
+    sqlite_execute_sql(SQLITE_DB, sql);
+}

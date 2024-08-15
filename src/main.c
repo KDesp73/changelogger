@@ -130,30 +130,10 @@ Options parse_options(int argc, char** argv, Command* command)
             options.remote_repo = optarg;
             break;
         case ABBR_ALWAYS_EXPORT:
-            if(
-                STREQ(optarg, "1") ||
-                STREQ(optarg, "true") ||
-                STREQ(optarg, "TRUE") ||
-                STREQ(optarg, "True") ||
-                STREQ(optarg, "yes") ||
-                STREQ(optarg, "y") ||
-                STREQ(optarg, "YES") ||
-                STREQ(optarg, "Yes")
-            ) options.always_export = true;
-            else options.always_export = false;
+            options.always_export = is_true(optarg);
             break;
         case ABBR_ALWAYS_PUSH:
-            if(
-                STREQ(optarg, "1") ||
-                STREQ(optarg, "true") ||
-                STREQ(optarg, "TRUE") ||
-                STREQ(optarg, "True") ||
-                STREQ(optarg, "yes") ||
-                STREQ(optarg, "y") ||
-                STREQ(optarg, "YES") ||
-                STREQ(optarg, "Yes")
-            ) options.always_push = true;
-            else options.always_push = false;
+            options.always_push = is_true(optarg);
             break;
         case ABBR_TITLE:
             if(*command != COMMAND_EDIT) PANIC("--title can only be used with `edit`");
@@ -193,6 +173,9 @@ Options parse_options(int argc, char** argv, Command* command)
 
 int main(int argc, char** argv)
 {
+    Config config = get_config();
+    if(config.exists) load_config(config);
+
     Command command;
     Options options = parse_options(argc, argv, &command);
 
@@ -203,13 +186,10 @@ int main(int argc, char** argv)
     _Bool export = select_always_export(db);
     sqlite3_close(db);
 
-    if(
-        export &&
-        (
+    if(export && (
          command == COMMAND_ADD ||
          command == COMMAND_EDIT ||
-         command == COMMAND_DELETE
-        )
+         command == COMMAND_DELETE)
     ) {
         execute_command(COMMAND_EXPORT, options);
     }

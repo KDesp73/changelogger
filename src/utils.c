@@ -1,3 +1,4 @@
+#include "extern/clib.h"
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -156,4 +157,18 @@ void clear_input_buffer()
 {
     int c;
     while ((c = getchar()) != '\n' && c != EOF); // Discard characters until newline or EOF
+}
+
+int is_true(const char* str)
+{
+    return (
+        STREQ(str, "1") ||
+        STREQ(str, "true") ||
+        STREQ(str, "TRUE") ||
+        STREQ(str, "True") ||
+        STREQ(str, "yes") ||
+        STREQ(str, "y") ||
+        STREQ(str, "YES") ||
+        STREQ(str, "Yes")
+    );
 }

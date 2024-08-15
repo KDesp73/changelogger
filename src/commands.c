@@ -471,10 +471,16 @@ void command_get(Options options)
     sqlite3_close(db);
 }
 
+#define DEFAULT_WARNING_MESSAGE \
+    "Remember to commit and update " \
+    "all the necessary parts of the " \
+    "project before pushing the release."
+
 void make_sure_user_wants_to_proceed_with_releasing(Options options)
 {
     if(!options.yes) {
-        WARN("Remember to commit and updated all the necessary parts of the project before pushing the release!!!");
+        Config config = get_config();
+        WARN("%s", (config.release_warning_message == NULL) ? DEFAULT_WARNING_MESSAGE : config.release_warning_message);
         char choice[2];
         while (1) {
             printf("Continue? [y/n]: ");

@@ -1,10 +1,10 @@
 TODO: expand sqlite.h functionality
-TODO: disable sqlite logging
 TODO: resolve memory leaks
 TODO: parse CHANGELOG.md into the database
 TODO: use existing releases to populate the changelog
 TODO: read the config file if it exists
 TODO: check for sql injections
+TODO: add installation commands for autocomplete and man page
 DONE: add methods to clib.h
 DONE: make sqlite.h a proper library
 DONE: make querybuilder.h a proper library
@@ -18,3 +18,4 @@ DONE: delete command
 DONE: list releases
 DONE: push command
 DONE: do not push releases immediately
+DONE: disable sqlite logging
