@@ -127,6 +127,7 @@ void push_help()
     PTN("%sOPTIONS%s", BOLD, RESET);
     PTNI("-h --help             Prints this message");
     PTNI("-V --version-full     Specify the version of the release you want to push");
+    PTNI("-y --yes              Skip the confirmation message");
 }
 
 void release_help()
@@ -138,6 +139,7 @@ void release_help()
     PTNI("-h --help             Prints this message");
     PTNI("-N --new              Creates a new release");
     PTNI("-p --push             Push the release on github");
+    PTNI("-y --yes              Skip the confirmation message");
 }
 
 void edit_help()

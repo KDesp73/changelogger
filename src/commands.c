@@ -471,7 +471,35 @@ void command_get(Options options)
     sqlite3_close(db);
 }
 
-void push_release(const char* version)
+void make_sure_user_wants_to_proceed_with_releasing(Options options)
+{
+    if(!options.yes) {
+        WARN("Remember to commit and updated all the necessary parts of the project before pushing the release!!!");
+        char choice[2];
+        while (1) {
+            printf("Continue? [y/n]: ");
+            if (scanf("%1s", choice) != 1) {
+                ERRO("Error reading input.\n");
+                clear_input_buffer();
+                continue;
+            }
+
+            if (choice[0] == 'y' || choice[0] == 'n') {
+                break;
+            } else {
+                ERRO("'%s' is not a valid option. Please enter 'y' or 'n'.\n", choice);
+                clear_input_buffer();
+            }
+        }
+
+        if(choice[0] == 'n') {
+            INFO("Aborting...");
+            exit(0);
+        }
+    }
+}
+
+void push_release(const char* version, Options options)
 {
     command_export((Options){0});
     char* gh_command = clib_format_text("gh release create v%s -F %s/%s.md -t v%s", version, CHANGELOG_DIR, version, version);
@@ -485,15 +513,17 @@ void command_push(Options options)
         char* version = options.version.full;
         char* condition = clib_format_text("version = '%s'", version);
         int pushed = select_int(TABLE_RELEASES, RELEASES_PUSHED, condition);
-        free(condition);
 
         if(pushed) {
             WARN("This release is already pushed. Aborting.");
+            free(condition);
             return;
         }
 
-        push_release(version);
+        make_sure_user_wants_to_proceed_with_releasing(options);
+        push_release(version, options);
         update(TABLE_RELEASES, RELEASES_PUSHED, "1", condition);
+        free(condition);
     } else {
         ERRO("Version is not set.");
         INFO("Try: %s push -V <version>", EXECUTABLE_NAME);
@@ -517,6 +547,8 @@ void command_release(Options options)
         PANIC("Release type '%s' should be 'major', 'minor' or 'patch'. Try %s release -h", release_type, EXECUTABLE_NAME);
     }
 
+    make_sure_user_wants_to_proceed_with_releasing(options);
+
     sqlite3* db;
     sqlite3_open(SQLITE_DB, &db);
     _Bool release = select_always_push(db);
@@ -532,7 +564,7 @@ void command_release(Options options)
 
     if(!should_push) return; // Do not push the release on Github
 
-    push_release(version);
+    push_release(version, options);
 }
 
 void list_releases(sqlite3* db, Options options, char* condition, char* order_by)
