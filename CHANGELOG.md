@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- delete command implemented
 - Updated version to 0.0.4
 - edit command implemented
 
