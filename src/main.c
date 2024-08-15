@@ -1,8 +1,6 @@
 #include "commands.h"
 #include "config.h"
 #include "database.h"
-#include "date.h"
-#include "extern/sqlite.h"
 #include "utils.h"
 #include "help.h"
 #include "options.h"
@@ -42,6 +40,9 @@ void help_message(Command command)
             break;
         case COMMAND_PUSH:
             push_help();
+            break;
+        case COMMAND_GENERATE:
+            generate_help();
             break;
         case COMMAND_UNSET:
         case COMMAND_UNKNOWN:

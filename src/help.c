@@ -34,6 +34,7 @@ void help()
     PTNI("release <options>             Creates a new release");
     PTNI("push <options>                Push an unpushed release to Github");
     PTNI("export [<options>]            Exports the CHANGELOG.md file");
+    PTNI("generate <value>              Generate various files");
 
     PTN("");
 
@@ -152,4 +153,15 @@ void edit_help()
     PTNI("-s --status           Specify new status");
     PTNI("-t --title            Specify new title/message");
     PTNI("-A --all              List all entries and have them available for editing");
+}
+
+void generate_help()
+{
+    PTN("%sUSAGE%s", BOLD, RESET);
+    PTNI("%s generate <value>", EXECUTABLE_NAME);
+    PTN("");
+    PTN("%sVARIABLES%s", BOLD, RESET);
+    PTNI("config                A starting point for your config file (~/.changelogger.yml)");
+    PTNI("autocomplete          Autocomplete for the active shell");
+    PTNI("man                   Man page for %s", EXECUTABLE_NAME);
 }

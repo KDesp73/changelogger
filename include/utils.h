@@ -9,5 +9,6 @@ char* char_repeat(char c, size_t count);
 void clear_input_buffer();
 
 int is_true(const char* str);
+int yes_or_no(const char* message);
 
 #endif // UTILS_H

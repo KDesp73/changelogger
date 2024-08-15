@@ -10,7 +10,7 @@
 #define TABLE_ENTRIES "Entries"
 #define FIELDS_ENTRIES "message, status, version, date"
 #define TABLE_CONFIG "Config"
-#define FIELDS_CONFIG "config_path, version_major, version_minor, version_patch, always_export, remote_repo"
+#define FIELDS_CONFIG "config_path, version_major, version_minor, version_patch, always_export, always_push, remote_repo"
 #define TABLE_RELEASES "Releases"
 #define FIELDS_RELEASES "version, date, pushed"
 

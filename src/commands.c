@@ -22,20 +22,22 @@ void command_init(Options options)
     if(!clib_directory_exists(CHANGELOG_DIR)) {
         clib_create_directory(CHANGELOG_DIR);
     } else INFO("%s/ is located in this directory", CHANGELOG_DIR);
+
     if(!clib_file_exists(SQLITE_DB)) {
         sqlite_create_database(SQLITE_DB);
         sqlite_execute_sql(SQLITE_DB, GENERATION_QUERY);
     } else INFO("%s is already created", SQLITE_DB);
+
     if(!config_exists()){
         query_builder_t* qb = create_query_builder();
         insert_q(qb, TABLE_CONFIG);
-        columns_q(qb, "config_path, version_major, version_minor, version_patch");
-        values_q(qb, "'', 0, 0, 0"); // "Starting with version 0.0.0"
+        columns_q(qb, "config_path, version_major, version_minor, "
+                      "version_patch, always_export, always_push, remote_repo");
+        values_q(qb, "'', 0, 0, 0, 0, 0, ''"); // "Starting with version 0.0.0"
         char* query = build_query(qb);
         sqlite_execute_sql(SQLITE_DB, query);
         free(query);
     } else INFO("Config is already initialized");
-    
 }
 
 void command_add(Options options)
@@ -481,24 +483,9 @@ void make_sure_user_wants_to_proceed_with_releasing(Options options)
     if(!options.yes) {
         Config config = get_config();
         WARN("%s", (config.release_warning_message == NULL) ? DEFAULT_WARNING_MESSAGE : config.release_warning_message);
-        char choice[2];
-        while (1) {
-            printf("Continue? [y/n]: ");
-            if (scanf("%1s", choice) != 1) {
-                ERRO("Error reading input.\n");
-                clear_input_buffer();
-                continue;
-            }
+        int y_n = yes_or_no("Continue?");
 
-            if (choice[0] == 'y' || choice[0] == 'n') {
-                break;
-            } else {
-                ERRO("'%s' is not a valid option. Please enter 'y' or 'n'.\n", choice);
-                clear_input_buffer();
-            }
-        }
-
-        if(choice[0] == 'n') {
+        if(!y_n) {
             INFO("Aborting...");
             exit(0);
         }
@@ -679,6 +666,55 @@ void list_entries(sqlite3* db, Options options, char* condition, char* order_by)
     free(date_dashes);
 }
 
+void command_generate(Options options)
+{
+    char* value = options.argv[options.argc-1];
+
+    if(STREQ(value, command_to_string(COMMAND_GENERATE))) {
+        ERRO("A value must be specified");
+        INFO("Try: %s generate -h", EXECUTABLE_NAME);
+        exit(EXIT_FAILURE);
+    }
+    
+    if(
+        !STREQ(value, "config") &&
+        !STREQ(value, "man") &&
+        !STREQ(value, "autocomplete") 
+    ) {
+        ERRO("'%s' is not a valid value", value);
+        INFO("Try: %s generate -h", EXECUTABLE_NAME);
+        exit(EXIT_FAILURE);
+    }
+
+    if(STREQ(value, "config")){
+        char* config = 
+            "# ~/.changelogger.yml\n"
+            "\n"
+            "always-export: true\n"
+            "always-push: false\n"
+            "release-warning-message: \"Remember to update the version and commit everything important!\"\n"
+            "# config-path: /path/to/another/config/to/be/used\n";
+
+        char* default_path = CHANGELOGGER_DEFAULT_CONFIG_PATH;
+
+        if(config_found(default_path)){
+            WARN("A config is found at '%s'", default_path);
+            INFO("Generated config would be:\n%s", config);
+            return;
+        }
+
+        clib_write_file(default_path, config, "w");
+        free(default_path);
+    } else {
+        // For now
+        PANIC("Generating %s is not implemented yet", value);
+    }
+
+    // if(STREQ(value, "autocomplete")){
+    //     PANIC("Generating autocomplete is not implemented yet");
+    // }
+}
+
 void command_list(Options options)
 {
     sqlite3* db;
@@ -762,6 +798,7 @@ Command get_command(char* command)
     COMPARE_AND_RETURN_COMMAND(COMMAND_DELETE)
     COMPARE_AND_RETURN_COMMAND(COMMAND_RELEASE)
     COMPARE_AND_RETURN_COMMAND(COMMAND_EDIT)
+    COMPARE_AND_RETURN_COMMAND(COMMAND_GENERATE)
     else return COMMAND_UNKNOWN;
 
 #undef COMPARE_AND_RETURN_COMMAND
@@ -806,6 +843,9 @@ void execute_command(Command command, Options options)
     case COMMAND_PUSH:
         command_push(options);
         return;
+    case COMMAND_GENERATE:
+        command_generate(options);
+        return;
     }
 
     help();
@@ -837,6 +877,8 @@ char* command_to_string(Command command)
         return "edit";
     case COMMAND_PUSH:
         return "push";
+    case COMMAND_GENERATE:
+        return "generate";
     }
 
     return "";

@@ -172,3 +172,26 @@ int is_true(const char* str)
         STREQ(str, "Yes")
     );
 }
+
+
+int yes_or_no(const char* message)
+{
+    char choice[2];
+    while (1) {
+        printf("%s [y/n]: ", message);
+        if (scanf("%1s", choice) != 1) {
+            ERRO("Error reading input.\n");
+            clear_input_buffer();
+            continue;
+        }
+
+        if (choice[0] == 'y' || choice[0] == 'n') {
+            break;
+        } else {
+            ERRO("'%s' is not a valid option. Please enter 'y' or 'n'.\n", choice);
+            clear_input_buffer();
+        }
+    }
+
+    return choice[0] == 'y';
+}
