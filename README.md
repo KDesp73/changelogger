@@ -26,7 +26,7 @@ $ changelogger add "Message" --status changed
 
 # List entries
 $ changelogger list
-$ changelogger list -V "0.0.1" --status added
+$ changelogger list -V 0.0.1 --status added
 
 # Edit entries
 $ changelogger edit -t "New title"
@@ -43,6 +43,9 @@ $ changelogger get version # Latest release
 
 # Create a new release
 $ changelogger release --new patch
+
+# Push an unpushed release on Github
+$ changelogger push -V 0.0.3
 
 # Export CHANGELOG.md
 $ changelogger export
