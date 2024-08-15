@@ -15,6 +15,39 @@ $ git checkout v0.0.5
 $ ./install.sh
 ```
 
+## Usage
+
+```bash
+# Initialize the changelogger
+$ changelogger init
+
+# Add an entry
+$ changelogger add "Message" --status changed
+
+# List entries
+$ changelogger list
+$ changelogger list -V "0.0.1" --status added
+
+# Edit entries
+$ changelogger edit -t "New title"
+
+# Delete entries
+$ changelogger delete
+$ changelogger delete --all # To have all entries available
+
+# Set variables
+$ changelogger set --remote-repo https://github.com/KDesp73/changelogger
+
+# Get variables
+$ changelogger get version # Latest release
+
+# Create a new release
+$ changelogger release --new patch
+
+# Export CHANGELOG.md
+$ changelogger export
+```
+
 ## Help
 
 Try `changelogger -h` or `changelogger <command> -h` 

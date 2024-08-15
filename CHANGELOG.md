@@ -11,6 +11,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - --all to have all entries available
 
+### Changed
+
+- Updated version to 0.0.5
+
 
 ## [0.0.4] - 2024-08-15
 
