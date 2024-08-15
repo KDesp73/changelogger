@@ -5,13 +5,13 @@ A cli tool to help you keep a changelog in all your projects
 ## Installation
 
 ```bash
-# Get the source code
+# 1. Get the source code
 $ git clone https://github.com/KDesp73/changelogger --depth=1
 
-# Checkout to the latest release
-$ git checkout v0.0.5
+# 2. Checkout to the latest release
+$ git checkout <latest>
 
-# Build and Install
+# 3. Build and Install
 $ ./install.sh
 ```
 
