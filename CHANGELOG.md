@@ -7,6 +7,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- Updated version to 0.0.6
+
+
+## [0.0.6] - 2024-08-15
+
 ### Added
 
 - Making sure user wants to release or push
@@ -106,4 +113,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 [0.0.3]: https://github.com/KDesp73/changelogger/releases/tag/v0.0.3
 [0.0.4]: https://github.com/KDesp73/changelogger/releases/tag/v0.0.4
 [0.0.5]: https://github.com/KDesp73/changelogger/releases/tag/v0.0.5
+[0.0.6]: https://github.com/KDesp73/changelogger/releases/tag/v0.0.6
 
