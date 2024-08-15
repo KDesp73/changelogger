@@ -11,7 +11,7 @@
 #define TABLE_CONFIG "Config"
 #define FIELDS_CONFIG "config_path, version_major, version_minor, version_patch, always_export, remote_repo"
 #define TABLE_RELEASES "Releases"
-#define FIELDS_RELEASES "version, date, push"
+#define FIELDS_RELEASES "version, date, pushed"
 
 #define ENTRIES_MESSAGE "message"
 #define ENTRIES_VERSION "version"
@@ -29,6 +29,7 @@
 #define RELEASES_VERSION "version"
 #define RELEASES_TITLE "title"
 #define RELEASES_DATE "date"
+#define RELEASES_PUSHED "pushed"
 
 #define CONFIG_CONDITION "id = 1"
 #define VERSION_UNRELEASED "unreleased"

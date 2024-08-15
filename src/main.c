@@ -40,6 +40,9 @@ void help_message(Command command)
         case COMMAND_EDIT:
             edit_help();
             break;
+        case COMMAND_PUSH:
+            push_help();
+            break;
         case COMMAND_UNSET:
         case COMMAND_UNKNOWN:
         case COMMAND_INIT:
@@ -98,8 +101,9 @@ Options parse_options(int argc, char** argv, Command* command)
             break;
         case ABBR_VERSION_FULL:
             if(
-                *command != COMMAND_LIST
-            ) PANIC("--version-full can only be used with `list`");
+                *command != COMMAND_LIST &&
+                *command != COMMAND_PUSH
+            ) PANIC("--version-full can only be used with `list` and `push`");
             if(!STREQ(optarg, VERSION_UNRELEASED) && !is_valid_version(optarg)) PANIC("Version '%s' is not valid", optarg);
 
             options.version.full = optarg;

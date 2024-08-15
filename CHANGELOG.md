@@ -7,8 +7,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- Updating the pushed field when pushing
+
+
+## [0.0.5] - 2024-08-15
+
 ### Added
 
+- push command implemented
 - Implemented set/get for always_push
 - Added pushed field in Releases table
 - list --releases added
@@ -16,6 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Updated help messages
 - Release is not pushed unless its specified
 - Refactored command_list
 - Updated version to 0.0.5
@@ -88,4 +97,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 [0.0.2]: https://github.com/KDesp73/changelogger/releases/tag/v0.0.2
 [0.0.3]: https://github.com/KDesp73/changelogger/releases/tag/v0.0.3
 [0.0.4]: https://github.com/KDesp73/changelogger/releases/tag/v0.0.4
+[0.0.5]: https://github.com/KDesp73/changelogger/releases/tag/v0.0.5
 

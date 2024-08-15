@@ -471,6 +471,35 @@ void command_get(Options options)
     sqlite3_close(db);
 }
 
+void push_release(const char* version)
+{
+    command_export((Options){0});
+    char* gh_command = clib_format_text("gh release create v%s -F %s/%s.md -t v%s", version, CHANGELOG_DIR, version, version);
+    clib_execute_command(gh_command);
+    free(gh_command);
+}
+
+void command_push(Options options)
+{
+    if(version_full_set(options)){
+        char* version = options.version.full;
+        char* condition = clib_format_text("version = '%s'", version);
+        int pushed = select_int(TABLE_RELEASES, RELEASES_PUSHED, condition);
+        free(condition);
+
+        if(pushed) {
+            WARN("This release is already pushed. Aborting.");
+            return;
+        }
+
+        push_release(version);
+        update(TABLE_RELEASES, RELEASES_PUSHED, "1", condition);
+    } else {
+        ERRO("Version is not set.");
+        INFO("Try: %s push -V <version>", EXECUTABLE_NAME);
+    }
+}
+
 void command_release(Options options)
 {
     if(options.new == NULL) {
@@ -500,13 +529,10 @@ void command_release(Options options)
     char* query = clib_format_text("UPDATE Entries SET version = '%s' WHERE version = 'unreleased'", version);
     sqlite_execute_sql(SQLITE_DB, query);
 
-    command_export(options);
 
     if(!should_push) return; // Do not push the release on Github
 
-    char* gh_command = clib_format_text("gh release create v%s -F %s/%s.md -t v%s", version, CHANGELOG_DIR, version, version);
-    clib_execute_command(gh_command);
-    free(gh_command);
+    push_release(version);
 }
 
 void list_releases(sqlite3* db, Options options, char* condition, char* order_by)
@@ -540,13 +566,13 @@ void list_releases(sqlite3* db, Options options, char* condition, char* order_by
 
     for(size_t i = 0; i < count; ++i){
         printf(
-                "| %*zu | %*s | %*d | %*s |\n",
+                "| %*zu | %*s | %*s | %*s |\n",
                 index_offset,
                 i+1, 
                 version_offset,
                 (STREQ(releases[i].version.full, "0.0.0")) ? VERSION_UNRELEASED : releases[i].version.full, 
                 pushed_offset,
-                releases[i].pushed,
+                releases[i].pushed ? "True" : "False",
                 date_offset,
                 releases[i].date.full
               );
@@ -689,6 +715,7 @@ Command get_command(char* command)
 
     if(command == NULL) return COMMAND_UNSET;
     COMPARE_AND_RETURN_COMMAND(COMMAND_EXPORT)
+    COMPARE_AND_RETURN_COMMAND(COMMAND_PUSH)
     COMPARE_AND_RETURN_COMMAND(COMMAND_ADD)
     COMPARE_AND_RETURN_COMMAND(COMMAND_GET)
     COMPARE_AND_RETURN_COMMAND(COMMAND_INIT)
@@ -738,6 +765,9 @@ void execute_command(Command command, Options options)
     case COMMAND_EDIT:
         command_edit(options);
         return;
+    case COMMAND_PUSH:
+        command_push(options);
+        return;
     }
 
     help();
@@ -767,7 +797,8 @@ char* command_to_string(Command command)
         return "export";
     case COMMAND_EDIT:
         return "edit";
-      break;
+    case COMMAND_PUSH:
+        return "push";
     }
 
     return "";

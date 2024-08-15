@@ -33,6 +33,7 @@ void help()
     PTNI("release <options>             Creates a new release");
     PTNI("export [<options>]            Exports the CHANGELOG.md file");
     PTNI("edit <options>                Edit any of the unreleased entries");
+    PTNI("push <options>                Push an unpushed release to Github");
 
     PTN("");
 
@@ -116,6 +117,16 @@ void export_help()
 {
     PTN("%sOPTIONS%s", BOLD, RESET);
     PTNI("-h --help                          Prints this message");
+}
+
+void push_help()
+{
+    PTN("%sUSAGE%s", BOLD, RESET);
+    PTNI("%s push -V <version>", EXECUTABLE_NAME);
+    PTN("");
+    PTN("%sOPTIONS%s", BOLD, RESET);
+    PTNI("-h --help             Prints this message");
+    PTNI("-V --version-full     Specify the version of the release you want to push");
 }
 
 void release_help()
