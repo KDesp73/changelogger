@@ -5,8 +5,8 @@ TODO: parse CHANGELOG.md into the database
 TODO: use existing releases to populate the changelog
 TODO: read the config file if it exists
 TODO: check for sql injections
-TODO: list releases
 TODO: do not push releases immediately
+TODO: push command
 DONE: add methods to clib.h
 DONE: make sqlite.h a proper library
 DONE: make querybuilder.h a proper library
@@ -17,3 +17,4 @@ DONE: get command
 DONE: list command
 DONE: edit command
 DONE: delete command
+DONE: list releases

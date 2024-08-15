@@ -42,6 +42,23 @@ size_t select_version_minor(sqlite3 *db)
     return minor;
 }
 
+_Bool select_always_push(sqlite3* db)
+{
+    sqlite_disable_logging(db);
+    const char *sql = "SELECT always_push FROM Config WHERE id = 1;";
+    sqlite3_stmt *stmt;
+    _Bool always_push = 0;
+
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) == SQLITE_OK) {
+        if (sqlite3_step(stmt) == SQLITE_ROW) {
+            always_push = sqlite3_column_int(stmt, 0);
+        }
+    }
+    sqlite3_finalize(stmt);
+    return always_push;
+    
+}
+
 _Bool select_always_export(sqlite3* db)
 {
     sqlite_disable_logging(db);
@@ -131,6 +148,45 @@ Entry* select_entries_order_by(sqlite3* db, const char* column, size_t *count)
 
     free(sql);
     return entries;
+}
+
+Release* select_releases(sqlite3* db, const char* condition, const char* order_by, size_t *count)
+{
+    sqlite_disable_logging(db);
+    char *sql = clib_buffer_init();
+    clib_str_append(&sql, "SELECT * FROM Releases");
+    if(condition != NULL){
+        char* where = clib_format_text(" WHERE %s", condition);
+        clib_str_append(&sql, where);
+        free(where);
+    }
+    if(order_by != NULL){
+        char* orderby = clib_format_text(" ORDER BY %s", order_by);
+        clib_str_append(&sql, orderby);
+        free(orderby);
+    }
+    clib_str_append(&sql, ";");
+
+    sqlite3_stmt *stmt;
+    Release* releases = NULL;
+    size_t release_count = 0;
+
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) == SQLITE_OK) {
+        while (sqlite3_step(stmt) == SQLITE_ROW) {
+            releases = realloc(releases, sizeof(Entry) * (release_count + 1));
+            releases[release_count].version.full = strdup((char*) sqlite3_column_text(stmt, 0));
+            releases[release_count].date.full = strdup((char*) sqlite3_column_text(stmt, 2));
+            releases[release_count].pushed = sqlite3_column_int(stmt, 3);
+
+            parse_version(&releases[release_count].version);
+            releases[release_count].date = parse_date(releases[release_count].date.full);
+            release_count++;
+        }
+    }
+    sqlite3_finalize(stmt);
+    *count = release_count;
+    return releases;
+
 }
 
 Entry* select_entries(sqlite3* db, const char* condition, const char* order_by, size_t *count)

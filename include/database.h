@@ -2,6 +2,7 @@
 #define DATABASE_H
 
 #include "entry.h"
+#include "release.h"
 #include <sqlite3.h>
 #include <stdio.h>
 
@@ -22,6 +23,7 @@
 #define CONFIG_VERSION_PATCH "version_patch"
 #define CONFIG_CONFIG_PATH "config_path"
 #define CONFIG_ALWAYS_EXPORT "always_export"
+#define CONFIG_ALWAYS_PUSH "always_push"
 #define CONFIG_REMOTE_REPO "remote_repo"
 
 #define RELEASES_VERSION "version"
@@ -48,13 +50,15 @@
 	"\"config_path\"	TEXT," \
 	"\"remote_repo\"	TEXT," \
 	"\"id\"	INTEGER DEFAULT 0 UNIQUE," \
-	"\"always_export\"	INTEGER," \
+	"\"always_export\"	INTEGER DEFAULT 0," \
+	"\"always_push\"	INTEGER DEFAULT 0," \
 	"PRIMARY KEY(\"id\" AUTOINCREMENT)" \
 ");" \
 "CREATE TABLE IF NOT EXISTS \"Releases\" (" \
 	"\"version\"	TEXT NOT NULL UNIQUE," \
 	"\"id\"	INTEGER NOT NULL UNIQUE," \
     "\"date\" TEXT NOT NULL," \
+    "\"pushed\"	INTEGER DEFAULT 0," \
 	"PRIMARY KEY(\"id\" AUTOINCREMENT)" \
 ");" \
 "COMMIT;"
@@ -63,10 +67,12 @@ char* select_version_full(sqlite3* db);
 size_t select_version_major(sqlite3* db);
 size_t select_version_minor(sqlite3* db);
 size_t select_version_patch(sqlite3* db);
+_Bool select_always_push(sqlite3* db);
 _Bool select_always_export(sqlite3* db);
 char* select_config_path(sqlite3* db);
 char** select_releases_version(sqlite3* db, size_t* count);
 Entry* select_entries_order_by(sqlite3* db, const char* order_by, size_t *count);
+Release* select_releases(sqlite3* db, const char* condition, const char* order_by, size_t *count);
 Entry* select_entries(sqlite3* db, const char* condition, const char* order_by, size_t *count);
 Entry* select_entries_version(sqlite3* db, const char* version, size_t *count);
 Entry* select_entries_status(sqlite3* db, Status status, size_t *count);
@@ -82,5 +88,8 @@ int config_exists();
 
 #define SELECT_CONFIG_EXPORT \
     select_int(TABLE_CONFIG, CONFIG_ALWAYS_EXPORT, CONFIG_CONDITION)
+
+#define SELECT_CONFIG_PUSH \
+    select_int(TABLE_CONFIG, CONFIG_ALWAYS_PUSH, CONFIG_CONDITION)
 
 #endif // DATABASE_H

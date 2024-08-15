@@ -60,7 +60,7 @@ Options parse_options(int argc, char** argv, Command* command)
 
     // NOTE: The help fields are not set since 
     // the help message is written by hand
-    CliArguments args = clib_make_cli_arguments(13,
+    CliArguments args = clib_make_cli_arguments(16,
         clib_create_argument(ABBR_HELP, "help", "", no_argument),
         clib_create_argument(ABBR_VERSION, "version", "", no_argument),
         clib_create_argument(ABBR_STATUS, "status", "", required_argument),
@@ -72,8 +72,11 @@ Options parse_options(int argc, char** argv, Command* command)
         clib_create_argument(ABBR_YES, "yes", "", no_argument),
         clib_create_argument(ABBR_INDEX, "index", "", no_argument),
         clib_create_argument(ABBR_ALWAYS_EXPORT, "always-export", "", required_argument),
+        clib_create_argument(ABBR_ALWAYS_PUSH, "always-push", "", required_argument),
         clib_create_argument(ABBR_VERSION_FULL, "version-full", "", required_argument),
-        clib_create_argument(ABBR_TITLE, "title", "", required_argument)
+        clib_create_argument(ABBR_TITLE, "title", "", required_argument),
+        clib_create_argument(ABBR_RELEASES, "releases", "", no_argument),
+        clib_create_argument(ABBR_PUSH, "push", "", no_argument)
     );
 
     int opt;
@@ -135,6 +138,19 @@ Options parse_options(int argc, char** argv, Command* command)
             ) options.always_export = true;
             else options.always_export = false;
             break;
+        case ABBR_ALWAYS_PUSH:
+            if(
+                STREQ(optarg, "1") ||
+                STREQ(optarg, "true") ||
+                STREQ(optarg, "TRUE") ||
+                STREQ(optarg, "True") ||
+                STREQ(optarg, "yes") ||
+                STREQ(optarg, "y") ||
+                STREQ(optarg, "YES") ||
+                STREQ(optarg, "Yes")
+            ) options.always_push = true;
+            else options.always_push = false;
+            break;
         case ABBR_TITLE:
             if(*command != COMMAND_EDIT) PANIC("--title can only be used with `edit`");
 
@@ -142,6 +158,16 @@ Options parse_options(int argc, char** argv, Command* command)
             break;
         case ABBR_ALL:
             options.all = true;
+            break;
+        case ABBR_RELEASES:
+            if(*command != COMMAND_LIST) PANIC("--releases can only be used with `list`");
+
+            options.releases = true;
+            break;
+        case ABBR_PUSH:
+            if(*command != COMMAND_RELEASE) PANIC("--push can only be used with `release`");
+
+            options.push = true;
             break;
         default:
             exit(1);

@@ -9,10 +9,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Added pushed fieled in Releases table
+- list --releases added
 - --all to have all entries available
 
 ### Changed
 
+- Refactored command_list
 - Updated version to 0.0.5
 
 

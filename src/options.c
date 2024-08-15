@@ -15,6 +15,19 @@ void log_options(Options options)
     printf("Version Patch: %zu\n", options.version.patch);
 }
 
+int always_push_set(Options options)
+{
+    char* option = clib_format_text("-%c", ABBR_ALWAYS_PUSH);
+    for(size_t i = 0; i < options.argc; ++i){
+        if(
+            STREQ(options.argv[i], "--always-push") ||
+            STREQ(options.argv[i], option)
+        ) return true;
+    }
+    free(option);
+    return false;
+}
+
 int always_export_set(Options options)
 {
     char* option = clib_format_text("-%c", ABBR_ALWAYS_EXPORT);

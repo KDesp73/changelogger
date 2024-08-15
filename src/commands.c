@@ -5,6 +5,7 @@
 #include "help.h"
 #include "options.h"
 #include "extern/sqlite.h"
+#include "release.h"
 #include "status.h"
 #include "templates.h"
 #include "version.h"
@@ -444,6 +445,7 @@ void command_get(Options options)
         !STREQ(key, "version") &&
         !STREQ(key, "config") &&
         !STREQ(key, "remote") &&
+        !STREQ(key, "push") &&
         !STREQ(key, "export")
     ) { 
         PANIC("Invalid key: '%s'. Try %s get -h", key, EXECUTABLE_NAME);
@@ -458,6 +460,9 @@ void command_get(Options options)
     } else if(STREQ(key, "remote")) {
         char* remote = SELECT_CONFIG_REMOTE;
         printf("%s\n", (remote == NULL) ? "" : remote);
+    } else if(STREQ(key, "push")) {
+        int push = SELECT_CONFIG_PUSH;
+        printf("%d\n", push);
     } else if(STREQ(key, "export")) {
         int export = SELECT_CONFIG_EXPORT;
         printf("%d\n", export);
@@ -490,36 +495,71 @@ void command_release(Options options)
 
     command_export(options);
 
-    char* gh_command = clib_format_text("gh release create v%s -F %s/%s.md -t v%s", version, CHANGELOG_DIR, version, version);
-    clib_execute_command(gh_command);
-    free(gh_command);
-}
-
-void command_list(Options options)
-{
-    char* condition = NULL;
-    char* order_by= "date DESC";
-
-    if(version_full_set(options) || status_set(options)) {
-        condition = clib_buffer_init();
-    }
-
-    if(version_full_set(options)){
-        char* version = clib_format_text("version = '%s'", (STREQ(options.version.full, "0.0.0")) ? VERSION_UNRELEASED : options.version.full);
-        clib_str_append(&condition, version);
-        free(version);
-    }
-
-    if(status_set(options)){
-        if(version_full_set(options)) clib_str_append(&condition, " AND ");
-        char* status = clib_format_text("status = %d", options.status);
-        clib_str_append(&condition, status);
-        free(status);
-    }
-
+    
     sqlite3* db;
     sqlite3_open(SQLITE_DB, &db);
+    _Bool release = select_always_export(db);
+    sqlite3_close(db);
 
+    if(release || options.push) {
+        char* gh_command = clib_format_text("gh release create v%s -F %s/%s.md -t v%s", version, CHANGELOG_DIR, version, version);
+        clib_execute_command(gh_command);
+        free(gh_command);
+    }
+}
+
+void list_releases(sqlite3* db, Options options, char* condition, char* order_by)
+{
+    size_t count = 0;
+    Release* releases = select_releases(db, condition, order_by, &count);
+    sqlite3_close(db);
+    if(condition != NULL) free(condition);
+
+    if(count == 0){
+        INFO("No entries found");
+        exit(0);
+    }
+
+    int index_offset = -5;
+    int version_offset = -7;
+    int date_offset = -19;
+    int pushed_offset = -6;
+    char* index_dashes = char_repeat('-', -index_offset + 2); // +2 for left and right padding
+    char* version_dashes = char_repeat('-', -version_offset + 2);
+    char* date_dashes = char_repeat('-', -date_offset + 2);
+    char* pushed_dashes = char_repeat('-', -pushed_offset + 2);
+
+    printf("| Index | %*s | %*s | %*s |\n", version_offset, "Version", pushed_offset, "Pushed", date_offset, "Date");
+    printf("|%s+%s+%s+%s|\n", 
+            index_dashes,
+            version_dashes,
+            pushed_dashes,
+            date_dashes
+          );
+
+    for(size_t i = 0; i < count; ++i){
+        printf(
+                "| %*zu | %*s | %*d | %*s |\n",
+                index_offset,
+                i+1, 
+                version_offset,
+                (STREQ(releases[i].version.full, "0.0.0")) ? VERSION_UNRELEASED : releases[i].version.full, 
+                pushed_offset,
+                releases[i].pushed,
+                date_offset,
+                releases[i].date.full
+              );
+    }
+
+    free(releases);
+    free(index_dashes);
+    free(pushed_dashes);
+    free(version_dashes);
+    free(date_dashes);
+}
+
+void list_entries(sqlite3* db, Options options, char* condition, char* order_by)
+{
     size_t count;
     Entry* entries = select_entries(db, condition, order_by, &count);
     sqlite3_close(db);
@@ -572,7 +612,39 @@ void command_list(Options options)
     free(status_dashes);
     free(version_dashes);
     free(date_dashes);
+}
 
+void command_list(Options options)
+{
+    sqlite3* db;
+    sqlite3_open(SQLITE_DB, &db);
+    char* condition = NULL;
+    char* order_by= "date DESC";
+
+    if(options.releases){
+        list_releases(db, options, condition, order_by);
+        return;
+    }
+
+
+    if(version_full_set(options) || status_set(options)) {
+        condition = clib_buffer_init();
+    }
+
+    if(version_full_set(options)){
+        char* version = clib_format_text("version = '%s'", (STREQ(options.version.full, "0.0.0")) ? VERSION_UNRELEASED : options.version.full);
+        clib_str_append(&condition, version);
+        free(version);
+    }
+
+    if(status_set(options)){
+        if(version_full_set(options)) clib_str_append(&condition, " AND ");
+        char* status = clib_format_text("status = %d", options.status);
+        clib_str_append(&condition, status);
+        free(status);
+    }
+
+    list_entries(db, options, condition, order_by);
 }
 
 void command_set(Options options)
@@ -580,6 +652,12 @@ void command_set(Options options)
     if(always_export_set(options)){
         char* value = clib_format_text("%d", options.always_export);
         update(TABLE_CONFIG, CONFIG_ALWAYS_EXPORT, value, CONFIG_CONDITION);
+        free(value);
+    }
+
+    if(always_push_set(options)){
+        char* value = clib_format_text("%d", options.always_push);
+        update(TABLE_CONFIG, CONFIG_ALWAYS_PUSH, value, CONFIG_CONDITION);
         free(value);
     }
 

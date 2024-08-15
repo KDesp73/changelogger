@@ -14,7 +14,7 @@
 #define PTNI(format, ...) \
     do { \
         PTN("  "format, ##__VA_ARGS__); \
-    } while(0);
+    } while(0)
 
 
 void help()
@@ -31,7 +31,7 @@ void help()
     PTNI("get <options>                 Returns a variable");
     PTNI("delete <options>              Delete any of the unreleased entries");
     PTNI("release <options>             Creates a new release");
-    PTNI("export [<options>]            Exports the CHANGELOG.md file")
+    PTNI("export [<options>]            Exports the CHANGELOG.md file");
     PTNI("edit <options>                Edit any of the unreleased entries");
 
     PTN("");
@@ -67,10 +67,11 @@ void set_help()
     PTNI("-h --help                          Prints this message");
     PTNI("--config-dir <directory>           Specify the configuration file path");
     PTNI("--remote-repo <url>                Specify the url of the remote repo");
+    PTNI("--always-push <value>              Specify whether to immediately push the release");
     PTNI("--always-export <value>            Specify whether to export the %s file", CHANGELOG_FILE); 
     PTNI("                                   after 'add', 'delete'");
-    PTNI("      Where always_export is set to 1 for: 1, true, TRUE, True, yes, y, YES, Yes");
-    PTNI("                          is set to 0 for every other value (even NULL)");
+    PTNI("      Where always_export and always_push is set to 1 for: 1, true, TRUE, True, yes, y, YES, Yes");
+    PTNI("                          is set to 0 for every other value");
 }
 
 void list_help()
@@ -81,7 +82,8 @@ void list_help()
     PTN("%sOPTIONS%s", BOLD, RESET);
     PTNI("-h --help                     Prints this message");
     PTNI("-V --version-full <value>     Set the version to filter the list");
-    PTNI("-s --status <value>           Set the status to filter the list")
+    PTNI("-s --status <value>           Set the status to filter the list");
+    PTNI("-r --releases                 List only the releases");
 }
 
 void delete_help()
@@ -97,7 +99,14 @@ void delete_help()
 void get_help()
 {
     PTN("%sUSAGE%s", BOLD, RESET);
-    PTNI("%s get {version | export | remote | config}", EXECUTABLE_NAME);
+    PTNI("%s get <variable>", EXECUTABLE_NAME);
+    PTN("");
+    PTN("%sVARIABLES%s", BOLD, RESET);
+    PTNI("version       Latest release");
+    PTNI("export        Always export CHANGELOG.md");
+    PTNI("remote        The remote git repo url");
+    PTNI("config        The path to the configuration file");
+    PTNI("push          Always push the release on Github");
     PTN("");
     PTN("%sOPTIONS%s", BOLD, RESET);
     PTNI("-h --help             Prints this message");
@@ -112,11 +121,12 @@ void export_help()
 void release_help()
 {
     PTN("%sUSAGE%s", BOLD, RESET);
-    PTNI("%s release --new {major | minor | patch}", EXECUTABLE_NAME);
+    PTNI("%s release --new {major | minor | patch} [-p]", EXECUTABLE_NAME);
     PTN("");
     PTN("%sOPTIONS%s", BOLD, RESET);
     PTNI("-h --help             Prints this message");
     PTNI("-N --new              Creates a new release");
+    PTNI("-p --push             Push the release on github");
 }
 
 void edit_help()
@@ -127,6 +137,6 @@ void edit_help()
     PTN("%sOPTIONS%s", BOLD, RESET);
     PTNI("-h --help             Prints this message");
     PTNI("-s --status           Specify new status");
-    PTNI("-t --title            Specify new title/message")
+    PTNI("-t --title            Specify new title/message");
     PTNI("-A --all              List all entries and have them available for editing");
 }
