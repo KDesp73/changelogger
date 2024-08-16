@@ -160,7 +160,7 @@ void generate_help()
     PTN("%sUSAGE%s", BOLD, RESET);
     PTNI("%s generate <value>", EXECUTABLE_NAME);
     PTN("");
-    PTN("%sVARIABLES%s", BOLD, RESET);
+    PTN("%sVALUES%s", BOLD, RESET);
     PTNI("config                A starting point for your config file (~/.changelogger.yml)");
     PTNI("autocomplete          Autocomplete for the active shell");
     PTNI("man                   Man page for %s", EXECUTABLE_NAME);

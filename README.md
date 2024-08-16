@@ -49,6 +49,9 @@ $ changelogger push -V 0.0.3
 
 # Export CHANGELOG.md
 $ changelogger export
+
+# Generate various files
+$ changelogger generate config
 ```
 
 ## Config file
