@@ -49,6 +49,10 @@ $ changelogger push -V 0.0.3
 
 # Export CHANGELOG.md
 $ changelogger export
+$ changelogger export -F json
+
+# Import CHANGELOG.md
+$ changelogger import -f ./CHANGELOG.md
 
 # Generate various files
 $ changelogger generate config
