@@ -2,7 +2,7 @@
 #define CONFIG_H
 
 #define EXECUTABLE_NAME "changelogger"
-#define VERSION "0.0.8"
+#define VERSION "0.0.9"
 #define CHANGELOG_FILE "CHANGELOG.md"
 #define CHANGELOG_DIR ".changelog"
 #define SQLITE_DB ".changelog/changelog.db"
