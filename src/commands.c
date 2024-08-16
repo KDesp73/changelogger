@@ -195,9 +195,8 @@ void insert_release(_Bool pushed)
     free(values);
 }
 
-void command_export(Options options)
+void export_markdown()
 {
-    INFO("Exporting %s...", CHANGELOG_FILE);
     char* buffer = clib_buffer_init();
     clib_str_append_ln(&buffer, TEMPLATE_HEADER);
     clib_str_append_ln(&buffer, TEMPLATE_NOTE);
@@ -279,7 +278,35 @@ void command_export(Options options)
     free(buffer);
     sqlite3_close(db);
 
-    INFO("Export complete.");
+}
+
+void command_export(Options options)
+{
+    char* fmt = NULL;
+    if(options.format == NULL){
+        options.format = "md";
+    }
+
+    if(
+        !STREQ(options.format, "md") &&
+        !STREQ(options.format, "json") &&
+        !STREQ(options.format, "yml")
+    ){
+        PANIC("Format must be 'md', 'json' or 'yml'");
+    }
+    fmt = (char*) options.format;
+
+    if(STREQ(fmt, "md"))
+        INFO("Exporting %s...", CHANGELOG_FILE);
+    export_markdown();
+    if(STREQ(fmt, "md")){
+        INFO("Export complete.");
+        return;
+    }
+
+    char* command = clib_format_text("/usr/bin/clparse -f %s %s", fmt, CHANGELOG_FILE);
+    char* export_string = clib_execute_command(command);
+    printf("%s\n", export_string);
 }
 
 

@@ -118,7 +118,8 @@ void get_help()
 void export_help()
 {
     PTN("%sOPTIONS%s", BOLD, RESET);
-    PTNI("-h --help             Prints this message");
+    PTNI("-h --help                         Prints this message");
+    PTNI("-F --format {md | json | yml}     Specify in which format to export");
 }
 
 void push_help()

@@ -67,7 +67,7 @@ Options parse_options(int argc, char** argv, Command* command)
 
     // NOTE: The help fields are not set since 
     // the help message is written by hand
-    CliArguments args = clib_make_cli_arguments(17,
+    CliArguments args = clib_make_cli_arguments(18,
         clib_create_argument(ABBR_HELP, "help", "", no_argument),
         clib_create_argument(ABBR_VERSION, "version", "", no_argument),
         clib_create_argument(ABBR_STATUS, "status", "", required_argument),
@@ -84,7 +84,8 @@ Options parse_options(int argc, char** argv, Command* command)
         clib_create_argument(ABBR_TITLE, "title", "", required_argument),
         clib_create_argument(ABBR_RELEASES, "releases", "", no_argument),
         clib_create_argument(ABBR_PUSH, "push", "", no_argument),
-        clib_create_argument(ABBR_FILE, "file", "", required_argument)
+        clib_create_argument(ABBR_FILE, "file", "", required_argument),
+        clib_create_argument(ABBR_FORMAT, "format", "", required_argument)
     );
 
     int opt;
@@ -162,6 +163,11 @@ Options parse_options(int argc, char** argv, Command* command)
             if(*command != COMMAND_IMPORT) PANIC("--file can only be used with `import`");
 
             options.file = optarg;
+            break;
+        case ABBR_FORMAT:
+            if(*command != COMMAND_EXPORT) PANIC("--format can only be used with `export`");
+
+            options.format= optarg;
             break;
         default:
             exit(1);

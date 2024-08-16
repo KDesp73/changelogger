@@ -9,6 +9,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Added different export formats (json, yml)
+
+### Changed
+
+- Updated version to 0.0.8
+
+
+## [0.0.7] - 2024-08-17
+
+### Added
+
 - Importing changelog file into the database
 - generate command implemented (config only)
 - Added config file parsing and loading
@@ -126,4 +137,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 [0.0.4]: https://github.com/KDesp73/changelogger/releases/tag/v0.0.4
 [0.0.5]: https://github.com/KDesp73/changelogger/releases/tag/v0.0.5
 [0.0.6]: https://github.com/KDesp73/changelogger/releases/tag/v0.0.6
+[0.0.7]: https://github.com/KDesp73/changelogger/releases/tag/v0.0.7
 
