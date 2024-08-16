@@ -425,7 +425,7 @@ int config_exists() {
 
     if (sqlite3_step(stmt) == SQLITE_ROW) {
         int count = sqlite3_column_int(stmt, 0);
-        exists = (count > 0) ? 1 : 0; // Set exists to 1 if count > 0
+        exists = count > 0;
     }
 
     sqlite3_finalize(stmt);

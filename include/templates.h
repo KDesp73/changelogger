@@ -19,6 +19,8 @@ char* template_status(Status status);
 
 #define TEMPLATE_HEADER "# Changelog\n"
 
+#define TEMPLATE_YANKED "[YANKED]"
+
 #define TEMPLATE_NOTE \
 "All notable changes to this project will be documented in this file.\n" \
 "\n" \

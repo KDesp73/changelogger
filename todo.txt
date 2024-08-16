@@ -4,6 +4,7 @@ TODO: parse CHANGELOG.md into the database
 TODO: use existing releases to populate the changelog
 TODO: check for sql injections
 TODO: add installation commands for autocomplete and man page
+TODO: ability to set releases as YANKED
 DONE: add methods to clib.h
 DONE: make sqlite.h a proper library
 DONE: make querybuilder.h a proper library
