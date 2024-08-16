@@ -29,7 +29,9 @@ $ changelogger list
 $ changelogger list -V 0.0.1 --status added
 
 # Edit entries
+$ changelogger edit
 $ changelogger edit -t "New title"
+$ changelogger edit --all # To have all entries available
 
 # Delete entries
 $ changelogger delete
@@ -49,7 +51,7 @@ $ changelogger push -V 0.0.3
 
 # Export CHANGELOG.md
 $ changelogger export
-$ changelogger export -F json
+$ changelogger export --format json
 
 # Import CHANGELOG.md
 $ changelogger import -f ./CHANGELOG.md
