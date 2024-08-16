@@ -40,7 +40,7 @@ Config parse_config(const char* path)
             exit(1);
         }
 
-// Devils work
+// Devil's work
 #define LABEL_FOUND(label) \
     if (strcmp((char*)event.data.scalar.value, label) == 0) { \
         if (yaml_parser_parse(&parser, &event) && event.type == YAML_SCALAR_EVENT)

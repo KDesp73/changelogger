@@ -1,6 +1,6 @@
 CC = cc
 CFLAGS = -Wall -Iinclude -ggdb -DDEBUG
-LDFLAGS = -lsqlite3 -lyaml
+LDFLAGS = -lsqlite3 -lyaml -lcjson
 
 SRC_DIR = src
 INCLUDE_DIR = include

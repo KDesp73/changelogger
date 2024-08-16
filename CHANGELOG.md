@@ -9,12 +9,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Importing changelog file into the database
 - generate command implemented (config only)
 - Added config file parsing and loading
 
 ### Changed
 
 - Updated version to 0.0.7
+
+### Fixed
+
+- not loading file config if init was not executed
 
 
 ## [0.0.6] - 2024-08-15

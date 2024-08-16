@@ -11,16 +11,17 @@ if [ "$1" == "clean" ]; then
 fi
 
 install_exe() {
-    if ! sudo cp "./$1" "/usr/bin/$1"; then
+    if ! sudo cp "./$1" "/usr/bin/$2"; then
         echo "[ERRO] Failed to copy the executable to /usr/bin/"
         exit 1
     fi
-    echo "[INFO] $exe installed successfully"
+    echo "[INFO] $2 installed successfully"
 }
 
 if [ -f "$exe" ]; then
     # Install the executable
-    install_exe $exe
+    install_exe $exe $exe
+    install_exe "./bin/clparse" "clparse"
 
     echo "[INFO] Installation completed successfully."
 else

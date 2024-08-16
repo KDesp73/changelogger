@@ -20,6 +20,7 @@ typedef enum {
     ABBR_VERSION = 'v',
     ABBR_VERSION_FULL = 'V',
     ABBR_YES = 'y',
+    ABBR_FILE = 'f',
 } ArgumentAbbr;
 
 typedef struct {
@@ -37,6 +38,7 @@ typedef struct {
     _Bool push;
     const char* remote_repo;
     const char* title;
+    const char* file;
     _Bool all;
     _Bool releases;
 } Options;

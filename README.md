@@ -79,7 +79,9 @@ Try `changelogger -h` or `changelogger <command> -h`
 
 - [keepachangelog](https://keepachangelog.com/en/1.1.0/)
 - [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
+- [clparse](https://github.com/marcaddeo/clparse);
 
 ## LICENSE
 
 [MIT](./LICENSE)
+
