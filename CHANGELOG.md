@@ -15,6 +15,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Using -y to skip warning message
+- Included import command to help messages
 - Updated version to 0.0.7
 
 ### Fixed

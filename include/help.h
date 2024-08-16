@@ -12,5 +12,6 @@ void get_help();
 void edit_help();
 void push_help();
 void generate_help();
+void import_help();
 
 #endif // HELP_H

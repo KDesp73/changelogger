@@ -35,6 +35,7 @@ void help()
     PTNI("push <options>                Push an unpushed release to Github");
     PTNI("export [<options>]            Exports the CHANGELOG.md file");
     PTNI("generate <value>              Generate various files");
+    PTNI("import <options>              Import CHANGELOG.md file into the database");
 
     PTN("");
 
@@ -164,4 +165,14 @@ void generate_help()
     PTNI("config                A starting point for your config file (~/.changelogger.yml)");
     PTNI("autocomplete          Autocomplete for the active shell");
     PTNI("man                   Man page for %s", EXECUTABLE_NAME);
+}
+
+void import_help()
+{
+    PTN("%sUSAGE%s", BOLD, RESET);
+    PTNI("%s import <options>", EXECUTABLE_NAME);
+    PTN("");
+    PTN("%sOPTIONS%s", BOLD, RESET);
+    PTNI("-h --help             Prints this message");
+    PTNI("-f --file <path>      File to import");
 }

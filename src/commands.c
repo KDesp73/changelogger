@@ -812,10 +812,12 @@ void command_import(Options options)
     char* delete_releases = "DELETE FROM Releases";
     char* delete_entries = "DELETE FROM Entries";
 
-    WARN("This will replace all entries and releases");
-    int y = yes_or_no("Continue?");
+    if(!options.yes){
+        WARN("This will replace all entries and releases");
+        int y = yes_or_no("Continue?");
 
-    if(!y) return;
+        if(!y) return;
+    }
 
     sqlite_execute_sql(SQLITE_DB, delete_entries);
     sqlite_execute_sql(SQLITE_DB, delete_releases);
