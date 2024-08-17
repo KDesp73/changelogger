@@ -73,8 +73,8 @@ void set_help()
     PTNI("--always-push <value>              Specify whether to immediately push the release");
     PTNI("--always-export <value>            Specify whether to export the %s file", CHANGELOG_FILE); 
     PTNI("                                   after 'add', 'delete' and 'edit'");
-    PTNI("      Where always_export and always_push is set to 1 for: 1, true, TRUE, True, yes, y, YES, Yes");
-    PTNI("                          is set to 0 for every other value");
+    PTNI("      Where always_export and always_push are set to 1 for: 1, true, TRUE, True, yes, y, YES, Yes");
+    PTNI("                                          are set to 0 for every other value");
 }
 
 void list_help()

@@ -3,7 +3,6 @@ TODO: resolve memory leaks
 TODO: use existing releases to populate the changelog
 TODO: check for sql injections
 TODO: add installation commands for autocomplete and man page
-TODO: ability to set releases as YANKED
 DONE: add methods to clib.h
 DONE: make sqlite.h a proper library
 DONE: make querybuilder.h a proper library
@@ -21,3 +20,4 @@ DONE: disable sqlite logging
 DONE: read the config file if it exists
 DONE: generate command
 DONE: parse CHANGELOG.md into the database
+DONE: ability to set releases as YANKED
