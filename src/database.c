@@ -169,6 +169,7 @@ Release* select_releases(sqlite3* db, const char* condition, const char* order_b
             releases[release_count].version.full = strdup((char*) sqlite3_column_text(stmt, 0));
             releases[release_count].date.full = strdup((char*) sqlite3_column_text(stmt, 2));
             releases[release_count].pushed = sqlite3_column_int(stmt, 3);
+            releases[release_count].yanked = sqlite3_column_int(stmt, 4);
 
             parse_version(&releases[release_count].version);
             releases[release_count].date = parse_date(releases[release_count].date.full);

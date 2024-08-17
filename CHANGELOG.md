@@ -12,7 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Updated version to 0.0.9
 
 
-## [0.0.8] - 2024-08-17
+## [0.0.8] - 2024-08-17 [YANKED]
 
 ### Added
 
@@ -23,7 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Updated version to 0.0.8
 
 
-## [0.0.7] - 2024-08-17
+## [0.0.7] - 2024-08-17 
 
 ### Added
 
@@ -42,7 +42,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - not loading file config if init was not executed
 
 
-## [0.0.6] - 2024-08-15
+## [0.0.6] - 2024-08-15 
 
 ### Added
 
@@ -57,7 +57,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Updating the pushed field when pushing
 
 
-## [0.0.5] - 2024-08-15
+## [0.0.5] - 2024-08-15 
 
 ### Added
 
@@ -75,7 +75,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Updated version to 0.0.5
 
 
-## [0.0.4] - 2024-08-15
+## [0.0.4] - 2024-08-15 
 
 ### Added
 
@@ -87,7 +87,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Updated version to 0.0.4
 
 
-## [0.0.3] - 2024-08-15
+## [0.0.3] - 2024-08-15 
 
 ### Added
 
@@ -106,7 +106,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Better way to handle help messages
 
 
-## [0.0.2] - 2024-08-13
+## [0.0.2] - 2024-08-13 
 
 ### Changed
 
@@ -117,7 +117,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - using the correct file on releases
 
 
-## [0.0.1] - 2024-08-13
+## [0.0.1] - 2024-08-13 
 
 ### Added
 

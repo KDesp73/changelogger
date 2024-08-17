@@ -7,6 +7,7 @@ typedef struct {
     Version version;
     Date date;
     _Bool pushed;
+    _Bool yanked;
 } Release;
 
 

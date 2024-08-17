@@ -31,6 +31,7 @@
 #define RELEASES_TITLE "title"
 #define RELEASES_DATE "date"
 #define RELEASES_PUSHED "pushed"
+#define RELEASES_YANKED "yanked"
 
 #define CONFIG_CONDITION "id = 1"
 #define VERSION_UNRELEASED "unreleased"
@@ -61,6 +62,7 @@
 	"\"id\"	INTEGER NOT NULL UNIQUE," \
     "\"date\" TEXT NOT NULL," \
     "\"pushed\"	INTEGER DEFAULT 0," \
+    "\"yanked\"	INTEGER DEFAULT 0," \
 	"PRIMARY KEY(\"id\" AUTOINCREMENT)" \
 ");" \
 "COMMIT;"

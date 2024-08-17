@@ -139,10 +139,11 @@ void release_help()
     PTNI("%s release --new {major | minor | patch} [-p]", EXECUTABLE_NAME);
     PTN("");
     PTN("%sOPTIONS%s", BOLD, RESET);
-    PTNI("-h --help             Prints this message");
-    PTNI("-N --new              Creates a new release");
-    PTNI("-p --push             Push the release on github");
-    PTNI("-y --yes              Skip the confirmation message");
+    PTNI("-h --help                         Prints this message");
+    PTNI("-N --new {major | minor | patch}  Creates a new release");
+    PTNI("-p --push                         Push the release on github");
+    PTNI("-y --yes                          Skip the confirmation message");
+    PTNI("-Y --yank <version>               Set a release as Yanked");
 }
 
 void edit_help()

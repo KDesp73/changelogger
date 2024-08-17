@@ -225,9 +225,10 @@ void export_markdown()
                 release_buffer = clib_buffer_init();
                 char* condition = clib_format_text("version = '%s'", entries[i].version.full);
                 char* date_str = select_str(TABLE_RELEASES, RELEASES_DATE, condition);
+                int yanked = select_int(TABLE_RELEASES, RELEASES_YANKED, condition);
                 free(condition);
                 Date date = parse_date(date_str);
-                char* line = TEMPLATE_RELEASE(entries[i].version.full, date.date);
+                char* line = TEMPLATE_RELEASE(entries[i].version.full, date.date, yanked);
 
                 clib_str_append_ln(&buffer, line);
             }
@@ -553,40 +554,74 @@ void command_push(Options options)
 
 void command_release(Options options)
 {
-    if(options.new == NULL) {
-        ERRO("Options other than '--new' are not implemented or accepted");
+    if(options.new != NULL && options.yank != NULL){
+        PANIC("--new and --yank cannot be used together");
+    }
+
+    if(options.new != NULL){
+        const char* release_type = options.new;
+        if(
+                !STREQ(release_type, "major") &&
+                !STREQ(release_type, "minor") &&
+                !STREQ(release_type, "patch")
+          ){
+            PANIC("Release type '%s' should be 'major', 'minor' or 'patch'. Try %s release -h", release_type, EXECUTABLE_NAME);
+        }
+
+        make_sure_user_wants_to_proceed_with_releasing(options);
+
+        sqlite3* db;
+        sqlite3_open(SQLITE_DB, &db);
+        _Bool release = select_always_push(db);
+        sqlite3_close(db);
+
+        _Bool should_push = release || options.push;
+
+        char* version = update_config_version(release_type);
+        insert_release(should_push);
+        char* query = clib_format_text("UPDATE Entries SET version = '%s' WHERE version = 'unreleased'", version);
+        sqlite_execute_sql(SQLITE_DB, query);
+
+
+        if(!should_push) return; // Do not push the release on Github
+
+        push_release(version, options);
         return;
     }
 
-    const char* release_type = options.new;
+    if(options.yank != NULL){
+        char* version = (char*)options.yank;
+        char* condition = clib_format_text("version = '%s'", version);
+        int yanked = select_int(TABLE_RELEASES, RELEASES_YANKED, condition);
 
-    if(
-        !STREQ(release_type, "major") &&
-        !STREQ(release_type, "minor") &&
-        !STREQ(release_type, "patch")
-    ){
-        PANIC("Release type '%s' should be 'major', 'minor' or 'patch'. Try %s release -h", release_type, EXECUTABLE_NAME);
+        if(yanked) {
+            WARN("Release v%s is already yanked", version);
+            free(condition);
+            exit(0);
+        }
+
+        update(TABLE_RELEASES, RELEASES_YANKED, "1", condition);
+        free(condition);
+        INFO("Release v%s was set as YANKED", version);
     }
 
-    make_sure_user_wants_to_proceed_with_releasing(options);
+    if(options.unyank != NULL){
+        char* version = (char*)options.unyank;
+        char* condition = clib_format_text("version = '%s'", version);
+        int yanked = select_int(TABLE_RELEASES, RELEASES_YANKED, condition);
 
-    sqlite3* db;
-    sqlite3_open(SQLITE_DB, &db);
-    _Bool release = select_always_push(db);
-    sqlite3_close(db);
+        if(!yanked) {
+            WARN("Release v%s is already not yanked", version);
+            free(condition);
+            exit(0);
+        }
 
-    _Bool should_push = release || options.push;
-
-    char* version = update_config_version(release_type);
-    insert_release(should_push);
-    char* query = clib_format_text("UPDATE Entries SET version = '%s' WHERE version = 'unreleased'", version);
-    sqlite_execute_sql(SQLITE_DB, query);
-
-
-    if(!should_push) return; // Do not push the release on Github
-
-    push_release(version, options);
+        update(TABLE_RELEASES, RELEASES_YANKED, "0", condition);
+        free(condition);
+        INFO("Release v%s was set as not YANKED", version);
+    }
 }
+
 
 void list_releases(sqlite3* db, Options options, char* condition, char* order_by)
 {
@@ -604,28 +639,33 @@ void list_releases(sqlite3* db, Options options, char* condition, char* order_by
     int version_offset = -7;
     int date_offset = -19;
     int pushed_offset = -6;
+    int yanked_offset = -6;
     char* index_dashes = char_repeat('-', -index_offset + 2); // +2 for left and right padding
     char* version_dashes = char_repeat('-', -version_offset + 2);
     char* date_dashes = char_repeat('-', -date_offset + 2);
     char* pushed_dashes = char_repeat('-', -pushed_offset + 2);
+    char* yanked_dashes = char_repeat('-', -yanked_offset + 2);
 
-    printf("| Index | %*s | %*s | %*s |\n", version_offset, "Version", pushed_offset, "Pushed", date_offset, "Date");
-    printf("|%s+%s+%s+%s|\n", 
+    printf("| Index | %*s | %*s | %*s | %*s |\n", version_offset, "Version", pushed_offset, "Pushed", yanked_offset, "Yanked", date_offset, "Date");
+    printf("|%s+%s+%s+%s+%s|\n", 
             index_dashes,
             version_dashes,
             pushed_dashes,
+            yanked_dashes,
             date_dashes
           );
 
     for(size_t i = 0; i < count; ++i){
         printf(
-                "| %*zu | %*s | %*s | %*s |\n",
+                "| %*zu | %*s | %*s | %*s | %*s |\n",
                 index_offset,
                 i+1, 
                 version_offset,
                 (STREQ(releases[i].version.full, "0.0.0")) ? VERSION_UNRELEASED : releases[i].version.full, 
                 pushed_offset,
                 releases[i].pushed ? "True" : "False",
+                yanked_offset,
+                releases[i].yanked ? "True" : "False",
                 date_offset,
                 releases[i].date.full
               );
@@ -634,6 +674,7 @@ void list_releases(sqlite3* db, Options options, char* condition, char* order_by
     free(releases);
     free(index_dashes);
     free(pushed_dashes);
+    free(yanked_dashes);
     free(version_dashes);
     free(date_dashes);
 }

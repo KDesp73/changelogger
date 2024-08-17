@@ -2,8 +2,11 @@
 #define TEMPLATES_H
 
 #include "status.h"
-#define TEMPLATE_RELEASE(version, date) \
-    clib_format_text("\n## [%s] - %s", version, date)
+
+#define TEMPLATE_YANKED "[YANKED]"
+
+#define TEMPLATE_RELEASE(version, date, yanked) \
+    clib_format_text("\n## [%s] - %s %s", version, date, (yanked) ? TEMPLATE_YANKED : "")
 
 #define TEMPLATE_UNRELEASED "\n## [Unreleased]"
 
@@ -19,7 +22,6 @@ char* template_status(Status status);
 
 #define TEMPLATE_HEADER "# Changelog\n"
 
-#define TEMPLATE_YANKED "[YANKED]"
 
 #define TEMPLATE_NOTE \
 "All notable changes to this project will be documented in this file.\n" \

@@ -67,7 +67,7 @@ Options parse_options(int argc, char** argv, Command* command)
 
     // NOTE: The help fields are not set since 
     // the help message is written by hand
-    CliArguments args = clib_make_cli_arguments(18,
+    CliArguments args = clib_make_cli_arguments(20,
         clib_create_argument(ABBR_HELP, "help", "", no_argument),
         clib_create_argument(ABBR_VERSION, "version", "", no_argument),
         clib_create_argument(ABBR_STATUS, "status", "", required_argument),
@@ -85,7 +85,9 @@ Options parse_options(int argc, char** argv, Command* command)
         clib_create_argument(ABBR_RELEASES, "releases", "", no_argument),
         clib_create_argument(ABBR_PUSH, "push", "", no_argument),
         clib_create_argument(ABBR_FILE, "file", "", required_argument),
-        clib_create_argument(ABBR_FORMAT, "format", "", required_argument)
+        clib_create_argument(ABBR_FORMAT, "format", "", required_argument),
+        clib_create_argument(ABBR_YANK, "yank", "", required_argument),
+        clib_create_argument(ABBR_UNYANK, "unyank", "", required_argument)
     );
 
     int opt;
@@ -169,6 +171,16 @@ Options parse_options(int argc, char** argv, Command* command)
 
             options.format= optarg;
             break;
+        case ABBR_YANK:
+            if(*command != COMMAND_RELEASE) PANIC("--yank can only be used with `release`");
+
+            options.yank= optarg;
+            break;
+        case ABBR_UNYANK:
+            if(*command != COMMAND_RELEASE) PANIC("--unyank can only be used with `release`");
+
+            options.unyank= optarg;
+            break;
         default:
             exit(1);
         }
@@ -207,6 +219,7 @@ int main(int argc, char** argv)
     if(export && (
          command == COMMAND_ADD ||
          command == COMMAND_EDIT ||
+         command == COMMAND_RELEASE ||
          command == COMMAND_DELETE)
     ) {
         execute_command(COMMAND_EXPORT, options);

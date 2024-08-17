@@ -22,6 +22,8 @@ typedef enum {
     ABBR_YES = 'y',
     ABBR_FILE = 'f',
     ABBR_FORMAT = 'F',
+    ABBR_YANK = 'Y',
+    ABBR_UNYANK = 'U'
 } ArgumentAbbr;
 
 typedef struct {
@@ -41,6 +43,8 @@ typedef struct {
     const char* title;
     const char* file;
     const char* format;
+    const char* yank;
+    const char* unyank;
     _Bool all;
     _Bool releases;
 } Options;
