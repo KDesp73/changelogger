@@ -143,7 +143,8 @@ void release_help()
     PTNI("-N --new {major | minor | patch}  Creates a new release");
     PTNI("-p --push                         Push the release on github");
     PTNI("-y --yes                          Skip the confirmation message");
-    PTNI("-Y --yank <version>               Set a release as Yanked");
+    PTNI("-Y --yank <version>               Set a release as YANKED");
+    PTNI("-U --unyank <version>             Set a release as not YANKED");
 }
 
 void edit_help()

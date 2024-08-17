@@ -45,6 +45,8 @@ $ changelogger get version # Latest release
 
 # Create a new release
 $ changelogger release --new patch
+$ changelogger release --yank 0.0.3
+$ changelogger release --unyank 0.0.3
 
 # Push an unpushed release on Github
 $ changelogger push -V 0.0.3
