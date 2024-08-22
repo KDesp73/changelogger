@@ -6,6 +6,7 @@
 #define CHANGELOG_FILE "CHANGELOG.md"
 #define CHANGELOG_DIR ".changelog"
 #define SQLITE_DB ".changelog/changelog.db"
+#define TEMP_FILE ".changelog/commits.md"
 #define CHANGELOGGER_DEFAULT_CONFIG_PATH \
     clib_format_text("%s/.changelogger.yml", getenv("HOME"))
 
@@ -13,6 +14,7 @@
 #define YML_ALWAYS_PUSH "always-push"
 #define YML_RELEASE_WARNING_MESSAGE "release-warning-message"
 #define YML_CONFIG_PATH "config-path"
+#define YML_EDITOR "editor"
 
 #define CONFIG_EXISTS 1
 #define CONFIG_DOESNT_EXIST 0
@@ -22,6 +24,7 @@ typedef struct {
     _Bool always_push;
     const char* release_warning_message;
     const char* config_path;
+    const char* editor;
     _Bool exists;
 } Config;
 

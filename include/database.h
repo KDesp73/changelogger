@@ -26,6 +26,7 @@
 #define CONFIG_ALWAYS_EXPORT "always_export"
 #define CONFIG_ALWAYS_PUSH "always_push"
 #define CONFIG_REMOTE_REPO "remote_repo"
+#define CONFIG_EDITOR "editor"
 
 #define RELEASES_VERSION "version"
 #define RELEASES_TITLE "title"
@@ -55,6 +56,7 @@
 	"\"id\"	INTEGER DEFAULT 0 UNIQUE," \
 	"\"always_export\"	INTEGER DEFAULT 0," \
 	"\"always_push\"	INTEGER DEFAULT 0," \
+	"\"editor\"	TEXT DEFAULT 'vim'," \
 	"PRIMARY KEY(\"id\" AUTOINCREMENT)" \
 ");" \
 "CREATE TABLE IF NOT EXISTS \"Releases\" (" \
@@ -96,5 +98,8 @@ void load_config(Config config);
 
 #define SELECT_CONFIG_PUSH \
     select_int(TABLE_CONFIG, CONFIG_ALWAYS_PUSH, CONFIG_CONDITION)
+
+#define SELECT_CONFIG_EDITOR \
+    select_str(TABLE_CONFIG, CONFIG_EDITOR, CONFIG_CONDITION)
 
 #endif // DATABASE_H

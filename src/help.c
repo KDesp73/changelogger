@@ -71,6 +71,7 @@ void set_help()
     PTNI("-h --help                          Prints this message");
     PTNI("--config-dir <directory>           Specify the configuration file path");
     PTNI("--remote-repo <url>                Specify the url of the remote repo");
+    PTNI("--editor <editor>                  Specify the editor to use");
     PTNI("--always-push <value>              Specify whether to immediately push the release");
     PTNI("--always-export <value>            Specify whether to export the %s file", CHANGELOG_FILE); 
     PTNI("                                   after 'add', 'delete' and 'edit'");
@@ -111,6 +112,7 @@ void get_help()
     PTNI("remote                The remote git repo url");
     PTNI("config                The path to the configuration file");
     PTNI("push                  Always push the release on Github");
+    PTNI("editor                Editor to use when editing a file is needed");
     PTN("");
     PTN("%sOPTIONS%s", BOLD, RESET);
     PTNI("-h --help             Prints this message");

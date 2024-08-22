@@ -12,6 +12,7 @@
 #include "version.h"
 #include <stdio.h>
 #include <strings.h>
+#include <sys/wait.h>
 #define CLIB_IMPLEMENTATION
 #include "extern/clib.h"
 #include "utils.h"
@@ -57,26 +58,100 @@ char* extract_commit_messages(char* input) {
     return output;
 }
 
+int open_editor(char* editor)
+{
+    FILE* temp_file = fopen(TEMP_FILE, "r"); 
+    pid_t pid = fork();
+    if (pid == 0) {
+        execlp(editor, editor, TEMP_FILE, NULL);
+        perror("Error executing Neovim");
+        return 1;
+    } else if (pid > 0) {
+        int status;
+        waitpid(pid, &status, 0);
+
+        temp_file = fopen(TEMP_FILE, "r");
+        if (temp_file == NULL) {
+            perror("Error opening temporary file");
+            return 1;
+        }
+    } else {
+        perror("Error forking process");
+        return 1;
+    }
+
+    return 0;
+}
+
+void add_commits()
+{
+    sqlite3* db;
+    sqlite3_open(SQLITE_DB, &db);
+    char* latest = select_version_full(db);
+    sqlite3_close(db);
+    char* git_command = NULL;
+    if(STREQ(latest, "0.0.0")){
+        git_command = clib_format_text("git shortlog -z");
+    } else {
+        git_command = clib_format_text("git pull --quiet && git shortlog -z v%s..HEAD", latest);
+    }
+
+    char* out = clib_execute_command(git_command);
+    char* formatted_out = extract_commit_messages(out);
+    free(out);
+
+    char* buffer = clib_buffer_init();
+
+    clib_str_append_ln(&buffer, TEMPLATE_STATUS(STATUS_ADDED));
+    clib_str_append_ln(&buffer, formatted_out);
+    clib_str_append_ln(&buffer, TEMPLATE_STATUS(STATUS_CHANGED));
+    clib_str_append_ln(&buffer, "");
+    clib_str_append_ln(&buffer, TEMPLATE_STATUS(STATUS_REMOVED));
+    clib_str_append_ln(&buffer, "");
+    clib_str_append_ln(&buffer, TEMPLATE_STATUS(STATUS_FIXED));
+    clib_str_append_ln(&buffer, "");
+    clib_str_append_ln(&buffer, TEMPLATE_STATUS(STATUS_DEPRECATED));
+    clib_str_append_ln(&buffer, "");
+    clib_str_append_ln(&buffer, TEMPLATE_STATUS(STATUS_SECURITY));
+    clib_str_append_ln(&buffer, "");
+
+    clib_write_file(TEMP_FILE, buffer, "w");
+    free(buffer);
+
+    char* editor = SELECT_CONFIG_EDITOR;
+    open_editor(editor);
+
+    char* user_edited_commits = clib_read_file(TEMP_FILE, "r");
+    remove(TEMP_FILE);
+
+    printf("%s\n", user_edited_commits);
+
+    free(formatted_out);
+}
+
+void add_entry(const char* message, Status status)
+{
+    Date date;
+    get_date(&date);
+
+    query_builder_t* qb = create_query_builder();
+    insert_q(qb, TABLE_ENTRIES);
+    columns_q(qb, "message, status, version, date");
+    char* values = clib_format_text("'%s', %d, '%s', '%s'", message, status, VERSION_UNRELEASED, date.full);
+    values_q(qb, values);
+    char* query = build_query(qb);
+    sqlite_execute_sql(SQLITE_DB, query);
+
+    free_date(&date);
+    free(values);
+    free(query);
+}
+
 void command_add(Options options)
 {
     if(options.commits){
-        sqlite3* db;
-        sqlite3_open(SQLITE_DB, &db);
-        char* latest = select_version_full(db);
-        sqlite3_close(db);
-        char* git_command = NULL;
-        if(STREQ(latest, "0.0.0")){
-            git_command = clib_format_text("git shortlog -z");
-        } else {
-            git_command = clib_format_text("git pull --quiet && git shortlog -z v%s..HEAD", latest);
-        }
-
-        char* out = clib_execute_command(git_command);
-
-        char* formatted_out = extract_commit_messages(out);
-
-        printf("%s\n", formatted_out);
-        exit(0);
+        add_commits();
+        return;
     }
 
     char* message = options.argv[options.argc-1];
@@ -86,21 +161,7 @@ void command_add(Options options)
     if(is_blank(message))
         PANIC("Message cannot be empty or blank");
     
-
-    Date date;
-    get_date(&date);
-
-    query_builder_t* qb = create_query_builder();
-    insert_q(qb, TABLE_ENTRIES);
-    columns_q(qb, "message, status, version, date");
-    char* values = clib_format_text("'%s', %d, '%s', '%s'", message, options.status, VERSION_UNRELEASED, date.full);
-    values_q(qb, values);
-    char* query = build_query(qb);
-    sqlite_execute_sql(SQLITE_DB, query);
-
-    free_date(&date);
-    free(values);
-    free(query);
+    add_entry(message, options.status);
 }
 
 void command_delete(Options options)
@@ -513,6 +574,7 @@ void command_get(Options options)
         !STREQ(key, "config") &&
         !STREQ(key, "remote") &&
         !STREQ(key, "push") &&
+        !STREQ(key, "editor") &&
         !STREQ(key, "export")
     ) { 
         PANIC("Invalid key: '%s'. Try %s get -h", key, EXECUTABLE_NAME);
@@ -533,8 +595,11 @@ void command_get(Options options)
     } else if(STREQ(key, "export")) {
         int export = SELECT_CONFIG_EXPORT;
         printf("%d\n", export);
+    } else if(STREQ(key, "editor")) {
+        char* editor = SELECT_CONFIG_EDITOR;
+        printf("%s\n", editor);
     }
-        
+
     sqlite3_close(db);
 }
 
@@ -795,6 +860,7 @@ void command_generate(Options options)
         char* config = 
             "# ~/.changelogger.yml\n"
             "\n"
+            "editor: nvim\n"
             "always-export: true\n"
             "always-push: false\n"
             "release-warning-message: \"Remember to update the version and commit everything important!\"\n"
@@ -997,7 +1063,16 @@ void command_set(Options options)
         update(TABLE_CONFIG, CONFIG_REMOTE_REPO, value, CONFIG_CONDITION);
         free(value);
     } else {
-        if(options.config_path != NULL) // Only when it set blank by the user
+        if(options.remote_repo != NULL) // Only when it set blank by the user
+            ERRO("Remote repo must not be blank");
+    }
+
+    if(!is_blank(options.editor)) {
+        char* value = clib_format_text("'%s'", options.editor);
+        update(TABLE_CONFIG, CONFIG_EDITOR, value, CONFIG_CONDITION);
+        free(value);
+    } else {
+        if(options.editor != NULL) // Only when it set blank by the user
             ERRO("Remote repo must not be blank");
     }
 }

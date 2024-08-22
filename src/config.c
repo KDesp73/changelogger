@@ -57,6 +57,8 @@ Config parse_config(const char* path)
                     config.release_warning_message = strdup((char*)event.data.scalar.value);
                 } else LABEL_FOUND(YML_CONFIG_PATH) 
                     config.config_path = strdup((char*)event.data.scalar.value);
+                } else LABEL_FOUND(YML_EDITOR) 
+                    config.editor = strdup((char*) event.data.scalar.value);
                 }
                 break;
             case YAML_MAPPING_END_EVENT:

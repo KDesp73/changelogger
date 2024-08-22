@@ -530,6 +530,12 @@ void load_config(Config config)
     clib_str_append(&sql, value);
     free(value);
 
+    clib_str_append(&sql, ", ");
+
+    value = clib_format_text("%s = '%s'", CONFIG_EDITOR, (config.editor != NULL) ? config.editor : "vim");
+    clib_str_append(&sql, value);
+    free(value);
+
     clib_str_append(&sql, " WHERE id = 1;");
 
     sqlite_execute_sql(SQLITE_DB, sql);

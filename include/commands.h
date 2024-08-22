@@ -35,4 +35,7 @@ void command_generate(Options options);
 void command_import(Options options);
 char* command_to_string(Command command);
 
+
+void add_entry(const char* message, Status status);
+
 #endif // COMMANDS_H

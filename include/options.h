@@ -25,6 +25,7 @@ typedef enum {
     ABBR_VERSION_FULL = 'V',
     ABBR_YANK = 'Y',
     ABBR_YES = 'y',
+    ABBR_EDITOR = 'e',
 } ArgumentAbbr;
 
 typedef struct {
@@ -49,6 +50,7 @@ typedef struct {
     _Bool all;
     _Bool releases;
     _Bool commits;
+    const char* editor;
 } Options;
 
 int always_push_set(Options options);

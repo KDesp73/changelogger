@@ -23,6 +23,7 @@ $ changelogger init
 
 # Add an entry
 $ changelogger add "Message" --status changed
+$ changelogger add --commits
 
 # List entries
 $ changelogger list
@@ -71,6 +72,7 @@ The default location for the config file is `~/.changelogger.yml`
 ```yml
 # ~/.changelogger.yml
 
+editor: nvim
 always-export: true
 always-push: false
 release-warning-message: "Remember to update the version and commit everything important!"
