@@ -67,7 +67,7 @@ Options parse_options(int argc, char** argv, Command* command)
 
     // NOTE: The help fields are not set since 
     // the help message is written by hand
-    CliArguments args = clib_make_cli_arguments(20,
+    CliArguments args = clib_make_cli_arguments(21,
         clib_create_argument(ABBR_HELP, "help", "", no_argument),
         clib_create_argument(ABBR_VERSION, "version", "", no_argument),
         clib_create_argument(ABBR_STATUS, "status", "", required_argument),
@@ -87,7 +87,8 @@ Options parse_options(int argc, char** argv, Command* command)
         clib_create_argument(ABBR_FILE, "file", "", required_argument),
         clib_create_argument(ABBR_FORMAT, "format", "", required_argument),
         clib_create_argument(ABBR_YANK, "yank", "", required_argument),
-        clib_create_argument(ABBR_UNYANK, "unyank", "", required_argument)
+        clib_create_argument(ABBR_UNYANK, "unyank", "", required_argument),
+        clib_create_argument(ABBR_COMMITS, "commits", "", no_argument)
     );
 
     int opt;
@@ -179,7 +180,12 @@ Options parse_options(int argc, char** argv, Command* command)
         case ABBR_UNYANK:
             if(*command != COMMAND_RELEASE) PANIC("--unyank can only be used with `release`");
 
-            options.unyank= optarg;
+            options.unyank = optarg;
+            break;
+        case ABBR_COMMITS:
+            if(*command != COMMAND_ADD) PANIC("--commits can only be used with `add`");
+
+            options.commits = true;
             break;
         default:
             exit(1);

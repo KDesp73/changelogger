@@ -43,6 +43,11 @@ void command_init(Options options)
 
 void command_add(Options options)
 {
+    if(options.commits){
+        WARN("--commits flag not implemented yet");
+        return;
+    }
+
     char* message = options.argv[options.argc-1];
 
     if(STREQ(message, command_to_string(COMMAND_ADD))) 

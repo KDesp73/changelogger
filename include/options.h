@@ -7,23 +7,24 @@ typedef enum {
     ABBR_ALL = 'A',
     ABBR_ALWAYS_EXPORT = 'E',
     ABBR_ALWAYS_PUSH = 'P',
+    ABBR_COMMITS = 'C',
     ABBR_CONFIG_PATH = 'c',
+    ABBR_FILE = 'f',
+    ABBR_FORMAT = 'F',
     ABBR_HELP = 'h',
     ABBR_INDEX = 'I',
     ABBR_NEW = 'N',
     ABBR_NO = 'n',
+    ABBR_PUSH = 'p',
     ABBR_RELEASES = 'r',
     ABBR_REMOTE_REPO = 'R',
-    ABBR_PUSH = 'p',
     ABBR_STATUS = 's',
     ABBR_TITLE = 't',
+    ABBR_UNYANK = 'U',
     ABBR_VERSION = 'v',
     ABBR_VERSION_FULL = 'V',
-    ABBR_YES = 'y',
-    ABBR_FILE = 'f',
-    ABBR_FORMAT = 'F',
     ABBR_YANK = 'Y',
-    ABBR_UNYANK = 'U'
+    ABBR_YES = 'y',
 } ArgumentAbbr;
 
 typedef struct {
@@ -47,6 +48,7 @@ typedef struct {
     const char* unyank;
     _Bool all;
     _Bool releases;
+    _Bool commits;
 } Options;
 
 int always_push_set(Options options);

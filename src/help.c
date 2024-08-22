@@ -52,6 +52,7 @@ void add_help()
 {
     PTN("%sOPTIONS%s", BOLD, RESET);
     PTNI("-h --help                     Prints this message");
+    PTNI("-C --commits                  Add unreleased commit messages taken from the `git shortlog` command");
     PTNI("-s --status <status>          Specify the status of the entry (default is 'added')");
     PTNI("            STATUS_ADDED = 1 or 'added'");
     PTNI("            STATUS_CHANGED = 2 or 'changed'");
