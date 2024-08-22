@@ -56,6 +56,13 @@ void help_message(Command command)
     }
 }
 
+#define CHECK_USABILITY(comp, ...) \
+    do { \
+        Command compatible_commands[] = {comp, __VA_ARGS__}; \
+        char* err = is_usable(opt, args, *command, compatible_commands, sizeof(compatible_commands) / sizeof(Command)); \
+        if(err != NULL) PANIC("%s", err); \
+    } while(0)
+
 Options parse_options(int argc, char** argv, Command* command) 
 {
     Options options = {0};
@@ -110,18 +117,14 @@ Options parse_options(int argc, char** argv, Command* command)
                 options.status = get_status(optarg);
             break;
         case ABBR_VERSION_FULL:
-            if(
-                *command != COMMAND_LIST &&
-                *command != COMMAND_EDIT &&
-                *command != COMMAND_PUSH
-            ) PANIC("--version-full can only be used with `list`, `edit` and `push`");
+            CHECK_USABILITY(COMMAND_LIST, COMMAND_EDIT, COMMAND_PUSH);
             if(!STREQ(optarg, VERSION_UNRELEASED) && !is_valid_version(optarg)) PANIC("Version '%s' is not valid", optarg);
 
             options.version.full = optarg;
             parse_version(&options.version);
             break;
         case ABBR_CONFIG_PATH:
-            if(*command != COMMAND_SET) PANIC("--config-path can only be used with `set`");
+            CHECK_USABILITY(COMMAND_SET);
 
             options.config_path = optarg;
             break;
@@ -147,50 +150,50 @@ Options parse_options(int argc, char** argv, Command* command)
             options.always_push = is_true(optarg);
             break;
         case ABBR_TITLE:
-            if(*command != COMMAND_EDIT) PANIC("--title can only be used with `edit`");
-
+            CHECK_USABILITY(COMMAND_EDIT);
+            
             options.title = optarg;
             break;
         case ABBR_ALL:
             options.all = true;
             break;
         case ABBR_RELEASES:
-            if(*command != COMMAND_LIST) PANIC("--releases can only be used with `list`");
+            CHECK_USABILITY(COMMAND_LIST);
 
             options.releases = true;
             break;
         case ABBR_PUSH:
-            if(*command != COMMAND_RELEASE) PANIC("--push can only be used with `release`");
+            CHECK_USABILITY(COMMAND_RELEASE);
 
             options.push = true;
             break;
         case ABBR_FILE:
-            if(*command != COMMAND_IMPORT) PANIC("--file can only be used with `import`");
+            CHECK_USABILITY(COMMAND_IMPORT);
 
             options.file = optarg;
             break;
         case ABBR_FORMAT:
-            if(*command != COMMAND_EXPORT) PANIC("--format can only be used with `export`");
+            CHECK_USABILITY(COMMAND_EXPORT);
 
             options.format= optarg;
             break;
         case ABBR_YANK:
-            if(*command != COMMAND_RELEASE) PANIC("--yank can only be used with `release`");
+            CHECK_USABILITY(COMMAND_RELEASE);
 
             options.yank= optarg;
             break;
         case ABBR_UNYANK:
-            if(*command != COMMAND_RELEASE) PANIC("--unyank can only be used with `release`");
+            CHECK_USABILITY(COMMAND_RELEASE);
 
             options.unyank = optarg;
             break;
         case ABBR_COMMITS:
-            if(*command != COMMAND_ADD) PANIC("--commits can only be used with `add`");
+            CHECK_USABILITY(COMMAND_ADD);
 
             options.commits = true;
             break;
         case ABBR_EDITOR:
-            if(*command != COMMAND_SET) PANIC("--editor can only be used with `set`");
+            CHECK_USABILITY(COMMAND_SET);
 
             options.editor = optarg;
             break;

@@ -1,5 +1,7 @@
 #ifndef COMMANDS_H
 #define COMMANDS_H
+#define CLIB_IMPLEMENTATION
+#include "extern/clib.h"
 #include "options.h"
 
 typedef enum {
@@ -35,6 +37,16 @@ void command_generate(Options options);
 void command_import(Options options);
 char* command_to_string(Command command);
 
+/**
+ * NULL is true
+ * In case of error it returns the error message
+ */
+char* is_usable(
+    ArgumentAbbr abbr, 
+    CliArguments args,
+    Command command, 
+    Command* compatible_commands, size_t commands_size
+);
 
 void add_entry(const char* message, Status status);
 

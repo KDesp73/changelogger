@@ -1275,3 +1275,38 @@ char* command_to_string(Command command)
 
     return "";
 }
+
+char* is_usable(
+    ArgumentAbbr abbr, 
+    CliArguments args,
+    Command command, 
+    Command* compatible_commands, size_t commands_size
+)
+{
+    char* commands_str = clib_buffer_init();
+    for(size_t i = 0; i < commands_size; ++i){
+        char* com;
+        if(i == 0)
+            com = clib_format_text("%s%s%s", BOLD, command_to_string(compatible_commands[i]), RESET);
+        else if(i == commands_size - 1)
+            com = clib_format_text(" or %s%s%s", BOLD, command_to_string(compatible_commands[i]), RESET);
+        else 
+            com = clib_format_text(", %s%s%s", BOLD, command_to_string(compatible_commands[i]), RESET);
+
+        clib_str_append(&commands_str, com);
+        free(com);
+    }
+
+    for(size_t i = 0; i < commands_size; ++i) {
+        if(command == compatible_commands[i]) return NULL;
+    }
+
+    char* flag = NULL;
+    for(size_t i = 0; i < args.count; i++){
+        if(args.args[i]->abr == abbr) flag = args.args[i]->full;
+    }
+
+    char* ret = clib_format_text("--%s can only be used with %s", flag, commands_str);
+    free(commands_str);
+    return ret;
+}
