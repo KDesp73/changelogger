@@ -7,15 +7,18 @@
 
 int compare_versions(Version a, Version b) 
 {
+    if(STREQ(a.full, "0.0.0") && STREQ(a.full, b.full)) return 0;
     if(STREQ(a.full, "0.0.0")) return -1;
     if(STREQ(b.full, "0.0.0")) return 1;
 
     if (a.major != b.major) {
         return b.major - a.major;
     }
+
     if (a.minor != b.minor) {
         return b.minor - a.minor;
     }
+
     if (a.patch != b.patch) {
         return b.patch - a.patch;
     }
