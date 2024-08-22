@@ -321,6 +321,21 @@ void insert_release(_Bool pushed)
     free(values);
 }
 
+int compare_entries(const void* a, const void* b) {
+    const Entry* entry_a = (const Entry*)a;
+    const Entry* entry_b = (const Entry*)b;
+
+    int comp_versions = compare_versions(entry_a->version, entry_b->version);
+    if(comp_versions != 0){
+        return comp_versions;
+    }
+
+    if (entry_a->status != entry_b->status) {
+        return entry_a->status - entry_b->status;
+    }
+    return strcmp(entry_b->date.full, entry_a->date.full);
+}
+
 void export_markdown()
 {
     char* buffer = clib_buffer_init();
@@ -338,6 +353,8 @@ void export_markdown()
         sqlite3_close(db);
         exit(0);
     }
+    qsort(entries, count, sizeof(Entry), compare_entries);
+
     char* version = entries[0].version.full;
     Status status = entries[0].status;
     char* release_buffer = clib_buffer_init();
@@ -416,10 +433,12 @@ void command_export(Options options)
 
     if(
         !STREQ(options.format, "md") &&
+        !STREQ(options.format, "markdown") &&
         !STREQ(options.format, "json") &&
+        !STREQ(options.format, "yaml") &&
         !STREQ(options.format, "yml")
     ){
-        PANIC("Format must be 'md', 'json' or 'yml'");
+        PANIC("Format must be 'md', 'markdown', 'json', 'yml' or 'yaml'");
     }
     fmt = (char*) options.format;
 

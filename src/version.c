@@ -4,6 +4,21 @@
 #include <string.h>
 #include <assert.h>
 
+int compare_versions(Version a, Version b) 
+{
+    if (a.major != b.major) {
+        return b.major - a.major;
+    }
+    if (a.minor != b.minor) {
+        return b.minor - a.minor;
+    }
+    if (a.patch != b.patch) {
+        return b.patch - a.patch;
+    }
+
+    return strcmp(a.full, b.full);
+}
+
 void make_version(Version* v) 
 {
     v->full = (char*)malloc(20 * sizeof(char)); // Adjust size as needed

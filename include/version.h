@@ -9,6 +9,7 @@ typedef struct {
     size_t patch;
 } Version;
 
+int compare_versions(Version a, Version b);
 void make_version(Version* v);
 void parse_version(Version* version);
 void free_version(Version* v);
