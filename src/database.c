@@ -540,3 +540,23 @@ void load_config(Config config)
 
     sqlite_execute_sql(SQLITE_DB, sql);
 }
+
+_Bool is_sql_injection(const char* input)
+{
+    const char* sql_keywords[] = {"SELECT", "FROM", "WHERE", "UNION", "INSERT", "UPDATE", "DELETE", "DROP", "TRUNCATE", "EXEC", "PROCEDURE", "DECLARE"};
+    int num_keywords = sizeof(sql_keywords) / sizeof(sql_keywords[0]);
+
+    for (int i = 0; i < num_keywords; i++) {
+        if (strcasestr(input, sql_keywords[i]) != NULL) {
+            return true;
+        }
+    }
+
+    for (size_t i = 0; i < strlen(input); i++) {
+        if (!isalnum(input[i]) && input[i] != ' ' && input[i] != '\'' && input[i] != '"' && input[i] != '_' && input[i] != '-' && input[i] != '%') {
+            return true;
+        }
+    }
+
+    return false;
+}

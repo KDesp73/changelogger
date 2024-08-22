@@ -69,6 +69,14 @@
 ");" \
 "COMMIT;"
 
+#define CHECK_SQL_INJECTION(x) \
+    do { \
+        if(is_sql_injection(x)){ \
+            PANIC("%s is an sql injection", x); \
+        } \
+    } while(0)
+
+_Bool is_sql_injection(const char* input);
 char* select_version_full(sqlite3* db);
 size_t select_version_major(sqlite3* db);
 size_t select_version_minor(sqlite3* db);

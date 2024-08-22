@@ -60,19 +60,18 @@ char* extract_commit_messages(char* input) {
 
 int open_editor(char* editor)
 {
-    FILE* temp_file = fopen(TEMP_FILE, "r"); 
     pid_t pid = fork();
     if (pid == 0) {
         execlp(editor, editor, TEMP_FILE, NULL);
-        perror("Error executing Neovim");
+        perror("Error executing editor");
         return 1;
     } else if (pid > 0) {
         int status;
         waitpid(pid, &status, 0);
-
-        temp_file = fopen(TEMP_FILE, "r");
-        if (temp_file == NULL) {
-            perror("Error opening temporary file");
+        if (WIFEXITED(status)) {
+            int exit_code = WEXITSTATUS(status);
+            if (exit_code != 0) return 1;
+        } else {
             return 1;
         }
     } else {
@@ -119,18 +118,48 @@ void add_commits()
     free(buffer);
 
     char* editor = SELECT_CONFIG_EDITOR;
-    open_editor(editor);
+    int status = open_editor(editor);
+    if(status != 0) PANIC("Aborting adding commits...");
+
+    if(!yes_or_no("Continue?")){
+        INFO("Aborting adding commits...");
+        exit(0);
+    }
 
     char* user_edited_commits = clib_read_file(TEMP_FILE, "r");
     remove(TEMP_FILE);
 
-    printf("%s\n", user_edited_commits);
+    char* line = strtok(user_edited_commits, "\n");
 
+    Status current_status = STATUS_ADDED;
+    while (line != NULL) {
+        if(STREQ(line, TEMPLATE_STATUS(STATUS_ADDED))){
+            current_status = STATUS_ADDED;
+        } else if(STREQ(line, TEMPLATE_STATUS(STATUS_CHANGED))){
+            current_status = STATUS_CHANGED;
+        } else if(STREQ(line, TEMPLATE_STATUS(STATUS_REMOVED))){
+            current_status = STATUS_REMOVED;
+        } else if(STREQ(line, TEMPLATE_STATUS(STATUS_FIXED))){
+            current_status = STATUS_FIXED;
+        } else if(STREQ(line, TEMPLATE_STATUS(STATUS_DEPRECATED))){
+            current_status = STATUS_DEPRECATED;
+        } else if(STREQ(line, TEMPLATE_STATUS(STATUS_SECURITY))){
+            current_status = STATUS_SECURITY;
+        } else { // Line is a commit message
+            if(!is_blank(line) && !STREQ(line, "\n")){
+                add_entry(line, current_status);
+            }
+        }
+
+        line = strtok(NULL, "\n");
+    }
     free(formatted_out);
 }
 
 void add_entry(const char* message, Status status)
 {
+    CHECK_SQL_INJECTION(message);
+
     Date date;
     get_date(&date);
 
@@ -521,7 +550,8 @@ void command_edit(Options options)
                 ERRO("New message cannot be blank\n");
                 clear_input_buffer();
                 continue;
-            }
+            } 
+            CHECK_SQL_INJECTION(message);
             break;
         }
 
