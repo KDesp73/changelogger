@@ -1,4 +1,5 @@
 #include "version.h"
+#include "extern/clib.h"
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,6 +7,9 @@
 
 int compare_versions(Version a, Version b) 
 {
+    if(STREQ(a.full, "0.0.0")) return -1;
+    if(STREQ(b.full, "0.0.0")) return 1;
+
     if (a.major != b.major) {
         return b.major - a.major;
     }
