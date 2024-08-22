@@ -42,6 +42,9 @@ clean:
 compile_commands.json: $(SRC_FILES)
 	bear -- make
 
+install:
+	./install.sh
+
 # Phony target to avoid conflicts with file names
 .PHONY: all clean
 
