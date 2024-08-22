@@ -1,4 +1,3 @@
-TODO: expand sqlite.h functionality
 TODO: resolve memory leaks
 TODO: check for sql injections
 TODO: add installation commands for autocomplete and man page

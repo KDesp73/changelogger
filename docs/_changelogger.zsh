@@ -1,5 +1,29 @@
 #compdef changelogger
 
+_values() {
+    local desc
+    local -a values
+    local -a descriptions
+
+    # Parse the arguments
+    while [[ "$1" != "" ]]; do
+        if [[ "$1" == *\[* ]]; then
+            # Extract the value and description
+            value="${1%%[*}"
+            desc="${1#*[}"
+            desc="${desc%]}"
+            values+=("$value")
+            descriptions+=("$desc")
+        else
+            values+=("$1")
+            descriptions+=("")
+        fi
+        shift
+    done
+
+    # Display the values with descriptions
+    _describe -t values "values" values descriptions
+}
 _changelogger() {
     local -a commands
     commands=(
@@ -36,7 +60,7 @@ _changelogger() {
                     _arguments \
                         '-h[Prints the help message]' \
                         '--config-dir[Specify the configuration file path]' \
-                        '--remote-repo[Specify the url of the remote repo]' \
+                        '--remote-repo[Specify the URL of the remote repo]' \
                         '--editor[Specify the editor to use]' \
                         '--always-push[Specify whether to immediately push the release]' \
                         '--always-export[Specify whether to export the CHANGELOG.md file]'
@@ -54,6 +78,13 @@ _changelogger() {
                         '-A[List all entries and have them available for deletion]'
                     ;;
                 get)
+                    _values \
+                        'version[Latest release]' \
+                        'export[Always export CHANGELOG.md]' \
+                        'remote[The remote git repo URL]' \
+                        'config[The path to the configuration file]' \
+                        'push[Always push the release on GitHub]' \
+                        'editor[Editor to use when editing a file is needed]'
                     _arguments \
                         '-h[Prints the help message]' \
                         '-A[Print all variables]'
@@ -73,7 +104,7 @@ _changelogger() {
                     _arguments \
                         '-h[Prints the help message]' \
                         '-N[Creates a new release]' \
-                        '-p[Push the release on github]' \
+                        '-p[Push the release on GitHub]' \
                         '-y[Skip the confirmation message]' \
                         '-Y[Set a release as YANKED]' \
                         '-U[Set a release as not YANKED]'
@@ -88,9 +119,11 @@ _changelogger() {
                     ;;
                 generate)
                     _arguments \
+                        '-h[Prints the help message]'
+                    _values \
                         'config[A starting point for your config file]' \
                         'autocomplete[Autocomplete for the active shell]' \
-                        'man[Man page for changelogger]'
+                        'man[Man page for changelogger]' 
                     ;;
                 import)
                     _arguments \

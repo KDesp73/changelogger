@@ -1,9 +1,47 @@
 #include "database.h"
+#include <string.h>
 #define CLIB_IMPLEMENTATION
 #include "extern/clib.h"
 #include "config.h"
 #include "utils.h"
 #include <yaml.h>
+
+
+void install_autocompletion(Shell shell)
+{
+}
+
+void install_bash_autocompletion()
+{
+
+}
+
+char* shell_to_string(Shell shell)
+{
+    switch(shell){
+    case SHELL_UNKNOWN:
+        return "";
+    case SHELL_BASH:
+        return "bash";
+    case SHELL_ZSH:
+        return "zsh";
+    }
+}
+
+Shell get_shell()
+{
+    char* shell = getenv("SHELL");
+
+#define COMPARE_AND_RETURN_SHELL(x) \
+    if(strstr(shell, shell_to_string(x)) != NULL) return x
+
+    COMPARE_AND_RETURN_SHELL(SHELL_ZSH);
+    COMPARE_AND_RETURN_SHELL(SHELL_BASH);
+
+#undef COMPARE_AND_RETURN_SHELL
+
+    return SHELL_UNKNOWN;
+}
 
 int config_found(const char* path)
 {

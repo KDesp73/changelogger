@@ -9,6 +9,9 @@
 #define TEMP_FILE ".changelog/commits.md"
 #define CHANGELOGGER_DEFAULT_CONFIG_PATH \
     clib_format_text("%s/.changelogger.yml", getenv("HOME"))
+#define BASH_AUTOCOMPLETE_PATH "/etc/bash_completion.d/_changelogger.bash"
+#define ZSH_AUTOCOMPLETE_PATH "/usr/share/zsh/functions/Completion/_changelogger.zsh"
+#define CURL_AUTOCOMPLETE(x) "curl -fsSL https://raw.githubusercontent.com/KDesp73/changelogger/main/docs/_changelogger."#x
 
 #define YML_ALWAYS_EXPORT "always-export"
 #define YML_ALWAYS_PUSH "always-push"
@@ -18,6 +21,12 @@
 
 #define CONFIG_EXISTS 1
 #define CONFIG_DOESNT_EXIST 0
+
+typedef enum {
+    SHELL_UNKNOWN,
+    SHELL_ZSH,
+    SHELL_BASH
+} Shell;
 
 typedef struct {
     _Bool always_export;
@@ -34,6 +43,9 @@ Config parse_config(const char* path);
 Config get_config();
 void load_config(Config config);
 
-
+Shell get_shell();
+char* shell_to_string(Shell shell);
+void install_zsh_autocompletion();
+void install_bash_autocompletion();
 
 #endif // CONFIG_H

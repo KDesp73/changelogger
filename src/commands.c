@@ -977,14 +977,24 @@ void command_generate(Options options)
 
         clib_write_file(default_path, config, "w");
         free(default_path);
+    } else if(STREQ(value, "autocomplete")){
+        if (getuid() != 0) {
+            PANIC("Installing autocompletion requires elevated privileges. Please run with sudo.\n");
+        }
+
+        char* script = clib_execute_command(CURL_AUTOCOMPLETE(zsh));
+        clib_write_file(ZSH_AUTOCOMPLETE_PATH, script, "w");
+        INFO("%s autocomplete installed", shell_to_string(SHELL_ZSH));
+
+        script = clib_execute_command(CURL_AUTOCOMPLETE(bash));
+        clib_write_file(BASH_AUTOCOMPLETE_PATH, script, "w");
+        INFO("%s autocomplete installed", shell_to_string(SHELL_BASH));
+
+        free(script);
     } else {
-        // For now
         PANIC("Generating %s is not implemented yet", value);
     }
 
-    // if(STREQ(value, "autocomplete")){
-    //     PANIC("Generating autocomplete is not implemented yet");
-    // }
 }
 
 void load_releases(Changelog changelog)
