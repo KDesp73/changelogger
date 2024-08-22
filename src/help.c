@@ -159,6 +159,7 @@ void edit_help()
     PTNI("-h --help             Prints this message");
     PTNI("-s --status           Specify new status");
     PTNI("-t --title            Specify new title/message");
+    PTNI("-V --version-full     Specify new version");
     PTNI("-A --all              List all entries and have them available for editing");
 }
 

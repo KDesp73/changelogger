@@ -112,8 +112,9 @@ Options parse_options(int argc, char** argv, Command* command)
         case ABBR_VERSION_FULL:
             if(
                 *command != COMMAND_LIST &&
+                *command != COMMAND_EDIT &&
                 *command != COMMAND_PUSH
-            ) PANIC("--version-full can only be used with `list` and `push`");
+            ) PANIC("--version-full can only be used with `list`, `edit` and `push`");
             if(!STREQ(optarg, VERSION_UNRELEASED) && !is_valid_version(optarg)) PANIC("Version '%s' is not valid", optarg);
 
             options.version.full = optarg;

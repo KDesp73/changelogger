@@ -19,6 +19,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Edited help messages according to the latest changes
 - Updated version to 0.0.10
 
+### Fixed
+
+- Sorting entries before exporting
+
 ### Security
 
 - Implemented sql injection checker

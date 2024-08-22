@@ -89,6 +89,25 @@ void add_commits()
     char* latest = select_version_full(db);
     sqlite3_close(db);
     char* git_command = NULL;
+    
+    // Check if tag exists
+    char* tag_command = clib_format_text("git tag --list v%s", latest);
+    char* versions = clib_execute_command(tag_command);
+    free(tag_command);
+    if(is_blank(versions)){
+        ERRO("v%s is not pushed", latest);
+        Version v = {
+            .full = latest
+        };
+        parse_version(&v);
+        v.patch = v.patch-1;
+        make_version(&v);
+        INFO("Setting v%s as the previous release", v.full);
+        latest = v.full;
+    }
+    free(versions);
+
+
     if(STREQ(latest, "0.0.0")){
         git_command = clib_format_text("git shortlog -z");
     } else {
@@ -515,7 +534,7 @@ void command_edit(Options options)
         break;
     }
     
-    _Bool arguments_used = status_set(options) || options.title != NULL;
+    _Bool arguments_used = status_set(options) || options.title != NULL || version_full_set(options);
     if(arguments_used){
         if(options.title != NULL){
             char* condition = clib_format_text("message = '%s' AND date = '%s'", entries[index-1].message, entries[index-1].date.full);
@@ -530,6 +549,14 @@ void command_edit(Options options)
             char* formated_status = clib_format_text("%d", options.status);
             update(TABLE_ENTRIES, ENTRIES_STATUS, formated_status, condition);
             free(formated_status);
+            free(condition);
+        }
+
+        if(version_full_set(options)){
+            char* condition = clib_format_text("message = '%s' AND date = '%s'", entries[index-1].message, entries[index-1].date.full);
+            char* formated_version = clib_format_text("'%s'", options.version.full);
+            update(TABLE_ENTRIES, ENTRIES_VERSION, formated_version, condition);
+            free(formated_version);
             free(condition);
         }
         return;
