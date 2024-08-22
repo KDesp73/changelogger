@@ -823,7 +823,7 @@ void list_entries(sqlite3* db, Options options, char* condition, char* order_by)
     }
 
     int index_offset = -5;
-    int title_offset = -50;
+    int title_offset = -60;
     int status_offset = -10;
     int version_offset = -10;
     int date_offset = -19;
