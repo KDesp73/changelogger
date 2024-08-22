@@ -1,5 +1,6 @@
 #include "help.h"
 #include "config.h"
+#include "options.h"
 #define CLIB_IMPLEMENTATION
 #include "extern/clib.h"
 #include <stdio.h>
@@ -116,6 +117,7 @@ void get_help()
     PTN("");
     PTN("%sOPTIONS%s", BOLD, RESET);
     PTNI("-h --help             Prints this message");
+    PTNI("-A --all              Print all variables");
 }
 
 void export_help()

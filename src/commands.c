@@ -659,6 +659,7 @@ void command_get(Options options)
     sqlite3_open(SQLITE_DB, &db);
 
     if(
+        !options.all &&
         !STREQ(key, "version") &&
         !STREQ(key, "config") &&
         !STREQ(key, "remote") &&
@@ -669,23 +670,34 @@ void command_get(Options options)
         PANIC("Invalid key: '%s'. Try %s get -h", key, EXECUTABLE_NAME);
     }
 
-    if(STREQ(key, "version")){
+    if(options.all || STREQ(key, "version")){
         char* version = select_version_full(db);
+        if(options.all) printf("Version: ");
         printf("%s\n", version);
-    } else if(STREQ(key, "config")) {
+    }
+    if(options.all || STREQ(key, "config")) {
         char* config_path = select_config_path(db);
-        printf("%s\n", (config_path == NULL) ? "" : config_path);
-    } else if(STREQ(key, "remote")) {
+        if(options.all) printf("Config: ");
+        printf("%s\n", (config_path == NULL) ? CHANGELOGGER_DEFAULT_CONFIG_PATH : config_path);
+    } 
+    if(options.all || STREQ(key, "remote")) {
         char* remote = SELECT_CONFIG_REMOTE;
+        if(options.all) printf("Remote: ");
         printf("%s\n", (remote == NULL) ? "" : remote);
-    } else if(STREQ(key, "push")) {
+    } 
+    if(options.all || STREQ(key, "push")) {
         int push = SELECT_CONFIG_PUSH;
+        if(options.all) printf("Always push: ");
         printf("%d\n", push);
-    } else if(STREQ(key, "export")) {
+    } 
+    if(options.all || STREQ(key, "export")) {
         int export = SELECT_CONFIG_EXPORT;
+        if(options.all) printf("Always export: ");
         printf("%d\n", export);
-    } else if(STREQ(key, "editor")) {
+    } 
+    if(options.all || STREQ(key, "editor")) {
         char* editor = SELECT_CONFIG_EDITOR;
+        if(options.all) printf("Editor: ");
         printf("%s\n", editor);
     }
 

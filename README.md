@@ -43,6 +43,7 @@ $ changelogger set --remote-repo https://github.com/KDesp73/changelogger
 
 # Get variables
 $ changelogger get version # Latest release
+$ changelogger get --all
 
 # Create a new release
 $ changelogger release --new patch
