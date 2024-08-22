@@ -91,7 +91,7 @@ void add_commits()
     char* git_command = NULL;
     
     // Check if tag exists
-    char* tag_command = clib_format_text("git tag --list v%s", latest);
+    char* tag_command = clib_format_text("git pull --quiet && git tag --list v%s", latest);
     char* versions = clib_execute_command(tag_command);
     free(tag_command);
     if(is_blank(versions)){
@@ -111,10 +111,16 @@ void add_commits()
     if(STREQ(latest, "0.0.0")){
         git_command = clib_format_text("git shortlog -z");
     } else {
-        git_command = clib_format_text("git pull --quiet && git shortlog -z v%s..HEAD", latest);
+        git_command = clib_format_text("git shortlog -z v%s..HEAD", latest);
     }
 
     char* out = clib_execute_command(git_command);
+
+    if(is_blank(out)){
+        ERRO("No commit messages after v%s", latest);
+        exit(1);
+    }
+
     char* formatted_out = extract_commit_messages(out);
     free(out);
 
@@ -166,6 +172,7 @@ void add_commits()
             current_status = STATUS_SECURITY;
         } else { // Line is a commit message
             if(!is_blank(line) && !STREQ(line, "\n")){
+                printf("Added \n\t%s\n\t%s\n", line, status_to_string(current_status));
                 add_entry(line, current_status);
             }
         }
