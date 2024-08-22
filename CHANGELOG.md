@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Ability to edit version
 - added make install option
 - Added --commits option to add commits as entries
 - Config editor variable added
@@ -21,6 +22,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- fixed sorting in case of unreleased
+- checking if tag is released
 - Sorting entries before exporting
 
 ### Security
