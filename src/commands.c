@@ -154,10 +154,14 @@ void add_commits()
     char* user_edited_commits = clib_read_file(TEMP_FILE, "r");
     remove(TEMP_FILE);
 
-    char* line = strtok(user_edited_commits, "\n");
-
+    char* line = user_edited_commits;
     Status current_status = STATUS_ADDED;
-    while (line != NULL) {
+    while (line != NULL && *line != '\0') {
+        char* end = strchr(line, '\n');
+        if (end != NULL) {
+            *end = '\0';
+        }
+
         if(STREQ(line, TEMPLATE_STATUS(STATUS_ADDED))){
             current_status = STATUS_ADDED;
         } else if(STREQ(line, TEMPLATE_STATUS(STATUS_CHANGED))){
@@ -172,14 +176,18 @@ void add_commits()
             current_status = STATUS_SECURITY;
         } else { // Line is a commit message
             if(!is_blank(line) && !STREQ(line, "\n")){
-                printf("Added \n\t%s\n\t%s\n", line, status_to_string(current_status));
                 add_entry(line, current_status);
             }
         }
 
-        line = strtok(NULL, "\n");
+        if (end != NULL) {
+            line = end + 1;
+        } else {
+            line = NULL;
+        }    
     }
     free(formatted_out);
+    free(user_edited_commits);
 }
 
 void add_entry(const char* message, Status status)
