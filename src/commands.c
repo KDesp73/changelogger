@@ -41,11 +41,42 @@ void command_init(Options options)
     } else INFO("Config is already initialized");
 }
 
+char* extract_commit_messages(char* input) {
+    char* output = malloc(strlen(input) + 1); 
+    output[0] = '\0'; 
+
+    char* line = strtok(input, "\n");
+    while (line != NULL) {
+        if (strncmp(line, "      ", 6) == 0) { 
+            strcat(output, line + 6); 
+            strcat(output, "\n");
+        }
+        line = strtok(NULL, "\n");
+    }
+
+    return output;
+}
+
 void command_add(Options options)
 {
     if(options.commits){
-        WARN("--commits flag not implemented yet");
-        return;
+        sqlite3* db;
+        sqlite3_open(SQLITE_DB, &db);
+        char* latest = select_version_full(db);
+        sqlite3_close(db);
+        char* git_command = NULL;
+        if(STREQ(latest, "0.0.0")){
+            git_command = clib_format_text("git shortlog -z");
+        } else {
+            git_command = clib_format_text("git pull --quiet && git shortlog -z v%s..HEAD", latest);
+        }
+
+        char* out = clib_execute_command(git_command);
+
+        char* formatted_out = extract_commit_messages(out);
+
+        printf("%s\n", formatted_out);
+        exit(0);
     }
 
     char* message = options.argv[options.argc-1];
