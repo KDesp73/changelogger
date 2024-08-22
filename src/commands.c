@@ -144,10 +144,12 @@ void add_commits()
 
     char* editor = SELECT_CONFIG_EDITOR;
     int status = open_editor(editor);
+    free(editor);
     if(status != 0) PANIC("Aborting adding commits...");
 
     if(!yes_or_no("Continue?")){
         INFO("Aborting adding commits...");
+        remove(TEMP_FILE);
         exit(0);
     }
 
@@ -180,11 +182,7 @@ void add_commits()
             }
         }
 
-        if (end != NULL) {
-            line = end + 1;
-        } else {
-            line = NULL;
-        }    
+        line = (end != NULL) ? end + 1 : NULL;
     }
     free(formatted_out);
     free(user_edited_commits);
