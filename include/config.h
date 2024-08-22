@@ -2,7 +2,7 @@
 #define CONFIG_H
 
 #define EXECUTABLE_NAME "changelogger"
-#define VERSION "0.0.11"
+#define VERSION "0.0.12"
 #define CHANGELOG_FILE "CHANGELOG.md"
 #define CHANGELOG_DIR ".changelog"
 #define SQLITE_DB ".changelog/changelog.db"
@@ -29,9 +29,10 @@ typedef struct {
 } Config;
 
 void log_config(Config config);
-int config_found(const char* path); // NULL uses the default path
+int config_found(const char* path);
 Config parse_config(const char* path);
 Config get_config();
+void load_config(Config config);
 
 
 
