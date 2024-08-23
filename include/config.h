@@ -8,10 +8,9 @@
 #define SQLITE_DB ".changelog/changelog.db"
 #define TEMP_FILE ".changelog/commits.md"
 #define CHANGELOGGER_DEFAULT_CONFIG_PATH \
-    clib_format_text("%s/.changelogger.yml", getenv("HOME"))
+    clib_format_text("%s/.config/.changelogger.yml", getenv("HOME"))
 #define BASH_AUTOCOMPLETE_PATH "/etc/bash_completion.d/_changelogger.bash"
-#define ZSH_AUTOCOMPLETE_PATH "/usr/share/zsh/functions/Completion/_changelogger.zsh"
-#define CURL_AUTOCOMPLETE(x) "curl -fsSL https://raw.githubusercontent.com/KDesp73/changelogger/main/docs/_changelogger."#x
+#define ZSH_AUTOCOMPLETE_PATH "/usr/share/zsh/functions/Completion/_changelogger"
 
 #define YML_ALWAYS_EXPORT "always-export"
 #define YML_ALWAYS_PUSH "always-push"
@@ -45,7 +44,6 @@ void load_config(Config config);
 
 Shell get_shell();
 char* shell_to_string(Shell shell);
-void install_zsh_autocompletion();
-void install_bash_autocompletion();
+void install_autocompletion(Shell shell);
 
 #endif // CONFIG_H

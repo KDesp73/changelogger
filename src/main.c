@@ -218,9 +218,10 @@ Options parse_options(int argc, char** argv, Command* command)
 int main(int argc, char** argv)
 {
     if(clib_file_exists(SQLITE_DB)){
+        DEBU("Loading config...");
         Config config = get_config();
         if(config.exists) load_config(config);
-    }
+    } 
 
     Command command;
     Options options = parse_options(argc, argv, &command);

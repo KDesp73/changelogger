@@ -9,11 +9,18 @@
 
 void install_autocompletion(Shell shell)
 {
-}
+    char* path = NULL;
+    switch (shell) {
+    case SHELL_ZSH:
+        path = ZSH_AUTOCOMPLETE_PATH;
+    case SHELL_BASH:
+        path = BASH_AUTOCOMPLETE_PATH;
+    case SHELL_UNKNOWN:
+      break;
+    }
 
-void install_bash_autocompletion()
-{
-
+    char* command = clib_format_text("curl -s https://raw.githubusercontent.com/KDesp73/changelogger/main/docs/_changelogger.%s -o %s", shell_to_string(shell), path);
+    clib_execute_command(command);
 }
 
 char* shell_to_string(Shell shell)

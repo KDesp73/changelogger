@@ -27,7 +27,7 @@ if [ -f "$exe" ]; then
 else
     echo "$exe is not built. Building..."
 
-    if make; then
+    if make RELEASE=1; then
         ./install.sh
     else
         echo "Failed to build $exe"

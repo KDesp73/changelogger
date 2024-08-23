@@ -959,7 +959,7 @@ void command_generate(Options options)
 
     if(STREQ(value, "config")){
         char* config = 
-            "# ~/.changelogger.yml\n"
+            "# ~/.config/.changelogger.yml\n"
             "\n"
             "editor: nvim\n"
             "always-export: true\n"
@@ -982,15 +982,11 @@ void command_generate(Options options)
             PANIC("Installing autocompletion requires elevated privileges. Please run with sudo.\n");
         }
 
-        char* script = clib_execute_command(CURL_AUTOCOMPLETE(zsh));
-        clib_write_file(ZSH_AUTOCOMPLETE_PATH, script, "w");
+        install_autocompletion(SHELL_ZSH);
         INFO("%s autocomplete installed", shell_to_string(SHELL_ZSH));
 
-        script = clib_execute_command(CURL_AUTOCOMPLETE(bash));
-        clib_write_file(BASH_AUTOCOMPLETE_PATH, script, "w");
+        install_autocompletion(SHELL_BASH);
         INFO("%s autocomplete installed", shell_to_string(SHELL_BASH));
-
-        free(script);
     } else {
         PANIC("Generating %s is not implemented yet", value);
     }
