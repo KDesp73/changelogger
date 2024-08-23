@@ -1,5 +1,5 @@
-CC = cc
-CFLAGS = -Wall -Iinclude -ggdb -DDEBUG
+CC = gcc
+CFLAGS = -Iinclude
 LDFLAGS = -lsqlite3 -lyaml -lcjson
 
 SRC_DIR = src
@@ -9,6 +9,12 @@ BUILD_DIR = build
 ifdef SANITIZE
 	CFLAGS += -fsanitize=address,undefined
 	LDFLAGS += -fsanitize=address,undefined
+endif
+
+ifndef RELEASE
+	CFLAGS += -DDEBUG -ggdb -Wall
+else 
+	CFLAGS += -O3
 endif
 
 # List all the source files
