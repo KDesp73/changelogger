@@ -24,6 +24,7 @@ _values() {
     # Display the values with descriptions
     _describe -t values "values" values descriptions
 }
+
 _changelogger() {
     local -a commands
     commands=(
@@ -37,8 +38,8 @@ _changelogger() {
         'release'
         'push'
         'export'
-        'generate'
         'import'
+        'generate'
         '-h'
         '-v'
     )

@@ -9,10 +9,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Added release option to Makefile
+- Added generate autocomplete command
 - Added --all option to get command
 
 ### Changed
 
+- ~/.changelogger.yml -> ~/.config/.changelogger.yml
 - Updated version to 0.0.12
 
 
