@@ -36,11 +36,22 @@ typedef struct {
     _Bool exists;
 } Config;
 
+#define EMPTY_CONFIG \
+{ \
+    .always_export = 0, \
+    .always_push = 0, \
+    .exists = CONFIG_DOESNT_EXIST, \
+    .release_warning_message = NULL, \
+    .editor = NULL, \
+    .config_path = NULL \
+}
+
 void log_config(Config config);
 int config_found(const char* path);
 Config parse_config(const char* path);
 Config get_config();
 void load_config(Config config);
+void free_config(Config* config);
 
 Shell get_shell();
 char* shell_to_string(Shell shell);

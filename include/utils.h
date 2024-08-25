@@ -11,4 +11,6 @@ void clear_input_buffer();
 int is_true(const char* str);
 int yes_or_no(const char* message);
 
+#define freec(x) free((char*) x)
+
 #endif // UTILS_H

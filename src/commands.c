@@ -94,7 +94,7 @@ void add_commits()
     char* tag_command = clib_format_text("git pull --quiet && git tag --list v%s", latest);
     char* versions = clib_execute_command(tag_command);
     free(tag_command);
-    if(is_blank(versions)){
+    if(!STREQ(latest, "0.0.0") && is_blank(versions)){
         ERRO("v%s is not pushed", latest);
         Version v = {
             .full = latest
@@ -674,16 +674,21 @@ void command_get(Options options)
         char* version = select_version_full(db);
         if(options.all) printf("Version: ");
         printf("%s\n", version);
+        free(version);
     }
     if(options.all || STREQ(key, "config")) {
         char* config_path = select_config_path(db);
         if(options.all) printf("Config: ");
-        printf("%s\n", (config_path == NULL) ? CHANGELOGGER_DEFAULT_CONFIG_PATH : config_path);
+        char* default_path = CHANGELOGGER_DEFAULT_CONFIG_PATH;
+        printf("%s\n", (config_path == NULL) ? default_path : config_path);
+        free(default_path);
+        free(config_path);
     } 
     if(options.all || STREQ(key, "remote")) {
         char* remote = SELECT_CONFIG_REMOTE;
         if(options.all) printf("Remote: ");
         printf("%s\n", (remote == NULL) ? "" : remote);
+        free(remote);
     } 
     if(options.all || STREQ(key, "push")) {
         int push = SELECT_CONFIG_PUSH;
@@ -699,6 +704,7 @@ void command_get(Options options)
         char* editor = SELECT_CONFIG_EDITOR;
         if(options.all) printf("Editor: ");
         printf("%s\n", editor);
+        free(editor);
     }
 
     sqlite3_close(db);
@@ -881,16 +887,27 @@ void list_releases(sqlite3* db, Options options, char* condition, char* order_by
     free(date_dashes);
 }
 
+void free_entries(Entry** entries, size_t count)
+{
+    Entry* e = *entries;
+    for(size_t i = 0; i < count; ++i){
+        if(e[i].message != NULL)
+            freec(e[i].message);
+        free_version(&e[i].version);
+        free_date(&e[i].date);
+    }
+    free(*entries);
+}
+
 void list_entries(sqlite3* db, Options options, char* condition, char* order_by)
 {
     size_t count;
     Entry* entries = select_entries(db, condition, order_by, &count);
     sqlite3_close(db);
-    if(condition != NULL) free(condition);
 
     if(count == 0){
         INFO("No entries found");
-        exit(0);
+        return;
     }
 
     int index_offset = -5;
@@ -929,7 +946,7 @@ void list_entries(sqlite3* db, Options options, char* condition, char* order_by)
               );
     }
 
-    free(entries);
+    free_entries(&entries, count);
     free(index_dashes);
     free(title_dashes);
     free(status_dashes);
@@ -1140,6 +1157,8 @@ void command_list(Options options)
     }
 
     list_entries(db, options, condition, order_by);
+    if(condition != NULL)
+        free(condition);
 }
 
 void command_set(Options options)

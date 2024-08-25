@@ -63,6 +63,16 @@ void help_message(Command command)
         if(err != NULL) PANIC("%s", err); \
     } while(0)
 
+#define CLEANUP \
+    cleanup(&args, &argfmt, &opts)
+
+void cleanup(CliArguments* args, char** argfmt, struct option** opts)
+{
+    free(*argfmt);
+    free(*opts);
+    clib_clean_arguments(args);
+}
+
 Options parse_options(int argc, char** argv, Command* command) 
 {
     Options options = {0};
@@ -75,133 +85,145 @@ Options parse_options(int argc, char** argv, Command* command)
     // NOTE: The help fields are not set since 
     // the help message is written by hand
     CliArguments args = clib_make_cli_arguments(22,
-        clib_create_argument(ABBR_HELP, "help", "", no_argument),
-        clib_create_argument(ABBR_VERSION, "version", "", no_argument),
-        clib_create_argument(ABBR_STATUS, "status", "", required_argument),
-        clib_create_argument(ABBR_CONFIG_PATH, "config-path", "", required_argument),
-        clib_create_argument(ABBR_REMOTE_REPO, "remote-repo", "", required_argument),
         clib_create_argument(ABBR_ALL, "all", "", no_argument),
-        clib_create_argument(ABBR_NEW, "new", "", required_argument),
-        clib_create_argument(ABBR_NO, "no", "", no_argument),
-        clib_create_argument(ABBR_YES, "yes", "", no_argument),
-        clib_create_argument(ABBR_INDEX, "index", "", no_argument),
         clib_create_argument(ABBR_ALWAYS_EXPORT, "always-export", "", required_argument),
         clib_create_argument(ABBR_ALWAYS_PUSH, "always-push", "", required_argument),
-        clib_create_argument(ABBR_VERSION_FULL, "version-full", "", required_argument),
-        clib_create_argument(ABBR_TITLE, "title", "", required_argument),
-        clib_create_argument(ABBR_RELEASES, "releases", "", no_argument),
-        clib_create_argument(ABBR_PUSH, "push", "", no_argument),
+        clib_create_argument(ABBR_COMMITS, "commits", "", no_argument),
+        clib_create_argument(ABBR_CONFIG_PATH, "config-path", "", required_argument),
+        clib_create_argument(ABBR_EDITOR, "editor", "", required_argument),
         clib_create_argument(ABBR_FILE, "file", "", required_argument),
         clib_create_argument(ABBR_FORMAT, "format", "", required_argument),
-        clib_create_argument(ABBR_YANK, "yank", "", required_argument),
+        clib_create_argument(ABBR_HELP, "help", "", no_argument),
+        clib_create_argument(ABBR_INDEX, "index", "", no_argument),
+        clib_create_argument(ABBR_NEW, "new", "", required_argument),
+        clib_create_argument(ABBR_NO, "no", "", no_argument),
+        clib_create_argument(ABBR_PUSH, "push", "", no_argument),
+        clib_create_argument(ABBR_RELEASES, "releases", "", no_argument),
+        clib_create_argument(ABBR_REMOTE_REPO, "remote-repo", "", required_argument),
+        clib_create_argument(ABBR_STATUS, "status", "", required_argument),
+        clib_create_argument(ABBR_TITLE, "title", "", required_argument),
         clib_create_argument(ABBR_UNYANK, "unyank", "", required_argument),
-        clib_create_argument(ABBR_COMMITS, "commits", "", no_argument),
-        clib_create_argument(ABBR_EDITOR, "editor", "", required_argument)
+        clib_create_argument(ABBR_VERSION, "version", "", no_argument),
+        clib_create_argument(ABBR_VERSION_FULL, "version-full", "", required_argument),
+        clib_create_argument(ABBR_YANK, "yank", "", required_argument),
+        clib_create_argument(ABBR_YES, "yes", "", no_argument)
     );
 
     int opt;
-    LOOP_ARGS(opt, args){
+    char* argfmt = clib_generate_cli_format_string(args);
+    struct option* opts = clib_get_options(args);
+    while ((opt = getopt_long(argc, argv, argfmt, opts, ((void *)0))) != -1) {
         switch (opt) {
-        case ABBR_HELP:
-            help_message(*command);
-            exit(0);
-        case ABBR_VERSION:
-            printf("%s v%s\n", EXECUTABLE_NAME, VERSION);
-            exit(0);
-        case ABBR_STATUS:
-            if(is_number(optarg)){
-                options.status = atoi(optarg);
-                if(options.status < 1 || options.status > 6) 
-                    PANIC("Status should be between 1 and 6");
-            } else
-                options.status = get_status(optarg);
-            break;
-        case ABBR_VERSION_FULL:
-            CHECK_USABILITY(COMMAND_LIST, COMMAND_EDIT, COMMAND_PUSH);
-            if(!STREQ(optarg, VERSION_UNRELEASED) && !is_valid_version(optarg)) PANIC("Version '%s' is not valid", optarg);
+            case ABBR_HELP:
+                help_message(*command);
+                CLEANUP;
+                exit(0);
+            case ABBR_VERSION:
+                printf("%s v%s\n", EXECUTABLE_NAME, VERSION);
+                CLEANUP;
+                exit(0);
+            case ABBR_STATUS:
+                if (is_number(optarg)) {
+                    options.status = atoi(optarg);
+                    if (options.status < 1 || options.status > 6){
+                        ERRO("Status should be between 1 and 6");
+                        CLEANUP;
+                        exit(1);
+                    }
+                } else
+                    options.status = get_status(optarg);
+                break;
+            case ABBR_VERSION_FULL:
+                CHECK_USABILITY(COMMAND_LIST, COMMAND_EDIT, COMMAND_PUSH);
+                if (!STREQ(optarg, VERSION_UNRELEASED) && !is_valid_version(optarg)){
+                    ERRO("Version '%s' is not valid", optarg);
+                    CLEANUP;
+                    exit(1);
+                }
 
-            options.version.full = optarg;
-            parse_version(&options.version);
-            break;
-        case ABBR_CONFIG_PATH:
-            CHECK_USABILITY(COMMAND_SET);
+                options.version.full = optarg;
+                parse_version(&options.version);
+                break;
+            case ABBR_CONFIG_PATH:
+                CHECK_USABILITY(COMMAND_SET);
 
-            options.config_path = optarg;
-            break;
-        case ABBR_NO:
-            options.no = true;
-            break;
-        case ABBR_YES:
-            options.yes = true;
-            break;
-        case ABBR_NEW:
-            options.new = optarg;
-            break;
-        case ABBR_INDEX:
-            options.index = true;
-            break;
-        case ABBR_REMOTE_REPO:
-            options.remote_repo = optarg;
-            break;
-        case ABBR_ALWAYS_EXPORT:
-            options.always_export = is_true(optarg);
-            break;
-        case ABBR_ALWAYS_PUSH:
-            options.always_push = is_true(optarg);
-            break;
-        case ABBR_TITLE:
-            CHECK_USABILITY(COMMAND_EDIT);
-            
-            options.title = optarg;
-            break;
-        case ABBR_ALL:
-            options.all = true;
-            break;
-        case ABBR_RELEASES:
-            CHECK_USABILITY(COMMAND_LIST);
+                options.config_path = optarg;
+                break;
+            case ABBR_NO:
+                options.no = true;
+                break;
+            case ABBR_YES:
+                options.yes = true;
+                break;
+            case ABBR_NEW:
+                options.new = optarg;
+                break;
+            case ABBR_INDEX:
+                options.index = true;
+                break;
+            case ABBR_REMOTE_REPO:
+                options.remote_repo = optarg;
+                break;
+            case ABBR_ALWAYS_EXPORT:
+                options.always_export = is_true(optarg);
+                break;
+            case ABBR_ALWAYS_PUSH:
+                options.always_push = is_true(optarg);
+                break;
+            case ABBR_TITLE:
+                CHECK_USABILITY(COMMAND_EDIT);
 
-            options.releases = true;
-            break;
-        case ABBR_PUSH:
-            CHECK_USABILITY(COMMAND_RELEASE);
+                options.title = optarg;
+                break;
+            case ABBR_ALL:
+                options.all = true;
+                break;
+            case ABBR_RELEASES:
+                CHECK_USABILITY(COMMAND_LIST);
 
-            options.push = true;
-            break;
-        case ABBR_FILE:
-            CHECK_USABILITY(COMMAND_IMPORT);
+                options.releases = true;
+                break;
+            case ABBR_PUSH:
+                CHECK_USABILITY(COMMAND_RELEASE);
 
-            options.file = optarg;
-            break;
-        case ABBR_FORMAT:
-            CHECK_USABILITY(COMMAND_EXPORT);
+                options.push = true;
+                break;
+            case ABBR_FILE:
+                CHECK_USABILITY(COMMAND_IMPORT);
 
-            options.format= optarg;
-            break;
-        case ABBR_YANK:
-            CHECK_USABILITY(COMMAND_RELEASE);
+                options.file = optarg;
+                break;
+            case ABBR_FORMAT:
+                CHECK_USABILITY(COMMAND_EXPORT);
 
-            options.yank= optarg;
-            break;
-        case ABBR_UNYANK:
-            CHECK_USABILITY(COMMAND_RELEASE);
+                options.format = optarg;
+                break;
+            case ABBR_YANK:
+                CHECK_USABILITY(COMMAND_RELEASE);
 
-            options.unyank = optarg;
-            break;
-        case ABBR_COMMITS:
-            CHECK_USABILITY(COMMAND_ADD);
+                options.yank = optarg;
+                break;
+            case ABBR_UNYANK:
+                CHECK_USABILITY(COMMAND_RELEASE);
 
-            options.commits = true;
-            break;
-        case ABBR_EDITOR:
-            CHECK_USABILITY(COMMAND_SET);
+                options.unyank = optarg;
+                break;
+            case ABBR_COMMITS:
+                CHECK_USABILITY(COMMAND_ADD);
 
-            options.editor = optarg;
-            break;
-        default:
-            exit(1);
+                options.commits = true;
+                break;
+            case ABBR_EDITOR:
+                CHECK_USABILITY(COMMAND_SET);
+
+                options.editor = optarg;
+                break;
+            default:
+                CLEANUP;
+                exit(1);
         }
     }
-    clib_clean_arguments(&args);
+    CLEANUP;
 
     if(*command == COMMAND_UNKNOWN) {
         PANIC("Unknown command: %s", argv[1]);
@@ -221,6 +243,7 @@ int main(int argc, char** argv)
         DEBU("Loading config...");
         Config config = get_config();
         if(config.exists) load_config(config);
+        free_config(&config);
     } 
 
     Command command;

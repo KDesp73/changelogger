@@ -29,10 +29,12 @@ void get_date(Date* date)
 
 void free_date(Date* date) 
 {
-    // Free allocated memory
-    free(date->full);
-    free(date->date);
-    free(date->time);
+    if(date->full != NULL)
+        free(date->full);
+    if(date->date != NULL)
+        free(date->date);
+    if(date->time != NULL)
+        free(date->time);
 }
 
 void log_date(Date date)

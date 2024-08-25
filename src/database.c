@@ -216,6 +216,7 @@ Entry* select_entries(sqlite3* db, const char* condition, const char* order_by, 
         }
     }
     sqlite3_finalize(stmt);
+    free(sql);
     *count = entry_count;
     return entries;
 }
@@ -539,6 +540,7 @@ void load_config(Config config)
     clib_str_append(&sql, " WHERE id = 1;");
 
     sqlite_execute_sql(SQLITE_DB, sql);
+    free(sql);
 }
 
 _Bool is_sql_injection(const char* input)
