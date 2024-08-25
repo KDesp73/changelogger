@@ -66,12 +66,12 @@ $ changelogger generate config
 
 ## Config file
 
-The default location for the config file is `~/.changelogger.yml`
+The default location for the config file is `~/.config/.changelogger.yml`
 
 ### Example file
 
 ```yml
-# ~/.changelogger.yml
+# ~/.config/.changelogger.yml
 
 editor: nvim
 always-export: true
