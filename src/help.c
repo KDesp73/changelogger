@@ -45,7 +45,7 @@ void help()
     PTNI("-v --version                  Prints the project version");
 
     PTN("");
-    PTN("Made by KDesp73");
+    PTN("Made by KDesp73 (Konstantinos Despoinidis)");
     PTN("Check out https://keepachangelog.com/en/1.1.0/ for more information on changelogs");
 }
 

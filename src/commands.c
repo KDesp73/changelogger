@@ -438,7 +438,7 @@ void export_markdown()
     clib_str_append_ln(&buffer, "");
     
     char* url = select_str(TABLE_CONFIG, CONFIG_REMOTE_REPO, CONFIG_CONDITION);
-    if(url != NULL){
+    if(!is_blank(url)){
         size_t versions_count;
         char** versions = select_releases_version(db, &versions_count);
         for(size_t i = 0; i < versions_count; ++i){

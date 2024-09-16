@@ -1,29 +1,5 @@
 #compdef changelogger
 
-_values() {
-    local desc
-    local -a values
-    local -a descriptions
-
-    # Parse the arguments
-    while [[ "$1" != "" ]]; do
-        if [[ "$1" == *\[* ]]; then
-            # Extract the value and description
-            value="${1%%[*}"
-            desc="${1#*[}"
-            desc="${desc%]}"
-            values+=("$value")
-            descriptions+=("$desc")
-        else
-            values+=("$1")
-            descriptions+=("")
-        fi
-        shift
-    done
-
-    # Display the values with descriptions
-    _describe -t values "values" values descriptions
-}
 
 _changelogger() {
     local -a commands
@@ -47,6 +23,9 @@ _changelogger() {
     _arguments \
         '1: :($commands)' \
         '*:: :->args'
+    _keys \
+        '1: :($commands)' \
+        '*:: :->variables'
 
     case $state in
         args)
@@ -120,8 +99,8 @@ _changelogger() {
                     ;;
                 generate)
                     _arguments \
-                        '-h[Prints the help message]'
-                    _values \
+                        '-h[Prints the help message]' \
+                    _keys \
                         'config[A starting point for your config file]' \
                         'autocomplete[Autocomplete for the active shell]' \
                         'man[Man page for changelogger]' 
