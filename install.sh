@@ -2,6 +2,7 @@
 
 exe="changelogger"
 
+echo "Make sure you have the sqlite3.h, cjson.h and yaml.h files in PATH (generally in /usr/include)"
 
 if [ "$1" == "clean" ]; then
     sudo rm -rf /usr/bin/$exe

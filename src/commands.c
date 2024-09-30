@@ -782,16 +782,13 @@ void handle_push_release(const char* version, Options options)
     push_release(version);
     update(TABLE_RELEASES, RELEASES_PUSHED, "1", condition);
     free(condition);
-
 }
 
 void command_push(Options options)
 {
     char* version = NULL;
-    if(version_full_set(options)){
+    if(version_full_set(options)) {
         version = options.version.full;
-
-        handle_push_release(version, options);
     } else {
         sqlite3* db;
         sqlite3_open(SQLITE_DB, &db);
@@ -814,7 +811,7 @@ void command_release(Options options)
                 !STREQ(release_type, "major") &&
                 !STREQ(release_type, "minor") &&
                 !STREQ(release_type, "patch")
-          ){
+        ){
             PANIC("Release type '%s' should be 'major', 'minor' or 'patch'. Try %s release -h", release_type, EXECUTABLE_NAME);
         }
 
@@ -835,7 +832,7 @@ void command_release(Options options)
 
         if(!should_push) return; // Do not push the release on Github
 
-        push_release(version, options);
+        push_release(version);
         return;
     }
 
