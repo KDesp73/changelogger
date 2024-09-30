@@ -874,7 +874,6 @@ void list_releases(sqlite3* db, Options options, char* condition, char* order_by
 {
     size_t count = 0;
     Release* releases = select_releases(db, condition, order_by, &count);
-    sqlite3_close(db);
     if(condition != NULL) free(condition);
 
     if(count == 0){
@@ -942,7 +941,6 @@ void list_entries(sqlite3* db, Options options, char* condition, char* order_by)
 {
     size_t count;
     Entry* entries = select_entries(db, condition, order_by, &count);
-    sqlite3_close(db);
 
     if(count == 0){
         INFO("No entries found");
@@ -1174,9 +1172,9 @@ void command_list(Options options)
 
     if(options.releases){
         list_releases(db, options, condition, order_by);
+        sqlite3_close(db);
         return;
     }
-
 
     if(version_full_set(options) || status_set(options)) {
         condition = clib_buffer_init();
@@ -1196,6 +1194,7 @@ void command_list(Options options)
     }
 
     list_entries(db, options, condition, order_by);
+    sqlite3_close(db);
     if(condition != NULL)
         free(condition);
 }
