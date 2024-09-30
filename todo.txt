@@ -2,6 +2,8 @@ TODO: resolve memory leaks
 TODO: check for sql injections
 TODO: correct autocomplete scripts
 TODO: man page
+TODO: upload binary on release option
+TODO: add stats command
 DONE: add methods to clib.h
 DONE: make sqlite.h a proper library
 DONE: make querybuilder.h a proper library

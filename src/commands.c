@@ -907,7 +907,7 @@ void list_entries(sqlite3* db, Options options, char* condition, char* order_by)
 
     if(count == 0){
         INFO("No entries found");
-        return;
+        exit(0);
     }
 
     int index_offset = -5;
