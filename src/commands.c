@@ -755,7 +755,7 @@ int is_gh_cli_available() {
 }
 
 
-void push_release(const char* version, Options options)
+void push_release(const char* version)
 {
     if (!is_gh_cli_available()){
         exit(1);
@@ -767,27 +767,39 @@ void push_release(const char* version, Options options)
     free(gh_command);
 }
 
+void handle_push_release(const char* version, Options options)
+{
+    char* condition = clib_format_text("version = '%s'", version);
+    int pushed = select_int(TABLE_RELEASES, RELEASES_PUSHED, condition);
+
+    if(pushed) {
+        WARN("This release is already pushed. Aborting.");
+        free(condition);
+        return;
+    }
+
+    make_sure_user_wants_to_proceed_with_releasing(options);
+    push_release(version);
+    update(TABLE_RELEASES, RELEASES_PUSHED, "1", condition);
+    free(condition);
+
+}
+
 void command_push(Options options)
 {
+    char* version = NULL;
     if(version_full_set(options)){
-        char* version = options.version.full;
-        char* condition = clib_format_text("version = '%s'", version);
-        int pushed = select_int(TABLE_RELEASES, RELEASES_PUSHED, condition);
+        version = options.version.full;
 
-        if(pushed) {
-            WARN("This release is already pushed. Aborting.");
-            free(condition);
-            return;
-        }
-
-        make_sure_user_wants_to_proceed_with_releasing(options);
-        push_release(version, options);
-        update(TABLE_RELEASES, RELEASES_PUSHED, "1", condition);
-        free(condition);
+        handle_push_release(version, options);
     } else {
-        ERRO("Version is not set.");
-        INFO("Try: %s push -V <version>", EXECUTABLE_NAME);
+        sqlite3* db;
+        sqlite3_open(SQLITE_DB, &db);
+        version = select_version_full(db);
+        sqlite3_close(db);
     }
+
+    handle_push_release(version, options);
 }
 
 void command_release(Options options)
