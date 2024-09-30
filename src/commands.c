@@ -729,8 +729,38 @@ void make_sure_user_wants_to_proceed_with_releasing(Options options)
     }
 }
 
+int is_gh_cli_available() {
+    int status = system("gh --version");
+    if (status != 0) {
+        ERRO("gh-cli is not available on your system.\n");
+        return 0;
+    }
+
+    char buffer[1024];
+    FILE *fp = popen("gh auth status", "r");
+    if (fp == NULL) {
+        fprintf(stderr, "Failed to run gh auth status command.\n");
+        return 0;
+    }
+
+    fgets(buffer, sizeof(buffer), fp);
+    pclose(fp);
+
+    if (strstr(buffer, "Logged in to GitHub") == NULL) {
+        ERRO("gh-cli is not properly set up. Please run 'gh auth login' to authenticate.\n");
+        return 0;
+    }
+
+    return 1;
+}
+
+
 void push_release(const char* version, Options options)
 {
+    if (!is_gh_cli_available()){
+        exit(1);
+    }
+
     command_export((Options){0});
     char* gh_command = clib_format_text("gh release create v%s -F %s/%s.md -t v%s", version, CHANGELOG_DIR, version, version);
     clib_execute_command(gh_command);
