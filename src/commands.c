@@ -746,7 +746,7 @@ int is_gh_cli_available() {
     fgets(buffer, sizeof(buffer), fp);
     pclose(fp);
 
-    if (strstr(buffer, "Logged in to GitHub") == NULL) {
+    if (strstr(buffer, "Logged in") == NULL) {
         ERRO("gh-cli is not properly set up. Please run 'gh auth login' to authenticate.\n");
         return 0;
     }
