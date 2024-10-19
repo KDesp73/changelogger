@@ -739,14 +739,26 @@ int is_gh_cli_available() {
     char buffer[1024];
     FILE *fp = popen("gh auth status", "r");
     if (fp == NULL) {
-        fprintf(stderr, "Failed to run gh auth status command.\n");
+        ERRO("Failed to run gh auth status command.\n");
         return 0;
     }
 
-    fgets(buffer, sizeof(buffer), fp);
+    // Initialize a variable to track if "Logged in" was found
+    int logged_in = 0;
+
+    // Read each line of output
+    while (fgets(buffer, sizeof(buffer), fp) != NULL) {
+        // Check if the line contains "Logged in"
+        if (strstr(buffer, "Logged in") != NULL) {
+            logged_in = 1;  // Set flag if logged in
+            break; // We found the necessary information, no need to continue
+        }
+    }
+    
     pclose(fp);
 
-    if (strstr(buffer, "Logged in") == NULL) {
+    // Check if we were logged in
+    if (!logged_in) {
         ERRO("gh-cli is not properly set up. Please run 'gh auth login' to authenticate.\n");
         return 0;
     }
