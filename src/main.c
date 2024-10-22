@@ -134,7 +134,7 @@ Options parse_options(int argc, char** argv, Command* command)
                     options.status = get_status(optarg);
                 break;
             case ABBR_VERSION_FULL:
-                CHECK_USABILITY(COMMAND_LIST, COMMAND_EDIT, COMMAND_PUSH);
+                CHECK_USABILITY(COMMAND_LIST, COMMAND_EDIT, COMMAND_PUSH, COMMAND_SET);
                 if (!STREQ(optarg, VERSION_UNRELEASED) && !is_valid_version(optarg)){
                     ERRO("Version '%s' is not valid", optarg);
                     CLEANUP;

@@ -70,6 +70,7 @@ void set_help()
     PTN("");
     PTN("%sVARIABLES%s", BOLD, RESET);
     PTNI("-h --help                          Prints this message");
+    PTNI("-V --version-full <version>        Set the version of the project (WARN: Use with care)");
     PTNI("--config-dir <directory>           Specify the configuration file path");
     PTNI("--remote-repo <url>                Specify the url of the remote repo");
     PTNI("--editor <editor>                  Specify the editor to use");

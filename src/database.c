@@ -99,6 +99,28 @@ char* select_version_full(sqlite3* db)
     return v.full;
 }
 
+void update_version_full(const char* version)
+{
+    if(!is_valid_version(version)) return;
+
+    Version v = {0};
+    v.full = strdup(version);
+
+    parse_version(&v);
+    make_version(&v);
+    char* patch = clib_format_text("%zu", v.patch);
+    char* minor = clib_format_text("%zu", v.minor);
+    char* major = clib_format_text("%zu", v.major);
+
+    update(TABLE_CONFIG, CONFIG_VERSION_PATCH, patch, CONFIG_CONDITION);
+    update(TABLE_CONFIG, CONFIG_VERSION_MINOR, minor, CONFIG_CONDITION);
+    update(TABLE_CONFIG, CONFIG_VERSION_MAJOR, major, CONFIG_CONDITION);
+
+    free(patch);
+    free(minor);
+    free(major);
+}
+
 // Function to select the config path
 char* select_config_path(sqlite3 *db)
 {

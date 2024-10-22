@@ -1213,6 +1213,15 @@ void command_list(Options options)
 
 void command_set(Options options)
 {
+    if(version_full_set(options)){
+        if(STREQ("0.0.0", options.version.full) || STREQ("unreleased", options.version.full)) {
+            ERRO("Version can't be 'unreleased'");
+        } else {
+            update_version_full(options.version.full);
+            insert_release(1);
+        }
+    }
+
     if(always_export_set(options)){
         char* value = clib_format_text("%d", options.always_export);
         update(TABLE_CONFIG, CONFIG_ALWAYS_EXPORT, value, CONFIG_CONDITION);

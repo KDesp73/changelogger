@@ -96,6 +96,7 @@ void update(const char* table, const char* column, const char* value, const char
 char* select_str(const char* table, const char* column, const char* condition);
 int select_int(const char* table, const char* column, const char* condition);
 int config_exists();
+void update_version_full(const char* version);
 
 #define SELECT_CONFIG_REMOTE \
     select_str(TABLE_CONFIG, CONFIG_REMOTE_REPO, CONFIG_CONDITION)
