@@ -11,6 +11,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - -V to set 
 
+### Changed
+
+- Updated version to 0.0.13
+
 
 ## [0.0.12] - 2024-10-20 
 
