@@ -7,8 +7,10 @@ typedef enum {
     ABBR_ALL = 'A',
     ABBR_ALWAYS_EXPORT = 'E',
     ABBR_ALWAYS_PUSH = 'P',
+    ABBR_ASSET = 'B', // for binary
     ABBR_COMMITS = 'C',
     ABBR_CONFIG_PATH = 'c',
+    ABBR_EDITOR = 'e',
     ABBR_FILE = 'f',
     ABBR_FORMAT = 'F',
     ABBR_HELP = 'h',
@@ -25,7 +27,6 @@ typedef enum {
     ABBR_VERSION_FULL = 'V',
     ABBR_YANK = 'Y',
     ABBR_YES = 'y',
-    ABBR_EDITOR = 'e',
 } ArgumentAbbr;
 
 typedef struct {
@@ -51,6 +52,7 @@ typedef struct {
     _Bool releases;
     _Bool commits;
     const char* editor;
+    const char* asset;
 } Options;
 
 int always_push_set(Options options);

@@ -33,6 +33,7 @@ int is_number(const char *str)
 
     return has_digits; 
 }
+
 void append_line(const char* file, const char* line, size_t index)
 {
     FILE *fp = fopen(file, "r");

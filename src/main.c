@@ -6,6 +6,7 @@
 #include "options.h"
 #include "status.h"
 #include "version.h"
+#include <bits/getopt_ext.h>
 #include <stdio.h>
 
 #define CLIB_IMPLEMENTATION
@@ -84,10 +85,11 @@ Options parse_options(int argc, char** argv, Command* command)
 
     // NOTE: The help fields are not set since 
     // the help message is written by hand
-    CliArguments args = clib_make_cli_arguments(22,
+    CliArguments args = clib_make_cli_arguments(23,
         clib_create_argument(ABBR_ALL, "all", "", no_argument),
         clib_create_argument(ABBR_ALWAYS_EXPORT, "always-export", "", required_argument),
         clib_create_argument(ABBR_ALWAYS_PUSH, "always-push", "", required_argument),
+        clib_create_argument(ABBR_ASSET, "asset", "", required_argument),
         clib_create_argument(ABBR_COMMITS, "commits", "", no_argument),
         clib_create_argument(ABBR_CONFIG_PATH, "config-path", "", required_argument),
         clib_create_argument(ABBR_EDITOR, "editor", "", required_argument),
@@ -217,6 +219,11 @@ Options parse_options(int argc, char** argv, Command* command)
                 CHECK_USABILITY(COMMAND_SET);
 
                 options.editor = optarg;
+                break;
+            case ABBR_ASSET:
+                CHECK_USABILITY(COMMAND_PUSH, COMMAND_RELEASE);
+
+                options.asset = optarg;
                 break;
             default:
                 CLEANUP;

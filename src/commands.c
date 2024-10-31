@@ -766,16 +766,26 @@ int is_gh_cli_available() {
     return 1;
 }
 
-
-void push_release(const char* version)
+void push_release(const char* version, const char* asset)
 {
     if (!is_gh_cli_available()){
         exit(1);
     }
 
     command_export((Options){0});
-    char* gh_command = clib_format_text("gh release create v%s -F %s/%s.md -t v%s", version, CHANGELOG_DIR, version, version);
+
+    char* asset_str = clib_format_text(" '%s' ", asset);
+    char* gh_command = clib_format_text(
+        "gh release create v%s%s-F %s/%s.md -t v%s",
+        version, 
+        (asset) ? asset_str : " ", 
+        CHANGELOG_DIR, 
+        version, 
+        version
+    );
+    printf("%s\n", gh_command);
     clib_execute_command(gh_command);
+    free(asset_str);
     free(gh_command);
 }
 
@@ -791,7 +801,7 @@ void handle_push_release(const char* version, Options options)
     }
 
     make_sure_user_wants_to_proceed_with_releasing(options);
-    push_release(version);
+    push_release(version, options.asset);
     update(TABLE_RELEASES, RELEASES_PUSHED, "1", condition);
     free(condition);
 }
@@ -844,7 +854,7 @@ void command_release(Options options)
 
         if(!should_push) return; // Do not push the release on Github
 
-        push_release(version);
+        push_release(version, options.asset);
         return;
     }
 

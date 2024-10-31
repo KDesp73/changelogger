@@ -137,6 +137,7 @@ void push_help()
     PTNI("-h --help             Prints this message");
     PTNI("-V --version-full     Specify the version of the release you want to push");
     PTNI("-y --yes              Skip the confirmation message");
+    PTNI("-B --asset <path>     Include an asset in the release");
 }
 
 void release_help()
@@ -151,6 +152,7 @@ void release_help()
     PTNI("-y --yes                          Skip the confirmation message");
     PTNI("-Y --yank <version>               Set a release as YANKED");
     PTNI("-U --unyank <version>             Set a release as not YANKED");
+    PTNI("-B --asset <path>                 Include an asset in the release");
 }
 
 void edit_help()

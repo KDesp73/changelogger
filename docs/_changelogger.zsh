@@ -43,7 +43,8 @@ _changelogger() {
                         '--remote-repo[Specify the URL of the remote repo]' \
                         '--editor[Specify the editor to use]' \
                         '--always-push[Specify whether to immediately push the release]' \
-                        '--always-export[Specify whether to export the CHANGELOG.md file]'
+                        '--always-export[Specify whether to export the CHANGELOG.md file]' \
+                        '--version-ful[Set the current version of the project]'
                     ;;
                 list)
                     _arguments \
@@ -78,7 +79,8 @@ _changelogger() {
                     _arguments \
                         '-h[Prints the help message]' \
                         '-V[Specify the version of the release you want to push]' \
-                        '-y[Skip the confirmation message]'
+                        '-y[Skip the confirmation message]' \
+                        '-B[Include an asset with the release]'
                     ;;
                 release)
                     _arguments \
@@ -87,7 +89,8 @@ _changelogger() {
                         '-p[Push the release on GitHub]' \
                         '-y[Skip the confirmation message]' \
                         '-Y[Set a release as YANKED]' \
-                        '-U[Set a release as not YANKED]'
+                        '-U[Set a release as not YANKED]' \
+                        '-B[Include an asset with the release]'
                     ;;
                 edit)
                     _arguments \
