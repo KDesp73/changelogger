@@ -7,12 +7,13 @@ A cli tool to help you keep a changelog in all your projects
 ```bash
 # 1. Get the source code
 $ git clone https://github.com/KDesp73/changelogger --depth=1
+$ cd changelogger
 
 # 2. Checkout to the latest release
 $ git checkout <latest>
 
 # 3. Build and Install
-$ ./install.sh
+$ make install
 ```
 
 ## Usage
@@ -49,9 +50,11 @@ $ changelogger get --all
 $ changelogger release --new patch
 $ changelogger release --yank 0.0.3
 $ changelogger release --unyank 0.0.3
+$ changelogger release --new patch --asset <path> --push -y
 
 # Push an unpushed release on Github
 $ changelogger push -V 0.0.3
+$ changelogger push --asset <path>
 
 # Export CHANGELOG.md
 $ changelogger export
@@ -90,7 +93,8 @@ Try `changelogger -h` or `changelogger <command> -h`
 
 - [keepachangelog](https://keepachangelog.com/en/1.1.0/)
 - [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
-- [clparse](https://github.com/marcaddeo/clparse);
+- [clparse](https://github.com/marcaddeo/clparse)
+- [gh-cli](https://cli.github.com/manual/)
 
 ## LICENSE
 
