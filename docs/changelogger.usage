@@ -1,0 +1,103 @@
+changelogger <COMMANDS> | [<OPTIONS>];
+
+<COMMANDS> ::= (init) "Initializes the changelog"
+			 | (add [<ADD-OPTIONS>]) "Adds an entry" 
+			 | (list [<LIST-OPTIONS>]) "Lists entries"
+			 | (edit [<EDIT-OPTIONS>]) "Edit any of the unreleased entries"
+			 | (delete [<DELETE-OPTIONS>]) "Delete any of the unreleased entries"
+			 | (set [<SET-OPTIONS>]) "Sets a variable"
+			 | (get (<GET-KEYS> | <GET-OPTIONS>)) "Returns a variable"
+			 | (release [<RELEASE-OPTIONS>]) "Creates a new release"
+			 | (push [<PUSH-OPTIONS>]) "Push an unpushed release to Github"
+			 | (export [<EXPORT-OPTIONS>]) "Exports the CHANGELOG.md file"
+			 | (generate (<GENERATE-VALUES> | <GENERATE-OPTIONS>)) "Generate various files"
+			 | (import [<IMPORT-OPTIONS>]) "Import CHANGELOG.md file into the database"
+			 ;
+
+<OPTIONS> ::= (-h || --help) "Prints the help message"
+			| (-v || --version) "Prints the project version"
+			;
+
+
+<STATUS> ::= (added | changed | removed | fixed | deprecated | security);
+
+<ADD-OPTIONS> ::= (-h || --help) "Prints this message"
+				| (-C || --commits) "Add unreleased commit messages"
+				| (-s <STATUS> || --status <STATUS>) "Specify the status of the entry (default is 'added')"
+				;
+
+<LIST-OPTIONS> ::= (-h || --help) "Prints this message"
+				 | (-V <VERSION> || --version-full <VERSION>) "Set the version to filter the list"
+				 | (-s <STATUS> || --status <STATUS>) "Set the status to filter the list"
+				 | (-r || --releases) "List only the releases"
+				 ;
+
+<EDIT-OPTIONS> ::= (-h --help) "Prints this message"
+				 | (-s <STATUS> || --status <STATUS>) "Specify new status"
+				 | (-t <TITLE> || --title <TITLE>) "Specify new title/message"
+				 | (-V <VERSION> || --version-full <VERSION>) "Specify new version"
+				 | (-A || --all) "List all entries and have them available for editing"
+				 ;
+
+<DELETE-OPTIONS> ::= (-h --help) "Prints this message"
+				   | (-A || --all) "List all entries and have them available for deletion"	
+				   ;
+
+<BOOL> ::= (true | false);
+
+<SET-OPTIONS> ::= (-h || --help) "Prints this message"
+				| (-V <VERSION> || --version-full <VERSION>) "Set the version of the project"
+				| (--config-dir <PATH>) "Specify the configuration file path"
+				| (--remote-repo <URL>) "Specify the url of the remote repo"
+				| (--editor <EDITOR>) "Specify the editor to use"
+				| (--always-push <BOOL>) "Specify whether to immediately push the release"
+				| (--always-export <BOOL>) "Specify whether to export the CHANGELOG.md file"
+				;
+
+<GET-KEYS> ::= (version) "Latest release"
+			 | (export)   "Always export CHANGELOG.md"
+			 | (remote)   "The remote git repo url"
+			 | (config)   "The path to the configuration file"
+			 | (push)     "Always push the release on Github"
+			 | (editor)   "Editor to use when editing a file is needed"
+			 ;
+
+<GET-OPTIONS> ::= (-h || --help) "Prints this message"
+				| (-A || --all) "Print all variables"
+				;
+
+<VERSION-TYPE> ::= (major | minor | patch);
+
+<RELEASE-OPTIONS> ::= (-h || --help) "Prints this message"
+				    | (--new <VERSION-TYPE> || -N <VERSION-TYPE>) "Creates a new release"
+				    | (--push || --p) "Push the release on github"
+				    | (-y --yes) "Skip the confirmation message"
+				    | (-Y <VERSION> || --yank <VERSION>) "Set a release as YANKED"
+				    | (-U <VERSION> || --unyank <VERSION>) "Set a release as not YANKED"
+				    | (-B <PATH> || --asset <PATH>) "Include an asset in the release"
+					;
+	
+<PUSH-OPTIONS> ::= (-h || --help) "Prints this message"
+				| (-V <VERSION> || --version-full <VERSION>) "Specify the version of the release you want to push"
+				| (-y || --yes) "Skip the confirmation message"
+				| (-B <PATH> || --asset <PATH>) "Include an asset in the release"
+				;
+
+<EXPORT-FMT> ::= (md | markdown | json | yml | yaml );
+
+<EXPORT-OPTIONS> ::= (-h || --help) "Prints this message"
+				   | (-F <EXPORT-FMT> || --format <EXPORT-FMT>) "Specify in which format to export"
+				   ;
+
+<IMPORT-OPTIONS> ::= (-h || --help) "Prints this message"
+				   | (-f <PATH> || --file <PATH>) "File to import"
+				   ;
+
+<GENERATE-VALUES> ::= (config) "A starting point for your config file (~/.config/.changelogger.yml)"
+				    | (autocomplete) "Autocomplete for the active shell"
+				    | (man) "Man page for changelogger"
+					;
+
+
+<GENERATE-OPTIONS> ::= (-h || --help) "Prints this message"; 
+

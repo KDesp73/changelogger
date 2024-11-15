@@ -51,6 +51,11 @@ compile_commands.json: $(SRC_FILES)
 install:
 	./install.sh
 
+autocomplete:
+	complgen aot ./docs/changelogger.usage --zsh-script ./docs/_changelogger.zsh
+	complgen aot ./docs/changelogger.usage --bash-script ./docs/_changelogger.bash
+	complgen aot ./docs/changelogger.usage --fish-script ./docs/_changelogger.fish
+
 # Phony target to avoid conflicts with file names
 .PHONY: all clean
 
