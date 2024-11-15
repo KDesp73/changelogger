@@ -102,9 +102,10 @@ _changelogger() {
                 generate)
                     _arguments \
                         '-h[Show help for generate command]' \
-                        '--config[Generate a configuration file]' \
-                        '--autocomplete[Generate shell autocomplete script]' \
-                        '--man[Generate man page]'
+                    _values 'generate options' \
+                        'config[A starting point for your configuration file]' \
+                        'autocomplete[Autocomplete script for the active shell]' \
+                        'man[Man page for changelogger]'
                     ;;
                 import)
                     _arguments \
