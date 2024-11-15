@@ -6,6 +6,7 @@ TODO: add stats command
 TODO: add update command
 TODO: check gh-cli command status code before updating db
 TODO: refactoring
+TODO: check terminal width when printing tables
 DONE: add methods to clib.h
 DONE: make sqlite.h a proper library
 DONE: make querybuilder.h a proper library
