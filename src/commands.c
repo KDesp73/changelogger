@@ -11,6 +11,7 @@
 #include "templates.h"
 #include "version.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <strings.h>
 #include <sys/wait.h>
 #define CLIB_IMPLEMENTATION
@@ -1137,6 +1138,9 @@ void command_generate(Options options)
 
         install_autocompletion(SHELL_BASH);
         INFO("%s autocomplete installed", shell_to_string(SHELL_BASH));
+
+        install_autocompletion(SHELL_FISH);
+        INFO("%s autocomplete installed", shell_to_string(SHELL_FISH));
     } else {
         PANIC("Generating %s is not implemented yet", value);
     }

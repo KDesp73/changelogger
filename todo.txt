@@ -1,6 +1,5 @@
 TODO: resolve memory leaks
 TODO: check for sql injections
-TODO: correct autocomplete scripts
 TODO: man page
 TODO: add stats command
 TODO: add update command
@@ -29,3 +28,4 @@ DONE: use existing releases to populate the changelog
 DONE: add installation commands for autocomplete and man page
 DONE: upload binary on release option
 DONE: better list tables
+DONE: correct autocomplete scripts

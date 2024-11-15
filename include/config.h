@@ -9,8 +9,9 @@
 #define TEMP_FILE ".changelog/commits.md"
 #define CHANGELOGGER_DEFAULT_CONFIG_PATH \
     clib_format_text("%s/.config/.changelogger.yml", getenv("HOME"))
-#define BASH_AUTOCOMPLETE_PATH "/etc/bash_completion.d/_changelogger.bash"
+#define BASH_AUTOCOMPLETE_PATH "/etc/bash_completion.d/changelogger.bash"
 #define ZSH_AUTOCOMPLETE_PATH "/usr/share/zsh/functions/Completion/_changelogger"
+#define FISH_AUTOCOMPLETE_PATH "/etc/fish/conf.d/changelogger.fish"
 
 #define YML_ALWAYS_EXPORT "always-export"
 #define YML_ALWAYS_PUSH "always-push"
@@ -24,6 +25,7 @@
 typedef enum {
     SHELL_UNKNOWN,
     SHELL_ZSH,
+    SHELL_FISH,
     SHELL_BASH
 } Shell;
 
@@ -55,6 +57,7 @@ void free_config(Config* config);
 
 Shell get_shell();
 char* shell_to_string(Shell shell);
-void install_autocompletion(Shell shell);
+Shell string_to_shell(const char* str);
+int install_autocompletion(Shell shell);
 
 #endif // CONFIG_H

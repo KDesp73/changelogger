@@ -7,21 +7,35 @@
 #include <yaml.h>
 
 
-void install_autocompletion(Shell shell)
+int install_autocompletion(Shell shell)
 {
     char* path = NULL;
     switch (shell) {
-    case SHELL_ZSH:
-        path = ZSH_AUTOCOMPLETE_PATH;
-    case SHELL_BASH:
-        path = BASH_AUTOCOMPLETE_PATH;
-    case SHELL_UNKNOWN:
-      break;
+        case SHELL_ZSH:
+            path = ZSH_AUTOCOMPLETE_PATH;
+        case SHELL_BASH:
+            path = BASH_AUTOCOMPLETE_PATH;
+        case SHELL_FISH:
+            path = FISH_AUTOCOMPLETE_PATH;
+            break;
+        case SHELL_UNKNOWN:
+        default:
+            return 0;
     }
 
     char* command = clib_format_text("curl -s https://raw.githubusercontent.com/KDesp73/changelogger/main/docs/_changelogger.%s -o %s", shell_to_string(shell), path);
     clib_execute_command(command);
+    return 1;
 }
+
+Shell string_to_shell(const char* str)
+{
+    if(STREQ("zsh", str)) return SHELL_ZSH;
+    else if(STREQ("bash", str)) return SHELL_BASH;
+    else if (STREQ("fish", str)) return SHELL_FISH;
+    else return SHELL_UNKNOWN;
+}
+
 
 char* shell_to_string(Shell shell)
 {
@@ -32,6 +46,9 @@ char* shell_to_string(Shell shell)
         return "bash";
     case SHELL_ZSH:
         return "zsh";
+    case SHELL_FISH:
+        return "fish";
+      break;
     }
     return "";
 }
