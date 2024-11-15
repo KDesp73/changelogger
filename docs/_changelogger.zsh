@@ -3,105 +3,104 @@
 _changelogger() {
     local -a commands
     commands=(
-        'init:Initialize a new changelog'
-        'add:Add a new entry'
-        'list:List entries in the changelog'
-        'edit:Edit an entry'
-        'delete:Delete an entry'
-        'set:Set configuration options'
-        'get:Get configuration options'
-        'release:Manage releases'
-        'push:Push changes to the remote repository'
-        'export:Export the changelog'
-        'import:Import a changelog'
-        'generate:Generate files (config, autocomplete, man page)'
-        '-h:Show help'
-        '-v:Show version information'
+        'init'
+        'add'
+        'list'
+        'edit'
+        'delete'
+        'set'
+        'get'
+        'release'
+        'push'
+        'export'
+        'import'
+        'generate'
+        '-h'
+        '-v'
     )
 
     _arguments \
-        '1:command:->command' \
-        '*::options:->args'
+        '1: :($commands)' \
+        '*:: :->args'
+    _keys \
+        '1: :($commands)' \
+        '*:: :->variables'
 
     case $state in
-        command)
-            _describe 'command' commands
-            ;;
         args)
             case $words[1] in
                 add)
                     _arguments \
-                        '-h[Show help for add command]' \
+                        '-h[Prints the help message]' \
                         '-C[Add unreleased commit messages]' \
                         '-s[Specify the status of the entry]'
                     ;;
                 set)
                     _arguments \
-                        '-h[Show help for set command]' \
+                        '-h[Prints the help message]' \
                         '--config-dir[Specify the configuration file path]' \
-                        '--remote-repo[Specify the URL of the remote repository]' \
+                        '--remote-repo[Specify the URL of the remote repo]' \
                         '--editor[Specify the editor to use]' \
-                        '--always-push[Push releases automatically]' \
-                        '--always-export[Export the changelog automatically]' \
-                        '--version-ful[Set the current project version]'
+                        '--always-push[Specify whether to immediately push the release]' \
+                        '--always-export[Specify whether to export the CHANGELOG.md file]' \
+                        '--version-ful[Set the current version of the project]'
                     ;;
                 list)
                     _arguments \
-                        '-h[Show help for list command]' \
-                        '-V[Filter list by version]' \
-                        '-s[Filter list by status]' \
-                        '-r[List only releases]'
+                        '-h[Prints the help message]' \
+                        '-V[Set the version to filter the list]' \
+                        '-s[Set the status to filter the list]' \
+                        '-r[List only the releases]'
                     ;;
                 delete)
                     _arguments \
-                        '-h[Show help for delete command]' \
-                        '-A[List all entries for deletion]'
+                        '-h[Prints the help message]' \
+                        '-A[List all entries and have them available for deletion]'
                     ;;
                 get)
-                    _values 'variable' \
+                    _values \
                         'version[Latest release]' \
-                        'export[Always export the changelog]' \
-                        'remote[Remote repository URL]' \
-                        'config[Configuration file path]' \
-                        'push[Always push the release]' \
-                        'editor[Editor to use for editing]'
+                        'export[Always export CHANGELOG.md]' \
+                        'remote[The remote git repo URL]' \
+                        'config[The path to the configuration file]' \
+                        'push[Always push the release on GitHub]' \
+                        'editor[Editor to use when editing a file is needed]'
                     _arguments \
-                        '-h[Show help for get command]' \
-                        '-A[Print all configuration variables]'
+                        '-h[Prints the help message]' \
+                        '-A[Print all variables]'
                     ;;
                 export)
                     _arguments \
-                        '-h[Show help for export command]' \
-                        '-F[Specify the export format]'
+                        '-h[Prints the help message]' \
+                        '-F[Specify in which format to export]'
                     ;;
                 push)
                     _arguments \
-                        '-h[Show help for push command]' \
-                        '-V[Specify release version to push]' \
-                        '-y[Skip confirmation prompt]' \
+                        '-h[Prints the help message]' \
+                        '-V[Specify the version of the release you want to push]' \
+                        '-y[Skip the confirmation message]' \
                         '-B[Include an asset with the release]'
                     ;;
                 release)
                     _arguments \
-                        '-h[Show help for release command]' \
-                        '-N[Create a new release]' \
-                        '-p[Push the release to GitHub]' \
-                        '-y[Skip confirmation prompt]' \
-                        '-Y[Mark release as YANKED]' \
-                        '-U[Unmark release as YANKED]' \
+                        '-h[Prints the help message]' \
+                        '-N[Creates a new release]' \
+                        '-p[Push the release on GitHub]' \
+                        '-y[Skip the confirmation message]' \
+                        '-Y[Set a release as YANKED]' \
+                        '-U[Set a release as not YANKED]' \
                         '-B[Include an asset with the release]'
                     ;;
                 edit)
                     _arguments \
-                        '-h[Show help for edit command]' \
+                        '-h[Prints the help message]' \
                         '-s[Specify new status]' \
                         '-t[Specify new title/message]' \
                         '-V[Specify new version]' \
-                        '-A[List all entries for editing]'
+                        '-A[List all entries and have them available for editing]'
                     ;;
                 generate)
-                    _arguments \
-                        '-h[Show help for generate command]' \
+                    # For 'generate', we should only use _values since it doesn't accept flags.
                     _values 'generate options' \
                         'config[A starting point for your configuration file]' \
                         'autocomplete[Autocomplete script for the active shell]' \
@@ -109,11 +108,8 @@ _changelogger() {
                     ;;
                 import)
                     _arguments \
-                        '-h[Show help for import command]' \
-                        '-f[Specify file to import]'
-                    ;;
-                *)
-                    _message "Unknown command or option"
+                        '-h[Prints the help message]' \
+                        '-f[File to import]'
                     ;;
             esac
             ;;
