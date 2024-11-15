@@ -138,18 +138,24 @@ int is_blank(const char *str)
 
     return 1; 
 }
-char* char_repeat(char c, size_t count)
+char* char_repeat(const char* c, size_t count)
 {
-    char* result = (char*)malloc(count + 1);
+    size_t char_len = strlen(c); // Length of the UTF-8 character
+    size_t total_len = char_len * count;
+
+    // Allocate memory for the repeated characters and null terminator
+    char* result = (char*)malloc(total_len + 1);
     if (result == NULL) {
         return NULL;
     }
 
+    // Fill the result with the repeated character
     for (size_t i = 0; i < count; i++) {
-        result[i] = c;
+        memcpy(result + i * char_len, c, char_len);
     }
 
-    result[count] = '\0';
+    // Null-terminate the string
+    result[total_len] = '\0';
 
     return result;
 }

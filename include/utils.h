@@ -5,7 +5,7 @@
 int is_number(const char *str);
 void append_line(const char* file, const char* line, size_t index);
 int is_blank(const char *str);
-char* char_repeat(char c, size_t count);
+char* char_repeat(const char* c, size_t count);
 void clear_input_buffer();
 
 int is_true(const char* str);
