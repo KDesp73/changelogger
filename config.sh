@@ -1,87 +1,85 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 exe="changelogger"
+install_dir="/usr/bin"
 
 uninstall() {
-    sudo rm -rf /usr/bin/$exe
-
-    echo "[INFO] Application uninstalled successfully"
+    sudo rm -rf "$install_dir/$exe"
+    echo "[INFO] Application uninstalled successfully."
 }
 
 install_exe() {
-    if ! sudo cp "$1" "/usr/bin/$2"; then
-        echo "[ERRO] Failed to copy the executable to /usr/bin/"
+    if ! sudo cp "$1" "$install_dir/$2"; then
+        echo "[ERRO] Failed to copy the executable to $install_dir"
         exit 1
     fi
-    echo "[INFO] $2 installed successfully"
+    echo "[INFO] $2 installed successfully."
 }
 
 install() {
-    echo "Make sure you have the sqlite3.h, cjson.h and yaml.h files in PATH (generally in /usr/include)"
+    echo "Make sure you have the sqlite3.h, cjson.h, and yaml.h files in PATH (generally in /usr/include)."
     if [ -f "$exe" ]; then
-        # Install the executable
-        install_exe $exe $exe
+        install_exe "$exe" "$exe"
         install_exe "./bin/clparse" "clparse"
-
         echo "[INFO] Installation completed successfully."
     else
         echo "$exe is not built. Building..."
-
         if make RELEASE=1; then
-            install
+            install_exe "$exe" "$exe"
+            install_exe "./bin/clparse" "clparse"
+            echo "[INFO] Installation completed successfully."
         else
-            echo "Failed to build $exe"
+            echo "[ERRO] Failed to build $exe"
             exit 1
         fi
     fi
-
 }
 
 fetch() {
-    git clone https://github.com/KDesp73/changelogger --depth=1
-    cd "$HOME"/changelogger || exit 1
+    if [ -d "$HOME/changelogger" ]; then
+        echo "[ERRO] Directory $HOME/changelogger already exists."
+        echo "Remove it or use 'update' to fetch the latest version."
+        exit 1
+    fi
+    git clone https://github.com/KDesp73/changelogger --depth=1 "$HOME/changelogger"
+    cd "$HOME/changelogger" || exit 1
 }
 
 update() {
     cd "$HOME" || exit 1
-    rm -rf "$HOME"/changelogger
-
+    rm -rf "$HOME/changelogger"
+    echo "[INFO] Old version removed. Run 'fetch' to fetch the latest version."
 }
 
 help() {
-    echo "USAGE"
-    echo "  config.sh <command>"
-    echo ""
-    echo "COMMANDS"
-    echo "  install      Installs the executable"
-    echo "  uninstall    Uninstalls the executable"
-    echo "  update       Updates to the latest version"
-    echo "  help         Prints this message"
+    cat <<EOF
+USAGE
+  config.sh <command>
+
+COMMANDS
+  install      Installs the executable
+  uninstall    Uninstalls the executable
+  update       Updates to the latest version
+  fetch        Fetches the latest version
+  help         Prints this message
+EOF
 }
 
-if [ $# == 0 ]; then
-    echo "[ERRO] Specify a command" 1>&2; 
+if [ $# -eq 0 ]; then
+    echo "[ERRO] Specify a command" 1>&2
     help
     exit 1
 fi
 
-for arg in "$@"; do
-    case "$arg" in
-        "uninstall")
-            uninstall
-            ;;
-        "update")
-            update
-            ;;
-        "fetch")
-            fetch
-            ;;
-        "install")
-            install
-            ;;
-        "help")
-            help
-            ;;
-    esac
-done
-
+case "$1" in
+    "uninstall") uninstall ;;
+    "update") update ;;
+    "fetch") fetch ;;
+    "install") install ;;
+    "help") help ;;
+    *)
+        echo "[ERRO] Unknown command: $1"
+        help
+        exit 1
+        ;;
+esac
