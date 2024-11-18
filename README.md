@@ -5,15 +5,7 @@ A cli tool to help you keep a changelog in all your projects
 ## Installation
 
 ```bash
-# 1. Get the source code
-$ git clone https://github.com/KDesp73/changelogger --depth=1
-$ cd changelogger
-
-# 2. Checkout to the latest release
-$ git checkout <latest>
-
-# 3. Build and Install
-$ make install
+bash <(curl -s https://raw.githubusercontent.com/KDesp73/changelogger/refs/heads/main/config.sh) install
 ```
 
 ## Usage
