@@ -5,7 +5,9 @@
 #include "status.h"
 #include "utils.h"
 #include <stddef.h>
+#include <stdlib.h>
 #include <unistd.h>
+#include <sys/ioctl.h>
 
 void list_releases(Release* releases, size_t count);
 void list_entries(Entry* entries, size_t count, Options options, char* condition);
@@ -181,6 +183,20 @@ void list_entries(Entry* entries, size_t count, Options options, char* condition
     int version_offset = -10;
     int date_offset = -19;
 
+    int table_width = -index_offset - title_offset - status_offset - version_offset - date_offset + 6 + 5*2; // 6 horizontal dividers + 2 spaces for padding
+    struct winsize w;
+
+    // Use ioctl to get terminal size
+    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1) {
+        perror("ioctl");
+        return;
+    }
+
+    DEBU("table width: %d", table_width);
+    DEBU("terminal width: %d", w.ws_col);
+    _Bool too_long = table_width > w.ws_col;
+
+
     // Define border characters
     const char* top_border_left = "┌";
     const char* top_border_right = "┐";
@@ -201,9 +217,9 @@ void list_entries(Entry* entries, size_t count, Options options, char* condition
     size_t full_border_size = 
         strlen(top_border_left) + strlen(index_dashes) +
         strlen(border_sep) + strlen(title_dashes) +
-        strlen(border_sep) + strlen(status_dashes) +
+        (strlen(border_sep) + strlen(status_dashes)) * !too_long +
         strlen(border_sep) + strlen(version_dashes) +
-        strlen(border_sep) + strlen(date_dashes) +
+        (strlen(border_sep) + strlen(date_dashes)) * !too_long +
         strlen(top_border_right) + 1; // +1 for null terminator
 
     // Allocate memory for borders
@@ -212,33 +228,62 @@ void list_entries(Entry* entries, size_t count, Options options, char* condition
     char* bottom_border = malloc(full_border_size);
 
     // Construct borders with proper null termination
-    snprintf(top_border, full_border_size, "%s%s┬%s┬%s┬%s┬%s%s",
-             top_border_left, index_dashes, title_dashes, status_dashes,
-             version_dashes, date_dashes, top_border_right);
-    snprintf(mid_border, full_border_size, "%s%s┼%s┼%s┼%s┼%s%s",
-             mid_border_left, index_dashes, title_dashes, status_dashes,
-             version_dashes, date_dashes, mid_border_right);
-    snprintf(bottom_border, full_border_size, "%s%s┴%s┴%s┴%s┴%s%s",
-             bottom_border_left, index_dashes, title_dashes, status_dashes,
-             version_dashes, date_dashes, bottom_border_right);
+    if(!too_long)
+        snprintf(top_border, full_border_size, "%s%s┬%s┬%s┬%s┬%s%s",
+                 top_border_left, index_dashes, title_dashes, status_dashes,
+                 version_dashes, date_dashes, top_border_right);
+    else 
+        snprintf(top_border, full_border_size, "%s%s┬%s┬%s%s",
+                 top_border_left, index_dashes, title_dashes,
+                 version_dashes, top_border_right);
+    if(!too_long)
+        snprintf(mid_border, full_border_size, "%s%s┼%s┼%s┼%s┼%s%s",
+                 mid_border_left, index_dashes, title_dashes, status_dashes,
+                 version_dashes, date_dashes, mid_border_right);
+    else
+        snprintf(mid_border, full_border_size, "%s%s┼%s┼%s%s",
+                 mid_border_left, index_dashes, title_dashes,
+                 version_dashes, mid_border_right);
+    if(!too_long)
+        snprintf(bottom_border, full_border_size, "%s%s┴%s┴%s┴%s┴%s%s",
+                 bottom_border_left, index_dashes, title_dashes, status_dashes,
+                 version_dashes, date_dashes, bottom_border_right);
+    else
+        snprintf(bottom_border, full_border_size, "%s%s┴%s┴%s%s",
+                 bottom_border_left, index_dashes, title_dashes,
+                 version_dashes, bottom_border_right);
 
     // Print the table
+
+
     printf("%s\n", top_border); // Top border
-    printf("│ %*s │ %*s │ %*s │ %*s │ %*s │\n",
-           index_offset, "Index",
-           title_offset, "Title",
-           status_offset, "Status",
-           version_offset, "Version",
-           date_offset, "Date");
+    if(!too_long)
+        printf("│ %*s │ %*s │ %*s │ %*s │ %*s │\n",
+               index_offset, "Index",
+               title_offset, "Title",
+               status_offset, "Status",
+               version_offset, "Version",
+               date_offset, "Date");
+    else 
+        printf("│ %*s │ %*s │ %*s │\n",
+               index_offset, "Index",
+               title_offset, "Title",
+               version_offset, "Version");
     printf("%s\n", mid_border); // Middle border
 
     for (size_t i = 0; i < ((options.all || condition || count < DEFAULT_MAX_ENTRIES) ? count : DEFAULT_MAX_ENTRIES); ++i) {
-        printf("│ %*zu │ %*s │ %*s │ %*s │ %*s │\n",
-               index_offset, i + 1,
-               title_offset, entries[i].message,
-               status_offset, status_to_string(entries[i].status),
-               version_offset, (STREQ(entries[i].version.full, "0.0.0")) ? VERSION_UNRELEASED : entries[i].version.full,
-               date_offset, entries[i].date.full);
+        if(!too_long)
+            printf("│ %*zu │ %*s │ %*s │ %*s │ %*s │\n",
+                   index_offset, i + 1,
+                   title_offset, entries[i].message,
+                   status_offset, status_to_string(entries[i].status),
+                   version_offset, (STREQ(entries[i].version.full, "0.0.0")) ? VERSION_UNRELEASED : entries[i].version.full,
+                   date_offset, entries[i].date.full);
+        else
+            printf("│ %*zu │ %*s │ %*s │\n",
+                   index_offset, i + 1,
+                   title_offset, entries[i].message,
+                   version_offset, (STREQ(entries[i].version.full, "0.0.0")) ? VERSION_UNRELEASED : entries[i].version.full);
     }
 
     printf("%s\n", bottom_border); // Bottom border
