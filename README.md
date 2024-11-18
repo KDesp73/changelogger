@@ -5,7 +5,7 @@ A cli tool to help you keep a changelog in all your projects
 ## Installation
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/KDesp73/changelogger/refs/heads/main/config.sh) install
+bash <(curl -s https://raw.githubusercontent.com/KDesp73/changelogger/refs/heads/main/config.sh) fetch install
 ```
 
 ## Usage
