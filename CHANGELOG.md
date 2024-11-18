@@ -9,6 +9,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Added message length check
+- Changing result table when not enough horizontal space
 - different results when piping is detected (list command)
 
 

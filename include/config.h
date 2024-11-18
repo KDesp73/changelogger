@@ -2,7 +2,7 @@
 #define CONFIG_H
 
 #define EXECUTABLE_NAME "changelogger"
-#define VERSION "0.0.18"
+#define VERSION "0.0.19"
 
 #define CHANGELOG_FILE "CHANGELOG.md"
 #define CHANGELOG_DIR ".changelog"
