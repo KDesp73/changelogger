@@ -50,7 +50,7 @@ compile_commands.json: $(SRC_FILES)
 	bear -- make
 
 install:
-	./install.sh
+	./config.sh install
 
 autocomplete:
 	complgen aot ./docs/changelogger.usage --zsh-script ./docs/_changelogger.zsh
