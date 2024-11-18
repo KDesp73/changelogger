@@ -16,17 +16,24 @@ install_exe() {
     echo "[INFO] $2 installed successfully."
 }
 
+install_clparse() {
+    curl -LO https://github.com/marcaddeo/clparse/releases/download/0.9.1/clparse-0.9.1-x86_64-unknown-linux-musl.tar.gz
+    tar xzvf clparse-0.9.1-x86_64-unknown-linux-musl.tar.gz
+    sudo mv clparse /usr/bin/clparse
+    rm clparse-0.9.1-x86_64-unknown-linux-musl.tar.gz
+}
+
 install() {
     echo "[WARN] Make sure you have the sqlite3.h, cjson.h, and yaml.h files in PATH (generally in /usr/include)."
     if [ -f "$exe" ]; then
         install_exe "$exe" "$exe"
-        install_exe "./bin/clparse" "clparse"
+        install_clparse
         echo "[INFO] Installation completed successfully."
     else
         echo "[WARN] $exe is not built. Building..."
         if make RELEASE=1; then
             install_exe "$exe" "$exe"
-            install_exe "./bin/clparse" "clparse"
+            install_clparse
             echo "[INFO] Installation completed successfully."
         else
             echo "[ERRO] Failed to build $exe"
