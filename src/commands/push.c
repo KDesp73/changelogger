@@ -117,7 +117,7 @@ void handle_push_release(const char* version, Options options)
     if(push_release(version, options.asset)){
         update(TABLE_RELEASES, RELEASES_PUSHED, "1", condition);
     } else {
-        ERRO("Could not push release to Github");
+        // ERRO("Could not push release to Github");
     }
     free(condition);
 }
