@@ -57,6 +57,9 @@ $ changelogger import -f ./CHANGELOG.md
 
 # Generate various files
 $ changelogger generate config
+
+# Update changelogger
+$ changelogger update
 ```
 
 ## Config file
