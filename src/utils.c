@@ -138,6 +138,7 @@ int is_blank(const char *str)
 
     return 1; 
 }
+
 char* char_repeat(const char* c, size_t count)
 {
     size_t char_len = strlen(c); // Length of the UTF-8 character

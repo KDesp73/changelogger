@@ -18,7 +18,7 @@ else
 endif
 
 # List all the source files
-SRC_FILES = $(wildcard $(SRC_DIR)/*.c)
+SRC_FILES := $(shell find $(SRC_DIR) -name '*.c')
 
 # Generate the corresponding object file names
 OBJ_FILES = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(SRC_FILES))
@@ -32,6 +32,7 @@ all: $(BUILD_DIR) $(TARGET)
 # Rule to create the build directory
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
+	mkdir -p $(BUILD_DIR)/commands
 
 # Rule to build the executable
 $(TARGET): $(OBJ_FILES)

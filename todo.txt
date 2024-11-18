@@ -4,7 +4,6 @@ TODO: man page
 TODO: add stats command
 TODO: add update command
 TODO: check gh-cli command status code before updating db
-TODO: refactoring
 TODO: check terminal width when printing tables
 DONE: add methods to clib.h
 DONE: make sqlite.h a proper library
@@ -29,3 +28,4 @@ DONE: add installation commands for autocomplete and man page
 DONE: upload binary on release option
 DONE: better list tables
 DONE: correct autocomplete scripts
+DONE: refactoring
