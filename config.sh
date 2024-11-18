@@ -25,15 +25,18 @@ install_clparse() {
 
 install() {
     echo "[WARN] Make sure you have the sqlite3.h, cjson.h, and yaml.h files in PATH (generally in /usr/include)."
+    
+    if [ ! -f "/usr/bin/clparse" ]; then
+        install_clparse
+    fi
+
     if [ -f "$exe" ]; then
         install_exe "$exe" "$exe"
-        install_clparse
         echo "[INFO] Installation completed successfully."
     else
         echo "[WARN] $exe is not built. Building..."
         if make RELEASE=1; then
             install_exe "$exe" "$exe"
-            install_clparse
             echo "[INFO] Installation completed successfully."
         else
             echo "[ERRO] Failed to build $exe"
