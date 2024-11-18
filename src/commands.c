@@ -26,6 +26,7 @@ Command get_command(char* command)
     COMPARE_AND_RETURN_COMMAND(COMMAND_EDIT)
     COMPARE_AND_RETURN_COMMAND(COMMAND_GENERATE)
     COMPARE_AND_RETURN_COMMAND(COMMAND_IMPORT)
+    COMPARE_AND_RETURN_COMMAND(COMMAND_UPDATE)
     else return COMMAND_UNKNOWN;
 
 #undef COMPARE_AND_RETURN_COMMAND
@@ -76,6 +77,9 @@ void execute_command(Command command, Options options)
     case COMMAND_IMPORT:
         command_import(options);
         return;
+    case COMMAND_UPDATE:
+        command_update(options);
+        return;
     }
 
     help();
@@ -84,9 +88,6 @@ void execute_command(Command command, Options options)
 char* command_to_string(Command command)
 {
     switch (command) {
-    case COMMAND_UNSET:
-    case COMMAND_UNKNOWN:
-        return "";
     case COMMAND_INIT:
         return "init";
     case COMMAND_ADD:
@@ -111,7 +112,12 @@ char* command_to_string(Command command)
         return "generate";
     case COMMAND_IMPORT:
         return "import";
-      break;
+    case COMMAND_UPDATE:
+        return "update";
+    case COMMAND_UNSET:
+    case COMMAND_UNKNOWN:
+    default:
+        break;
     }
 
     return "";

@@ -37,6 +37,7 @@ void help()
     PTNI("export [<options>]            Exports the CHANGELOG.md file");
     PTNI("generate <value>              Generate various files");
     PTNI("import <options>              Import CHANGELOG.md file into the database");
+    PTNI("update                        Updated changelogger to the latest version");
 
     PTN("");
 
@@ -187,4 +188,13 @@ void import_help()
     PTN("%sOPTIONS%s", BOLD, RESET);
     PTNI("-h --help             Prints this message");
     PTNI("-f --file <path>      File to import");
+}
+
+void update_help()
+{
+    PTN("%sUSAGE%s", BOLD, RESET);
+    PTNI("%s update", EXECUTABLE_NAME);
+    PTN("");
+    PTN("%sOPTIONS%s", BOLD, RESET);
+    PTNI("-h --help             Prints this message");
 }

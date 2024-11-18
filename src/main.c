@@ -48,6 +48,9 @@ void help_message(Command command)
         case COMMAND_IMPORT:
             import_help();
             break;
+        case COMMAND_UPDATE:
+            update_help();
+            break;
         case COMMAND_UNSET:
         case COMMAND_UNKNOWN:
         case COMMAND_INIT:

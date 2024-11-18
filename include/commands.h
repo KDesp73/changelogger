@@ -19,6 +19,7 @@ typedef enum {
     COMMAND_PUSH,
     COMMAND_GENERATE,
     COMMAND_IMPORT,
+    COMMAND_UPDATE,
 } Command;
 
 void execute_command(Command command, Options options);
@@ -37,6 +38,7 @@ void command_edit(Options options);
 void command_push(Options options);
 void command_generate(Options options);
 void command_import(Options options);
+void command_update(Options options);
 
 /**
  * NULL is true

@@ -13,5 +13,6 @@ void list_help();
 void push_help();
 void release_help();
 void set_help();
+void update_help();
 
 #endif // HELP_H
