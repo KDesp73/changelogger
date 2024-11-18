@@ -33,6 +33,10 @@ install() {
             exit 1
         fi
     fi
+
+    if [ -d "$HOME/changelogger" ]; then
+        rm -rf "$HOME/changelogger"
+    fi
 }
 
 fetch() {
