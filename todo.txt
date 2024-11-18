@@ -4,7 +4,6 @@ TODO: man page
 TODO: add stats command
 TODO: check gh-cli command status code before updating db
 TODO: check terminal width when printing tables
-TODO: add a limit when listing changes
 DONE: add methods to clib.h
 DONE: make sqlite.h a proper library
 DONE: make querybuilder.h a proper library
@@ -30,3 +29,4 @@ DONE: better list tables
 DONE: correct autocomplete scripts
 DONE: refactoring
 DONE: add update command
+DONE: add a limit when listing changes

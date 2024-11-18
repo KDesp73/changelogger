@@ -145,6 +145,7 @@ void free_entries(Entry** entries, size_t count)
     free(*entries);
 }
 
+#define DEFAULT_MAX_ENTRIES 15
 void list_entries(sqlite3* db, Options options, char* condition, char* order_by)
 {
     size_t count;
@@ -213,7 +214,7 @@ void list_entries(sqlite3* db, Options options, char* condition, char* order_by)
            date_offset, "Date");
     printf("%s\n", mid_border); // Middle border
 
-    for (size_t i = 0; i < count; ++i) {
+    for (size_t i = 0; i < ((options.all || condition || count < DEFAULT_MAX_ENTRIES) ? count : DEFAULT_MAX_ENTRIES); ++i) {
         printf("│ %*zu │ %*s │ %*s │ %*s │ %*s │\n",
                index_offset, i + 1,
                title_offset, entries[i].message,
