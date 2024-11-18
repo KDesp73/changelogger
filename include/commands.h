@@ -23,6 +23,8 @@ typedef enum {
 
 void execute_command(Command command, Options options);
 Command get_command(char* command);
+char* command_to_string(Command command);
+
 void command_init(Options options);
 void command_add(Options options);
 void command_set(Options options);
@@ -35,7 +37,6 @@ void command_edit(Options options);
 void command_push(Options options);
 void command_generate(Options options);
 void command_import(Options options);
-char* command_to_string(Command command);
 
 /**
  * NULL is true
@@ -47,7 +48,5 @@ char* is_usable(
     Command command, 
     Command* compatible_commands, size_t commands_size
 );
-
-void add_entry(const char* message, Status status);
 
 #endif // COMMANDS_H
