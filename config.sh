@@ -17,7 +17,7 @@ install_exe() {
 }
 
 install_clparse() {
-    curl -LO https://github.com/marcaddeo/clparse/releases/download/0.9.1/clparse-0.9.1-x86_64-unknown-linux-musl.tar.gz
+    curl -sLO https://github.com/marcaddeo/clparse/releases/download/0.9.1/clparse-0.9.1-x86_64-unknown-linux-musl.tar.gz
     tar xzvf clparse-0.9.1-x86_64-unknown-linux-musl.tar.gz
     sudo mv clparse /usr/bin/clparse
     rm clparse-0.9.1-x86_64-unknown-linux-musl.tar.gz
