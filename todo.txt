@@ -3,7 +3,6 @@ TODO: check for sql injections
 TODO: man page
 TODO: add stats command
 TODO: check gh-cli command status code before updating db
-TODO: check terminal width when printing tables
 DONE: add methods to clib.h
 DONE: make sqlite.h a proper library
 DONE: make querybuilder.h a proper library
@@ -31,3 +30,4 @@ DONE: refactoring
 DONE: add update command
 DONE: add a limit when listing changes
 DONE: different results when piping is detected (list command)
+DONE: check terminal width when printing tables
