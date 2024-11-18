@@ -1,5 +1,6 @@
 #include "commands.h"
 #include "database.h"
+#include "extern/clib.h"
 #include "utils.h"
 #include "push_utils.h"
 
@@ -75,7 +76,7 @@ int is_gh_cli_available()
     return 1;
 }
 
-void push_release(const char* version, const char* asset)
+int push_release(const char* version, const char* asset)
 {
     if (!is_gh_cli_available()){
         exit(1);
@@ -94,8 +95,11 @@ void push_release(const char* version, const char* asset)
     );
     printf("%s\n", gh_command);
     clib_execute_command(gh_command);
+    char* rc = clib_execute_command("echo $?");
     free(asset_str);
     free(gh_command);
+
+    return STREQ(rc, "0");
 }
 
 void handle_push_release(const char* version, Options options)
@@ -110,8 +114,11 @@ void handle_push_release(const char* version, Options options)
     }
 
     make_sure_user_wants_to_proceed_with_releasing(options);
-    push_release(version, options.asset);
-    update(TABLE_RELEASES, RELEASES_PUSHED, "1", condition);
+    if(push_release(version, options.asset)){
+        update(TABLE_RELEASES, RELEASES_PUSHED, "1", condition);
+    } else {
+        ERRO("Could not push release to Github");
+    }
     free(condition);
 }
 
