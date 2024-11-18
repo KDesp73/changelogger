@@ -1,8 +1,9 @@
 TODO: resolve memory leaks
 TODO: check for sql injections
 TODO: man page
-TODO: add stats command
 TODO: check gh-cli command status code before updating db
+TODO: undo command
+TODO: report command
 DONE: add methods to clib.h
 DONE: make sqlite.h a proper library
 DONE: make querybuilder.h a proper library

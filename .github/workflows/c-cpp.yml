@@ -13,5 +13,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: deps
+      run: sudo apt install cjson sqlite libyaml
     - name: make
       run: make RELEASE=1
