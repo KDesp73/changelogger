@@ -1,9 +1,11 @@
 #include "commands.h"
 #include "config.h"
+#include "extern/clib.h"
 #include "extern/querybuilder.h"
 #include "extern/sqlite.h"
 #include "utils.h"
 #include "templates.h"
+#include <string.h>
 #include <sys/wait.h>
 #include "database.h"
 
@@ -20,6 +22,11 @@ void command_add(Options options)
     }
 
     char* message = options.argv[options.argc-1];
+
+    if(strlen(message) > 60) {
+        ERRO("Message too long");
+        exit(1);
+    }
 
     if(STREQ(message, command_to_string(COMMAND_ADD))) 
         PANIC("Message is not specified. Try: `%s add \"Your message\"`", EXECUTABLE_NAME);
@@ -165,7 +172,7 @@ void add_commits()
         } else if(STREQ(line, TEMPLATE_STATUS(STATUS_SECURITY))){
             current_status = STATUS_SECURITY;
         } else { // Line is a commit message
-            if(!is_blank(line) && !STREQ(line, "\n")){
+            if(!is_blank(line) && !STREQ(line, "\n") && strlen(line) <= 60){
                 add_entry(line, current_status);
             }
         }
