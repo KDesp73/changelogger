@@ -52,7 +52,8 @@ fetch() {
 update() {
     cd "$HOME" || exit 1
     rm -rf "$HOME/changelogger"
-    echo "[INFO] Old version removed. Run 'fetch' to fetch the latest version."
+    fetch
+    install
 }
 
 help() {
