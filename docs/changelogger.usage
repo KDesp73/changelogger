@@ -12,7 +12,7 @@ changelogger <COMMANDS> | [<OPTIONS>];
 			 | (export [<EXPORT-OPTIONS>]) "Exports the CHANGELOG.md file"
 			 | (generate (<GENERATE-VALUES> | <GENERATE-OPTIONS>)) "Generate various files"
 			 | (import [<IMPORT-OPTIONS>]) "Import CHANGELOG.md file into the database"
-			 | (update) "Update changelogger to the latest version"
+			 | (update [<UPDATE-OPTIONS>]) "Update changelogger to the latest version"
 			 ;
 
 <OPTIONS> ::= (-h || --help) "Prints the help message"
@@ -22,31 +22,31 @@ changelogger <COMMANDS> | [<OPTIONS>];
 
 <STATUS> ::= (added | changed | removed | fixed | deprecated | security);
 
-<ADD-OPTIONS> ::= (-h || --help) "Prints this message"
+<ADD-OPTIONS> ::= (-h || --help) "Prints the help message"
 				| (-C || --commits) "Add unreleased commit messages"
 				| (-s <STATUS> || --status <STATUS>) "Specify the status of the entry (default is 'added')"
 				;
 
-<LIST-OPTIONS> ::= (-h || --help) "Prints this message"
+<LIST-OPTIONS> ::= (-h || --help) "Prints the help message"
 				 | (-V <VERSION> || --version-full <VERSION>) "Set the version to filter the list"
 				 | (-s <STATUS> || --status <STATUS>) "Set the status to filter the list"
 				 | (-r || --releases) "List only the releases"
 				 ;
 
-<EDIT-OPTIONS> ::= (-h --help) "Prints this message"
+<EDIT-OPTIONS> ::= (-h --help) "Prints the help message"
 				 | (-s <STATUS> || --status <STATUS>) "Specify new status"
 				 | (-t <TITLE> || --title <TITLE>) "Specify new title/message"
 				 | (-V <VERSION> || --version-full <VERSION>) "Specify new version"
 				 | (-A || --all) "List all entries and have them available for editing"
 				 ;
 
-<DELETE-OPTIONS> ::= (-h --help) "Prints this message"
+<DELETE-OPTIONS> ::= (-h --help) "Prints the help message"
 				   | (-A || --all) "List all entries and have them available for deletion"	
 				   ;
 
 <BOOL> ::= (true | false);
 
-<SET-OPTIONS> ::= (-h || --help) "Prints this message"
+<SET-OPTIONS> ::= (-h || --help) "Prints the help message"
 				| (-V <VERSION> || --version-full <VERSION>) "Set the version of the project"
 				| (--config-dir <PATH>) "Specify the configuration file path"
 				| (--remote-repo <URL>) "Specify the url of the remote repo"
@@ -63,13 +63,13 @@ changelogger <COMMANDS> | [<OPTIONS>];
 			 | (editor)   "Editor to use when editing a file is needed"
 			 ;
 
-<GET-OPTIONS> ::= (-h || --help) "Prints this message"
+<GET-OPTIONS> ::= (-h || --help) "Prints the help message"
 				| (-A || --all) "Print all variables"
 				;
 
 <VERSION-TYPE> ::= (major | minor | patch);
 
-<RELEASE-OPTIONS> ::= (-h || --help) "Prints this message"
+<RELEASE-OPTIONS> ::= (-h || --help) "Prints the help message"
 				    | (--new <VERSION-TYPE> || -N <VERSION-TYPE>) "Creates a new release"
 				    | (--push || --p) "Push the release on github"
 				    | (-y --yes) "Skip the confirmation message"
@@ -78,7 +78,7 @@ changelogger <COMMANDS> | [<OPTIONS>];
 				    | (-B <PATH> || --asset <PATH>) "Include an asset in the release"
 					;
 	
-<PUSH-OPTIONS> ::= (-h || --help) "Prints this message"
+<PUSH-OPTIONS> ::= (-h || --help) "Prints the help message"
 				| (-V <VERSION> || --version-full <VERSION>) "Specify the version of the release you want to push"
 				| (-y || --yes) "Skip the confirmation message"
 				| (-B <PATH> || --asset <PATH>) "Include an asset in the release"
@@ -86,11 +86,11 @@ changelogger <COMMANDS> | [<OPTIONS>];
 
 <EXPORT-FMT> ::= (md | markdown | json | yml | yaml );
 
-<EXPORT-OPTIONS> ::= (-h || --help) "Prints this message"
+<EXPORT-OPTIONS> ::= (-h || --help) "Prints the help message"
 				   | (-F <EXPORT-FMT> || --format <EXPORT-FMT>) "Specify in which format to export"
 				   ;
 
-<IMPORT-OPTIONS> ::= (-h || --help) "Prints this message"
+<IMPORT-OPTIONS> ::= (-h || --help) "Prints the help message"
 				   | (-f <PATH> || --file <PATH>) "File to import"
 				   ;
 
@@ -99,6 +99,6 @@ changelogger <COMMANDS> | [<OPTIONS>];
 				    | (man) "Man page for changelogger"
 					;
 
+<GENERATE-OPTIONS> ::= (-h || --help) "Prints the help message"; 
 
-<GENERATE-OPTIONS> ::= (-h || --help) "Prints this message"; 
-
+<UPDATE-OPTIONS> ::= (-h || --help) "Prints the help message"; 

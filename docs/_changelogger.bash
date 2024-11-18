@@ -11,30 +11,31 @@ _changelogger () {
     local words cword
     _get_comp_words_by_ref -n "$COMP_WORDBREAKS" words cword
 
-    declare -a literals=(-s --yank major --commits export init --all add json -h -s changed fixed false -s minor --push -U -F --title push removed added delete patch -V --always-export get remote -h config export yaml markdown security json true major removed --version-full --unyank --yes -C markdown -y -V --help edit yml --file update --format -A --version deprecated --remote-repo yaml -f -V --help set editor added --status fixed --config-dir -V --editor minor --p -B changed patch --releases config version security --asset autocomplete -Y -A md list -r --always-push release man --yes push -t deprecated yml md generate -N -A --new import -v)
+    declare -a literals=(-s --yank major --commits export init --all add json -h -s fixed changed false -s minor --push -U -F --title push removed added delete patch -V --always-export get remote config export yaml markdown --file security json true major --version-full removed --unyank --yes -C markdown -y -V --help edit yml update --version --format -A deprecated --remote-repo yaml -f -V --help set editor added --status fixed --config-dir -V --editor minor --p -B changed patch --releases config version security --asset autocomplete -Y -A md list -r --always-push release man --yes push -t deprecated yml md generate -N -A --new import -v)
     declare -A literal_transitions=()
-    literal_transitions[0]="([59]=1 [47]=2 [23]=3 [5]=1 [27]=4 [82]=5 [85]=6 [7]=7 [53]=1 [31]=8 [50]=1 [60]=9 [88]=10 [9]=1 [93]=11 [97]=12 [98]=1)"
-    literal_transitions[2]="([19]=23 [63]=20 [89]=23 [39]=16 [80]=1 [6]=1 [14]=19 [25]=16 [29]=21)"
-    literal_transitions[3]="([29]=21 [6]=1 [52]=1)"
-    literal_transitions[4]="([59]=1 [61]=1 [75]=1 [20]=1 [4]=1 [6]=1 [30]=1 [28]=1 [95]=1 [29]=1)"
-    literal_transitions[5]="([59]=1 [58]=16 [73]=1 [63]=20 [10]=19 [39]=16 [83]=1 [29]=1)"
-    literal_transitions[6]="([59]=1 [1]=16 [77]=17 [44]=14 [29]=1 [79]=16 [16]=1 [40]=16 [94]=18 [17]=16 [96]=15 [69]=1 [70]=17)"
-    literal_transitions[7]="([59]=1 [0]=19 [3]=1 [42]=1 [63]=20 [29]=1)"
-    literal_transitions[8]="([59]=1 [18]=22 [51]=25 [29]=1)"
-    literal_transitions[9]="([59]=1 [45]=16 [65]=17 [39]=16 [67]=26 [26]=24 [55]=13 [84]=24 [29]=1)"
-    literal_transitions[10]="([59]=1 [77]=17 [66]=16 [87]=1 [39]=16 [70]=17 [44]=1 [29]=1)"
-    literal_transitions[11]="([59]=1 [74]=1 [78]=1 [86]=1 [29]=1)"
-    literal_transitions[12]="([59]=1 [49]=17 [57]=17 [29]=1)"
-    literal_transitions[14]="([87]=1)"
-    literal_transitions[15]="([68]=1 [72]=1 [37]=1)"
-    literal_transitions[18]="([37]=1 [68]=1 [72]=1)"
-    literal_transitions[19]="([64]=1 [90]=1 [76]=1 [62]=1 [38]=1 [71]=1)"
-    literal_transitions[20]="([38]=1 [62]=1 [76]=1 [64]=1 [90]=1 [71]=1)"
-    literal_transitions[21]="([59]=1)"
-    literal_transitions[22]="([56]=1 [92]=1 [43]=1 [35]=1 [91]=1)"
+    literal_transitions[0]="([58]=1 [47]=2 [23]=3 [5]=1 [27]=4 [81]=5 [84]=6 [7]=7 [50]=1 [30]=8 [49]=9 [59]=10 [87]=11 [9]=1 [92]=12 [96]=13 [97]=1)"
+    literal_transitions[2]="([9]=22 [19]=16 [62]=18 [88]=16 [38]=17 [79]=1 [6]=1 [14]=19 [25]=17)"
+    literal_transitions[3]="([9]=22 [6]=1 [52]=1)"
+    literal_transitions[4]="([58]=1 [60]=1 [74]=1 [9]=1 [20]=1 [4]=1 [6]=1 [29]=1 [28]=1 [94]=1)"
+    literal_transitions[5]="([58]=1 [57]=17 [9]=1 [62]=18 [10]=19 [38]=17 [82]=1 [72]=1)"
+    literal_transitions[6]="([58]=1 [1]=17 [76]=21 [93]=27 [9]=1 [78]=17 [16]=1 [40]=17 [17]=17 [68]=1 [95]=14 [69]=21 [44]=20)"
+    literal_transitions[7]="([58]=1 [0]=19 [3]=1 [9]=1 [42]=1 [62]=18)"
+    literal_transitions[8]="([58]=1 [18]=23 [9]=1 [51]=15)"
+    literal_transitions[9]="([9]=1 [58]=1)"
+    literal_transitions[10]="([58]=1 [9]=1 [64]=21 [38]=17 [66]=26 [26]=24 [54]=25 [83]=24 [45]=17)"
+    literal_transitions[11]="([58]=1 [76]=21 [65]=17 [9]=1 [86]=1 [38]=17 [69]=21 [44]=1)"
+    literal_transitions[12]="([58]=1 [73]=1 [77]=1 [9]=1 [85]=1)"
+    literal_transitions[13]="([58]=1 [9]=1 [33]=21 [56]=21)"
+    literal_transitions[14]="([67]=1 [71]=1 [37]=1)"
+    literal_transitions[15]="([90]=1 [35]=1 [91]=1 [43]=1 [55]=1)"
+    literal_transitions[18]="([39]=1 [61]=1 [75]=1 [63]=1 [89]=1 [70]=1)"
+    literal_transitions[19]="([63]=1 [89]=1 [75]=1 [61]=1 [39]=1 [70]=1)"
+    literal_transitions[20]="([86]=1)"
+    literal_transitions[22]="([58]=1)"
+    literal_transitions[23]="([55]=1 [91]=1 [43]=1 [35]=1 [90]=1)"
     literal_transitions[24]="([36]=1 [13]=1)"
-    literal_transitions[25]="([91]=1 [35]=1 [92]=1 [43]=1 [56]=1)"
-    declare -A match_anything_transitions=([26]=1 [17]=1 [13]=1 [16]=1 [23]=1)
+    literal_transitions[27]="([37]=1 [67]=1 [71]=1)"
+    declare -A match_anything_transitions=([17]=1 [16]=1 [21]=1 [26]=1 [25]=1)
     declare -A subword_transitions
 
     local state=0
@@ -71,13 +72,13 @@ _changelogger () {
         return 1
     done
 
-    declare -A literal_transitions_level_0=([24]="36 13" [0]="47 23 5 27 82 85 7 31 50 60 88 9 93 97 98" [19]="64 90 76 62 38 71" [6]="44 29 79 16 17 96 70" [15]="68 72 37" [5]="58 10 83 29" [9]="45 65 67 26 55 84 29" [10]="66 70 44 29" [3]="29 52" [8]="18 29" [14]="87" [12]="57 29" [7]="0 42 29" [11]="74 78 86 29" [21]="59" [2]="89 80 14 25 29" [4]="61 75 20 4 30 28 95 29" [22]="56 92 43 35 91")
-    declare -A literal_transitions_level_1=([0]="59 53" [20]="38 62 76 64 90 71" [10]="59 77 87 39" [5]="59 73 63 39" [9]="59 39" [6]="59 1 77 40 94 69" [3]="6" [8]="59 51" [2]="19 63 39 6" [18]="37 68 72" [12]="59 49" [7]="59 3 63" [11]="59" [4]="59 6" [25]="91 35 92 43 56")
+    declare -A literal_transitions_level_0=([24]="36 13" [19]="63 89 75 61 39 70" [0]="47 23 5 27 81 84 7 30 49 59 87 9 92 96 97" [20]="86" [10]="9 64 66 26 54 83 45" [5]="57 9 10 82" [6]="9 78 16 17 95 69 44" [9]="9" [3]="9 52" [8]="18 9" [14]="67 71 37" [12]="73 77 9 85" [7]="0 9 42" [11]="65 9 69 44" [2]="9 88 79 14 25" [13]="9 56" [4]="60 74 9 20 4 29 28 94" [22]="58" [23]="55 91 43 35 90")
+    declare -A literal_transitions_level_1=([0]="58 50" [10]="58 38" [15]="90 35 91 43 55" [5]="58 62 38 72" [6]="58 1 76 93 40 68" [9]="58" [3]="6" [8]="58 51" [2]="19 62 38 6" [18]="39 61 75 63 89 70" [12]="58" [11]="58 76 86 38" [7]="58 3 62" [13]="58 33" [4]="58 6" [27]="37 67 71")
     declare -A subword_transitions_level_0=()
     declare -A subword_transitions_level_1=()
     declare -A commands_level_0=()
     declare -A commands_level_1=()
-    declare -A specialized_commands_level_0=([17]="0")
+    declare -A specialized_commands_level_0=([21]="0")
     declare -A specialized_commands_level_1=()
 
     local -a matches=()

@@ -5,7 +5,7 @@ _changelogger_cmd_0 () {
 }
 
 _changelogger () {
-    local -a literals=("-s" "--yank" "major" "--commits" "export" "init" "--all" "add" "json" "-h" "-s" "changed" "fixed" "false" "-s" "minor" "--push" "-U" "-F" "--title" "push" "removed" "added" "delete" "patch" "-V" "--always-export" "get" "remote" "-h" "config" "export" "yaml" "markdown" "security" "json" "true" "major" "removed" "--version-full" "--unyank" "--yes" "-C" "markdown" "-y" "-V" "--help" "edit" "yml" "--file" "update" "--format" "-A" "--version" "deprecated" "--remote-repo" "yaml" "-f" "-V" "--help" "set" "editor" "added" "--status" "fixed" "--config-dir" "-V" "--editor" "minor" "--p" "-B" "changed" "patch" "--releases" "config" "version" "security" "--asset" "autocomplete" "-Y" "-A" "md" "list" "-r" "--always-push" "release" "man" "--yes" "push" "-t" "deprecated" "yml" "md" "generate" "-N" "-A" "--new" "import" "-v")
+    local -a literals=("-s" "--yank" "major" "--commits" "export" "init" "--all" "add" "json" "-h" "-s" "fixed" "changed" "false" "-s" "minor" "--push" "-U" "-F" "--title" "push" "removed" "added" "delete" "patch" "-V" "--always-export" "get" "remote" "config" "export" "yaml" "markdown" "--file" "security" "json" "true" "major" "--version-full" "removed" "--unyank" "--yes" "-C" "markdown" "-y" "-V" "--help" "edit" "yml" "update" "--version" "--format" "-A" "deprecated" "--remote-repo" "yaml" "-f" "-V" "--help" "set" "editor" "added" "--status" "fixed" "--config-dir" "-V" "--editor" "minor" "--p" "-B" "changed" "patch" "--releases" "config" "version" "security" "--asset" "autocomplete" "-Y" "-A" "md" "list" "-r" "--always-push" "release" "man" "--yes" "push" "-t" "deprecated" "yml" "md" "generate" "-N" "-A" "--new" "import" "-v")
 
     local -A descriptions
     descriptions[1]="Specify the status of the entry (default is 'added')"
@@ -24,67 +24,67 @@ _changelogger () {
     descriptions[27]="Specify whether to export the CHANGELOG.md file"
     descriptions[28]="Returns a variable"
     descriptions[29]="The remote git repo url"
-    descriptions[30]="Prints this message"
-    descriptions[31]="The path to the configuration file"
-    descriptions[32]="Exports the CHANGELOG.md file"
+    descriptions[30]="The path to the configuration file"
+    descriptions[31]="Exports the CHANGELOG.md file"
     descriptions[43]="Add unreleased commit messages"
     descriptions[45]="Skip the confirmation message"
     descriptions[46]="Set the version of the project"
     descriptions[48]="Edit any of the unreleased entries"
-    descriptions[51]="Update changelogger to the latest version"
+    descriptions[50]="Update changelogger to the latest version"
     descriptions[53]="List all entries and have them available for deletion"
-    descriptions[56]="Specify the url of the remote repo"
-    descriptions[58]="File to import"
-    descriptions[59]="Set the version to filter the list"
-    descriptions[61]="Sets a variable"
-    descriptions[62]="Editor to use when editing a file is needed"
-    descriptions[66]="Specify the configuration file path"
-    descriptions[67]="Specify the version of the release you want to push"
-    descriptions[68]="Specify the editor to use"
-    descriptions[71]="Include an asset in the release"
-    descriptions[75]="A starting point for your config file (~/.config/.changelogger.yml)"
-    descriptions[76]="Latest release"
-    descriptions[79]="Autocomplete for the active shell"
-    descriptions[80]="Set a release as YANKED"
-    descriptions[81]="List all entries and have them available for editing"
-    descriptions[83]="Lists entries"
-    descriptions[84]="List only the releases"
-    descriptions[85]="Specify whether to immediately push the release"
-    descriptions[86]="Creates a new release"
-    descriptions[87]="Man page for changelogger"
-    descriptions[89]="Push an unpushed release to Github"
-    descriptions[90]="Specify new title/message"
-    descriptions[94]="Generate various files"
-    descriptions[96]="Print all variables"
-    descriptions[97]="Creates a new release"
-    descriptions[98]="Import CHANGELOG.md file into the database"
-    descriptions[99]="Prints the project version"
+    descriptions[55]="Specify the url of the remote repo"
+    descriptions[57]="File to import"
+    descriptions[58]="Set the version to filter the list"
+    descriptions[60]="Sets a variable"
+    descriptions[61]="Editor to use when editing a file is needed"
+    descriptions[65]="Specify the configuration file path"
+    descriptions[66]="Specify the version of the release you want to push"
+    descriptions[67]="Specify the editor to use"
+    descriptions[70]="Include an asset in the release"
+    descriptions[74]="A starting point for your config file (~/.config/.changelogger.yml)"
+    descriptions[75]="Latest release"
+    descriptions[78]="Autocomplete for the active shell"
+    descriptions[79]="Set a release as YANKED"
+    descriptions[80]="List all entries and have them available for editing"
+    descriptions[82]="Lists entries"
+    descriptions[83]="List only the releases"
+    descriptions[84]="Specify whether to immediately push the release"
+    descriptions[85]="Creates a new release"
+    descriptions[86]="Man page for changelogger"
+    descriptions[88]="Push an unpushed release to Github"
+    descriptions[89]="Specify new title/message"
+    descriptions[93]="Generate various files"
+    descriptions[95]="Print all variables"
+    descriptions[96]="Creates a new release"
+    descriptions[97]="Import CHANGELOG.md file into the database"
+    descriptions[98]="Prints the project version"
 
     local -A literal_transitions
-    literal_transitions[1]="([60]=2 [48]=3 [24]=4 [6]=2 [28]=5 [83]=6 [86]=7 [8]=8 [54]=2 [32]=9 [51]=2 [61]=10 [89]=11 [10]=2 [94]=12 [98]=13 [99]=2)"
-    literal_transitions[3]="([20]=24 [64]=21 [90]=24 [40]=17 [81]=2 [7]=2 [15]=20 [26]=17 [30]=22)"
-    literal_transitions[4]="([30]=22 [7]=2 [53]=2)"
-    literal_transitions[5]="([60]=2 [62]=2 [76]=2 [21]=2 [5]=2 [7]=2 [31]=2 [29]=2 [96]=2 [30]=2)"
-    literal_transitions[6]="([60]=2 [59]=17 [74]=2 [64]=21 [11]=20 [40]=17 [84]=2 [30]=2)"
-    literal_transitions[7]="([60]=2 [2]=17 [78]=18 [45]=15 [30]=2 [80]=17 [17]=2 [41]=17 [95]=19 [18]=17 [97]=16 [70]=2 [71]=18)"
-    literal_transitions[8]="([60]=2 [1]=20 [4]=2 [43]=2 [64]=21 [30]=2)"
-    literal_transitions[9]="([60]=2 [19]=23 [52]=26 [30]=2)"
-    literal_transitions[10]="([60]=2 [46]=17 [66]=18 [40]=17 [68]=27 [27]=25 [56]=14 [85]=25 [30]=2)"
-    literal_transitions[11]="([60]=2 [78]=18 [67]=17 [88]=2 [40]=17 [71]=18 [45]=2 [30]=2)"
-    literal_transitions[12]="([60]=2 [75]=2 [79]=2 [87]=2 [30]=2)"
-    literal_transitions[13]="([60]=2 [50]=18 [58]=18 [30]=2)"
-    literal_transitions[15]="([88]=2)"
-    literal_transitions[16]="([69]=2 [73]=2 [38]=2)"
-    literal_transitions[19]="([38]=2 [69]=2 [73]=2)"
-    literal_transitions[20]="([65]=2 [91]=2 [77]=2 [63]=2 [39]=2 [72]=2)"
-    literal_transitions[21]="([39]=2 [63]=2 [77]=2 [65]=2 [91]=2 [72]=2)"
-    literal_transitions[22]="([60]=2)"
-    literal_transitions[23]="([57]=2 [93]=2 [44]=2 [36]=2 [92]=2)"
+    literal_transitions[1]="([59]=2 [48]=3 [24]=4 [6]=2 [28]=5 [82]=6 [85]=7 [8]=8 [51]=2 [31]=9 [50]=10 [60]=11 [88]=12 [10]=2 [93]=13 [97]=14 [98]=2)"
+    literal_transitions[3]="([10]=23 [20]=17 [63]=19 [89]=17 [39]=18 [80]=2 [7]=2 [15]=20 [26]=18)"
+    literal_transitions[4]="([10]=23 [7]=2 [53]=2)"
+    literal_transitions[5]="([59]=2 [61]=2 [75]=2 [10]=2 [21]=2 [5]=2 [7]=2 [30]=2 [29]=2 [95]=2)"
+    literal_transitions[6]="([59]=2 [58]=18 [10]=2 [63]=19 [11]=20 [39]=18 [83]=2 [73]=2)"
+    literal_transitions[7]="([59]=2 [2]=18 [77]=22 [94]=28 [10]=2 [79]=18 [17]=2 [41]=18 [18]=18 [69]=2 [96]=15 [70]=22 [45]=21)"
+    literal_transitions[8]="([59]=2 [1]=20 [4]=2 [10]=2 [43]=2 [63]=19)"
+    literal_transitions[9]="([59]=2 [19]=24 [10]=2 [52]=16)"
+    literal_transitions[10]="([10]=2 [59]=2)"
+    literal_transitions[11]="([59]=2 [10]=2 [65]=22 [39]=18 [67]=27 [27]=25 [55]=26 [84]=25 [46]=18)"
+    literal_transitions[12]="([59]=2 [77]=22 [66]=18 [10]=2 [87]=2 [39]=18 [70]=22 [45]=2)"
+    literal_transitions[13]="([59]=2 [74]=2 [78]=2 [10]=2 [86]=2)"
+    literal_transitions[14]="([59]=2 [10]=2 [34]=22 [57]=22)"
+    literal_transitions[15]="([68]=2 [72]=2 [38]=2)"
+    literal_transitions[16]="([91]=2 [36]=2 [92]=2 [44]=2 [56]=2)"
+    literal_transitions[19]="([40]=2 [62]=2 [76]=2 [64]=2 [90]=2 [71]=2)"
+    literal_transitions[20]="([64]=2 [90]=2 [76]=2 [62]=2 [40]=2 [71]=2)"
+    literal_transitions[21]="([87]=2)"
+    literal_transitions[23]="([59]=2)"
+    literal_transitions[24]="([56]=2 [92]=2 [44]=2 [36]=2 [91]=2)"
     literal_transitions[25]="([37]=2 [14]=2)"
-    literal_transitions[26]="([92]=2 [36]=2 [93]=2 [44]=2 [57]=2)"
+    literal_transitions[28]="([38]=2 [68]=2 [72]=2)"
 
     local -A match_anything_transitions
-    match_anything_transitions=([27]=2 [18]=2 [14]=2 [17]=2 [24]=2)
+    match_anything_transitions=([18]=2 [17]=2 [22]=2 [27]=2 [26]=2)
 
     declare -A subword_transitions
 
@@ -120,13 +120,13 @@ _changelogger () {
 
         return 1
     done
-    declare -A literal_transitions_level_0=([25]="37 14" [1]="48 24 6 28 83 86 8 32 51 61 89 10 94 98 99" [20]="65 91 77 63 39 72" [7]="45 30 80 17 18 97 71" [16]="69 73 38" [6]="59 11 84 30" [10]="46 66 68 27 56 85 30" [11]="67 71 45 30" [4]="30 53" [9]="19 30" [15]="88" [13]="58 30" [8]="1 43 30" [12]="75 79 87 30" [22]="60" [3]="90 81 15 26 30" [5]="62 76 21 5 31 29 96 30" [23]="57 93 44 36 92")
-    declare -A literal_transitions_level_1=([1]="60 54" [21]="39 63 77 65 91 72" [11]="60 78 88 40" [6]="60 74 64 40" [10]="60 40" [7]="60 2 78 41 95 70" [4]="7" [9]="60 52" [3]="20 64 40 7" [19]="38 69 73" [13]="60 50" [8]="60 4 64" [12]="60" [5]="60 7" [26]="92 36 93 44 57")
+    declare -A literal_transitions_level_0=([25]="37 14" [20]="64 90 76 62 40 71" [1]="48 24 6 28 82 85 8 31 50 60 88 10 93 97 98" [21]="87" [11]="10 65 67 27 55 84 46" [6]="58 10 11 83" [7]="10 79 17 18 96 70 45" [10]="10" [4]="10 53" [9]="19 10" [15]="68 72 38" [13]="74 78 10 86" [8]="1 10 43" [12]="66 10 70 45" [3]="10 89 80 15 26" [14]="10 57" [5]="61 75 10 21 5 30 29 95" [23]="59" [24]="56 92 44 36 91")
+    declare -A literal_transitions_level_1=([1]="59 51" [11]="59 39" [16]="91 36 92 44 56" [6]="59 63 39 73" [7]="59 2 77 94 41 69" [10]="59" [4]="7" [9]="59 52" [3]="20 63 39 7" [19]="40 62 76 64 90 71" [13]="59" [12]="59 77 87 39" [8]="59 4 63" [14]="59 34" [5]="59 7" [28]="38 68 72")
     declare -A subword_transitions_level_0=()
     declare -A subword_transitions_level_1=()
     declare -A commands_level_0=()
     declare -A commands_level_1=()
-    declare -A specialized_commands_level_0=([18]="0")
+    declare -A specialized_commands_level_0=([22]="0")
     declare -A specialized_commands_level_1=()
 
      local max_fallback_level=1
