@@ -1,9 +1,14 @@
 #include "commands.h"
 #include "database.h"
+#include "entry.h"
+#include "options.h"
+#include "status.h"
 #include "utils.h"
+#include <stddef.h>
+#include <unistd.h>
 
-void list_releases(sqlite3* db, Options options, char* condition, char* order_by);
-void list_entries(sqlite3* db, Options options, char* condition, char* order_by);
+void list_releases(Release* releases, size_t count);
+void list_entries(Entry* entries, size_t count, Options options, char* condition);
 
 void command_list(Options options)
 {
@@ -13,8 +18,15 @@ void command_list(Options options)
     char* order_by= "date DESC";
 
     if(options.releases){
-        list_releases(db, options, condition, order_by);
+        size_t count = 0;
+        Release* releases = select_releases(db, condition, order_by, &count);
         sqlite3_close(db);
+
+        if (count == 0) {
+            INFO("No entries found");
+            exit(0);
+        }
+        list_releases(releases, count);
         return;
     }
 
@@ -35,21 +47,27 @@ void command_list(Options options)
         free(status);
     }
 
-    list_entries(db, options, condition, order_by);
+    size_t count;
+    Entry* entries = select_entries(db, condition, order_by, &count);
     sqlite3_close(db);
-    if(condition != NULL)
-        free(condition);
-}
-
-void list_releases(sqlite3* db, Options options, char* condition, char* order_by)
-{
-    size_t count = 0;
-    Release* releases = select_releases(db, condition, order_by, &count);
-    if (condition != NULL) free(condition);
 
     if (count == 0) {
         INFO("No entries found");
         exit(0);
+    }
+
+    list_entries(entries, count, options, condition);
+    if(condition != NULL)
+        free(condition);
+}
+
+void list_releases(Release* releases, size_t count)
+{
+    if(!isatty(STDOUT_FILENO)) {
+        for(size_t i = 0; i < count; ++i) {
+            printf("%s\n", releases[i].version.full);
+        }
+        return;
     }
 
     // Define column offsets
@@ -146,17 +164,17 @@ void free_entries(Entry** entries, size_t count)
 }
 
 #define DEFAULT_MAX_ENTRIES 15
-void list_entries(sqlite3* db, Options options, char* condition, char* order_by)
+void list_entries(Entry* entries, size_t count, Options options, char* condition)
 {
-    size_t count;
-    Entry* entries = select_entries(db, condition, order_by, &count);
-
-    if (count == 0) {
-        INFO("No entries found");
-        exit(0);
+    if(!isatty(STDOUT_FILENO)) {
+        for(size_t i = 0; i < count; ++i) {
+            Entry e = entries[i];
+            printf("%s\t%s\t%s\t%s\n", e.message, status_to_string(e.status), e.version.full, e.date.full);
+        }
+        return;
     }
 
-    // Define column offsets
+    // Define column offsets (TODO: check largest length for each column)
     int index_offset = -5;
     int title_offset = -60;
     int status_offset = -10;
