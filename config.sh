@@ -9,7 +9,7 @@ uninstall() {
 }
 
 install_exe() {
-    if ! sudo cp "$1" "$install_dir/$2"; then
+    if ! sudo cp -f "$1" "$install_dir/$2"; then
         echo "[ERRO] Failed to copy the executable to $install_dir"
         exit 1
     fi
