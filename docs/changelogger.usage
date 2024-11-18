@@ -12,6 +12,7 @@ changelogger <COMMANDS> | [<OPTIONS>];
 			 | (export [<EXPORT-OPTIONS>]) "Exports the CHANGELOG.md file"
 			 | (generate (<GENERATE-VALUES> | <GENERATE-OPTIONS>)) "Generate various files"
 			 | (import [<IMPORT-OPTIONS>]) "Import CHANGELOG.md file into the database"
+			 | (update) "Update changelogger to the latest version"
 			 ;
 
 <OPTIONS> ::= (-h || --help) "Prints the help message"
