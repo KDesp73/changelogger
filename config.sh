@@ -17,13 +17,13 @@ install_exe() {
 }
 
 install() {
-    echo "Make sure you have the sqlite3.h, cjson.h, and yaml.h files in PATH (generally in /usr/include)."
+    echo "[WARN] Make sure you have the sqlite3.h, cjson.h, and yaml.h files in PATH (generally in /usr/include)."
     if [ -f "$exe" ]; then
         install_exe "$exe" "$exe"
         install_exe "./bin/clparse" "clparse"
         echo "[INFO] Installation completed successfully."
     else
-        echo "$exe is not built. Building..."
+        echo "[WARN] $exe is not built. Building..."
         if make RELEASE=1; then
             install_exe "$exe" "$exe"
             install_exe "./bin/clparse" "clparse"
@@ -38,7 +38,7 @@ install() {
 fetch() {
     if [ -d "$HOME/changelogger" ]; then
         echo "[ERRO] Directory $HOME/changelogger already exists."
-        echo "Remove it or use 'update' to fetch the latest version."
+        echo "[INFO] Remove it or use 'update' to fetch the latest version."
         exit 1
     fi
     git clone https://github.com/KDesp73/changelogger --depth=1 "$HOME/changelogger"
@@ -54,7 +54,7 @@ update() {
 help() {
     cat <<EOF
 USAGE
-  config.sh <command>
+  config.sh <commands>...
 
 COMMANDS
   install      Installs the executable
@@ -66,20 +66,33 @@ EOF
 }
 
 if [ $# -eq 0 ]; then
-    echo "[ERRO] Specify a command" 1>&2
+    echo "[ERRO] Specify at least one command" 1>&2
     help
     exit 1
 fi
 
-case "$1" in
-    "uninstall") uninstall ;;
-    "update") update ;;
-    "fetch") fetch ;;
-    "install") install ;;
-    "help") help ;;
-    *)
-        echo "[ERRO] Unknown command: $1"
-        help
-        exit 1
-        ;;
-esac
+# Process all commands passed as arguments
+for arg in "$@"; do
+    case "$arg" in
+        "uninstall")
+            uninstall
+            ;;
+        "update")
+            update
+            ;;
+        "fetch")
+            fetch
+            ;;
+        "install")
+            install
+            ;;
+        "help")
+            help
+            ;;
+        *)
+            echo "[ERRO] Unknown command: $arg"
+            help
+            exit 1
+            ;;
+    esac
+done
