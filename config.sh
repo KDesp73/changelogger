@@ -8,9 +8,6 @@ uninstall() {
     echo "[INFO] Application uninstalled successfully"
 }
 
-fetch() {
-}
-
 install_exe() {
     if ! sudo cp "$1" "/usr/bin/$2"; then
         echo "[ERRO] Failed to copy the executable to /usr/bin/"
@@ -40,13 +37,15 @@ install() {
 
 }
 
+fetch() {
+    git clone https://github.com/KDesp73/changelogger --depth=1
+    cd "$HOME"/changelogger || exit 1
+}
+
 update() {
     cd "$HOME" || exit 1
     rm -rf "$HOME"/changelogger
 
-    git clone https://github.com/KDesp73/changelogger --depth=1
-    cd "$HOME"/changelogger || exit 1
-    install
 }
 
 help() {
@@ -60,21 +59,29 @@ help() {
     echo "  help         Prints this message"
 }
 
-case $1 in
-    "uninstall")
-        uninstall
-        ;;
-    "update")
-        update
-        ;;
-    "install")
-        install
-        ;;
-    "help")
-        help
-        ;;
-    *)
-        echo "[ERRO] Specify a command";
-        help
-        ;;
-esac
+if [ $# == 0 ]; then
+    echo "[ERRO] Specify a command" 1>&2; 
+    help
+    exit 1
+fi
+
+for arg in "$@"; do
+    case "$arg" in
+        "uninstall")
+            uninstall
+            ;;
+        "update")
+            update
+            ;;
+        "fetch")
+            fetch
+            ;;
+        "install")
+            install
+            ;;
+        "help")
+            help
+            ;;
+    esac
+done
+
