@@ -4,6 +4,9 @@ TODO: man page
 TODO: check gh-cli command status code before updating db
 TODO: undo command
 TODO: report command
+TODO: edit releases
+TODO: delete releases
+TODO: log command
 DONE: add methods to clib.h
 DONE: make sqlite.h a proper library
 DONE: make querybuilder.h a proper library
