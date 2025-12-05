@@ -6,7 +6,7 @@
 #include "options.h"
 #include "status.h"
 #include "version.h"
-#include <bits/getopt_ext.h>
+// #include <bits/getopt_ext.h>
 #include <stdio.h>
 
 #define CLIB_IMPLEMENTATION

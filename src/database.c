@@ -375,7 +375,7 @@ int select_int(const char* table, const char* column, const char* condition)
 
     // Clean up
     sqlite3_finalize(stmt);
-    sqlite3_free(sql);
+    // sqlite3_free(sql);
     sqlite3_close(db);
 
     return result; // Return the integer result
@@ -413,7 +413,7 @@ char* select_str(const char* table, const char* column, const char* condition)
     }
 
     sqlite3_finalize(stmt);
-    sqlite3_free(sql);
+    // sqlite3_free(sql);
     sqlite3_close(db);
 
     return result; 
