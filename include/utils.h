@@ -10,6 +10,8 @@ void clear_input_buffer();
 
 int is_true(const char* str);
 int yes_or_no(const char* message);
+char* truncate_for_display(const char* str, size_t max_width);
+char* sql_quote(const char* input);
 
 #define freec(x) free((char*) x)
 

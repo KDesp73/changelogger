@@ -23,11 +23,6 @@ void command_add(Options options)
 
     char* message = options.argv[options.argc-1];
 
-    if(strlen(message) > 60) {
-        ERRO("Message too long");
-        exit(1);
-    }
-
     if(STREQ(message, command_to_string(COMMAND_ADD))) 
         PANIC("Message is not specified. Try: `%s add \"Your message\"`", EXECUTABLE_NAME);
     if(is_blank(message))
@@ -172,7 +167,7 @@ void add_commits()
         } else if(STREQ(line, TEMPLATE_STATUS(STATUS_SECURITY))){
             current_status = STATUS_SECURITY;
         } else { // Line is a commit message
-            if(!is_blank(line) && !STREQ(line, "\n") && strlen(line) <= 60){
+            if(!is_blank(line) && !STREQ(line, "\n")){
                 add_entry(line, current_status);
             }
         }
@@ -190,14 +185,21 @@ void add_entry(const char* message, Status status)
     Date date;
     get_date(&date);
 
+    char* message_q = sql_quote(message);
+    char* version_q = sql_quote(VERSION_UNRELEASED);
+    char* date_q = sql_quote(date.full);
+
     query_builder_t* qb = create_query_builder();
     insert_q(qb, TABLE_ENTRIES);
     columns_q(qb, "message, status, version, date");
-    char* values = clib_format_text("'%s', %d, '%s', '%s'", message, status, VERSION_UNRELEASED, date.full);
+    char* values = clib_format_text("%s, %d, %s, %s", message_q, status, version_q, date_q);
     values_q(qb, values);
     char* query = build_query(qb);
     sqlite_execute_sql(SQLITE_DB, query);
 
+    free(message_q);
+    free(version_q);
+    free(date_q);
     free_date(&date);
     free(values);
     free(query);

@@ -1,4 +1,5 @@
 #include "commands.h"
+#include "config.h"
 #include "database.h"
 #include "entry.h"
 #include "options.h"
@@ -176,20 +177,19 @@ void list_entries(Entry* entries, size_t count, Options options, char* condition
         return;
     }
 
-    // Define column offsets (TODO: check largest length for each column)
+    // Define column offsets
     int index_offset = -5;
-    int title_offset = -60;
+    int title_offset = -ENTRY_TITLE_WIDTH;
     int status_offset = -10;
     int version_offset = -10;
     int date_offset = -19;
 
     int table_width = -index_offset - title_offset - status_offset - version_offset - date_offset + 6 + 5*2; // 6 horizontal dividers + 2 spaces for padding
-    struct winsize w;
+    struct winsize w = { .ws_col = 80, .ws_row = 24 };
 
     // Use ioctl to get terminal size
     if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1) {
-        perror("ioctl");
-        return;
+        WARN("Could not detect terminal width, using default");
     }
 
     DEBU("table width: %d", table_width);
@@ -272,18 +272,20 @@ void list_entries(Entry* entries, size_t count, Options options, char* condition
     printf("%s\n", mid_border); // Middle border
 
     for (size_t i = 0; i < ((options.all || condition || count < DEFAULT_MAX_ENTRIES) ? count : DEFAULT_MAX_ENTRIES); ++i) {
+        char* title = truncate_for_display(entries[i].message, ENTRY_TITLE_WIDTH);
         if(!too_long)
             printf("│ %*zu │ %*s │ %*s │ %*s │ %*s │\n",
                    index_offset, i + 1,
-                   title_offset, entries[i].message,
+                   title_offset, title,
                    status_offset, status_to_string(entries[i].status),
                    version_offset, (STREQ(entries[i].version.full, "0.0.0")) ? VERSION_UNRELEASED : entries[i].version.full,
                    date_offset, entries[i].date.full);
         else
             printf("│ %*zu │ %*s │ %*s │\n",
                    index_offset, i + 1,
-                   title_offset, entries[i].message,
+                   title_offset, title,
                    version_offset, (STREQ(entries[i].version.full, "0.0.0")) ? VERSION_UNRELEASED : entries[i].version.full);
+        free(title);
     }
 
     printf("%s\n", bottom_border); // Bottom border

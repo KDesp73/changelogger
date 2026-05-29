@@ -203,3 +203,63 @@ int yes_or_no(const char* message)
 
     return choice[0] == 'y';
 }
+
+char* truncate_for_display(const char* str, size_t max_width)
+{
+    if (str == NULL) {
+        return strdup("");
+    }
+
+    size_t len = strlen(str);
+    if (len <= max_width) {
+        return strdup(str);
+    }
+
+    size_t cut = max_width > 3 ? max_width - 3 : 0;
+    char* out = malloc(max_width + 1);
+    if (out == NULL) {
+        return NULL;
+    }
+
+    memcpy(out, str, cut);
+    out[cut] = '\0';
+    if (max_width > 3) {
+        strcat(out, "...");
+    }
+
+    return out;
+}
+
+char* sql_quote(const char* input)
+{
+    if (input == NULL) {
+        char* empty = strdup("''");
+        return empty;
+    }
+
+    size_t len = strlen(input);
+    size_t extra = 0;
+    for (size_t i = 0; i < len; ++i) {
+        if (input[i] == '\'') {
+            extra++;
+        }
+    }
+
+    char* out = malloc(len + extra + 3);
+    if (out == NULL) {
+        return NULL;
+    }
+
+    size_t j = 0;
+    out[j++] = '\'';
+    for (size_t i = 0; i < len; ++i) {
+        if (input[i] == '\'') {
+            out[j++] = '\'';
+        }
+        out[j++] = input[i];
+    }
+    out[j++] = '\'';
+    out[j] = '\0';
+
+    return out;
+}

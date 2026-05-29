@@ -4,6 +4,8 @@
 #define EXECUTABLE_NAME "changelogger"
 #define VERSION "0.0.20"
 
+#define ENTRY_TITLE_WIDTH 60
+
 #define CHANGELOG_FILE "CHANGELOG.md"
 #define CHANGELOG_DIR ".changelog"
 #define SQLITE_DB ".changelog/changelog.db"

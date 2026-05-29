@@ -101,38 +101,42 @@ void command_edit(Options options)
         if (choice[0] == 't' || choice[0] == 's') {
             break;
         } else {
-            ERRO("'%s' is not a valid option. Please enter 'm' or 's'.\n", choice);
+            ERRO("'%s' is not a valid option. Please enter 't' or 's'.\n", choice);
             clear_input_buffer();
         }
     }
 
-    char message[50];
+    char* message = NULL;
+    size_t message_cap = 0;
     Status s = STATUS_UNSET;
     if(choice[0] == 't'){
         clear_input_buffer();
         while(1){
             printf("Enter new message: ");
-            if (fgets(message, sizeof(message), stdin) == NULL) {
+            ssize_t read = getline(&message, &message_cap, stdin);
+            if (read == -1) {
                 fprintf(stderr, "Error reading input.\n");
                 continue;
             }
 
-            message[strcspn(message, "\n")] = '\0';
+            if (read > 0 && message[read - 1] == '\n') {
+                message[read - 1] = '\0';
+            }
 
             if (is_blank(message)) {
                 ERRO("New message cannot be blank\n");
-                clear_input_buffer();
                 continue;
-            } 
+            }
             CHECK_SQL_INJECTION(message);
             break;
         }
 
         char* condition = clib_format_text("message = '%s' AND date = '%s'", entries[index-1].message, entries[index-1].date.full);
-        char* formated_message = clib_format_text("'%s'", message);
+        char* formated_message = sql_quote(message);
         update(TABLE_ENTRIES, ENTRIES_MESSAGE, formated_message, condition);
         free(formated_message);
         free(condition);
+        free(message);
     } else if(choice[0] == 's'){
         char status[10];
         clear_input_buffer();

@@ -23,6 +23,7 @@ typedef struct {
     const char* remote_repo;
     ParserRelease* releases;
     size_t release_count;
+    _Bool valid;
 } Changelog;
 
 Changelog parse(const char* file);
