@@ -135,8 +135,14 @@ Options parse_options(int argc, char** argv, Command* command)
                         CLEANUP;
                         exit(1);
                     }
-                } else
+                } else {
                     options.status = get_status(optarg);
+                    if (options.status == STATUS_UNKNOWN || options.status == STATUS_UNSET){
+                        ERRO("'%s' is not a valid status. See %s -h for the accepted values", optarg, EXECUTABLE_NAME);
+                        CLEANUP;
+                        exit(1);
+                    }
+                }
                 break;
             case ABBR_VERSION_FULL:
                 CHECK_USABILITY(COMMAND_LIST, COMMAND_EDIT, COMMAND_PUSH, COMMAND_SET);
@@ -206,10 +212,22 @@ Options parse_options(int argc, char** argv, Command* command)
             case ABBR_YANK:
                 CHECK_USABILITY(COMMAND_RELEASE);
 
+                if (!is_valid_version(optarg)){
+                    ERRO("Version '%s' is not valid", optarg);
+                    CLEANUP;
+                    exit(1);
+                }
+
                 options.yank = optarg;
                 break;
             case ABBR_UNYANK:
                 CHECK_USABILITY(COMMAND_RELEASE);
+
+                if (!is_valid_version(optarg)){
+                    ERRO("Version '%s' is not valid", optarg);
+                    CLEANUP;
+                    exit(1);
+                }
 
                 options.unyank = optarg;
                 break;

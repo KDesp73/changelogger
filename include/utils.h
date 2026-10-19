@@ -12,6 +12,7 @@ int is_true(const char* str);
 int yes_or_no(const char* message);
 char* truncate_for_display(const char* str, size_t max_width);
 char* sql_quote(const char* input);
+char* entry_condition(const char* message, const char* date);
 
 #define freec(x) free((char*) x)
 

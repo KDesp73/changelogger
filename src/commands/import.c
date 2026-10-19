@@ -76,7 +76,7 @@ void load_releases(Changelog changelog)
         free(date_q);
         free(values);
         free(sql);
-        free(qb);
+        free_query_builder(qb);
     }
 
     free_date(&fallback_date);
@@ -96,7 +96,12 @@ void load_entries(Changelog changelog)
             }
 
             printf("Loading entry %s\n", c.message);
-            CHECK_SQL_INJECTION(c.message);
+
+            Status entry_status = get_status((char*) c.status);
+            if (entry_status == STATUS_UNKNOWN || entry_status == STATUS_UNSET) {
+                WARN("Skipping entry with unknown status '%s': %s", c.status, c.message);
+                continue;
+            }
 
             char* message_q = sql_quote(c.message);
             char* version_q = sql_quote(r.version != NULL ? r.version : VERSION_UNRELEASED);
@@ -108,7 +113,7 @@ void load_entries(Changelog changelog)
             char* values = clib_format_text(
                 "%s, %d, %s, %s",
                 message_q,
-                get_status((char*) c.status),
+                entry_status,
                 version_q,
                 date_q
             );
@@ -121,7 +126,7 @@ void load_entries(Changelog changelog)
             free(date_q);
             free(values);
             free(sql);
-            free(qb);
+            free_query_builder(qb);
         }
     }
 

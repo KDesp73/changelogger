@@ -263,3 +263,39 @@ char* sql_quote(const char* input)
 
     return out;
 }
+
+/*
+ * Build a WHERE condition that targets a single entry.
+ * Both values are passed through sql_quote() so messages containing
+ * quotes (e.g. "don't") work and nothing can escape the literal.
+ * Returns NULL on allocation failure; caller must free().
+ */
+char* entry_condition(const char* message, const char* date)
+{
+    char* message_q = sql_quote(message);
+    char* date_q = sql_quote(date);
+
+    if (message_q == NULL || date_q == NULL) {
+        free(message_q);
+        free(date_q);
+        return NULL;
+    }
+
+    static const char prefix[] = "message = ";
+    static const char middle[] = " AND date = ";
+
+    size_t len = sizeof(prefix) - 1
+               + strlen(message_q)
+               + sizeof(middle) - 1
+               + strlen(date_q)
+               + 1;
+
+    char* condition = (char*)malloc(len);
+    if (condition != NULL) {
+        snprintf(condition, len, "%s%s%s%s", prefix, message_q, middle, date_q);
+    }
+
+    free(message_q);
+    free(date_q);
+    return condition;
+}

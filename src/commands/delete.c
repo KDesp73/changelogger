@@ -61,14 +61,19 @@ void command_delete(Options options)
 
         break;
     }
-    char* condition = clib_format_text("message = '%s' AND date = '%s'", entries[index-1].message, entries[index-1].date.full);
     query_builder_t* qb = create_query_builder();
+    char* condition = entry_condition(entries[index-1].message, entries[index-1].date.full);
+    if (condition == NULL) {
+        free_query_builder(qb);
+        ERRO("Memory allocation failed\n");
+        return;
+    }
     delete_q(qb, TABLE_ENTRIES);
     where_q(qb, condition);
     char* query = build_query(qb);
     sqlite_execute_sql(SQLITE_DB, query);
     free(query);
     free(condition);
-    free(qb);
+    free_query_builder(qb);
 }
 

@@ -5,6 +5,7 @@
 #include "config.h"
 #include "extern/querybuilder.h"
 #include "extern/sqlite.h"
+#include "utils.h"
 #include "version.h"
 #include <stdlib.h>
 #include <string.h>
@@ -363,7 +364,7 @@ int select_int(const char* table, const char* column, const char* condition)
     rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
     if (rc != SQLITE_OK) {
         fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db));
-        sqlite3_free(sql);
+        free(sql);
         sqlite3_close(db);
         return -1; // Return an error code
     }
@@ -375,7 +376,7 @@ int select_int(const char* table, const char* column, const char* condition)
 
     // Clean up
     sqlite3_finalize(stmt);
-    // sqlite3_free(sql);
+    free(sql);
     sqlite3_close(db);
 
     return result; // Return the integer result
@@ -400,7 +401,7 @@ char* select_str(const char* table, const char* column, const char* condition)
     rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
     if (rc != SQLITE_OK) {
         fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db));
-        sqlite3_free(sql);
+        free(sql);
         sqlite3_close(db);
         return NULL;
     }
@@ -413,7 +414,7 @@ char* select_str(const char* table, const char* column, const char* condition)
     }
 
     sqlite3_finalize(stmt);
-    // sqlite3_free(sql);
+    free(sql);
     sqlite3_close(db);
 
     return result; 
@@ -421,6 +422,11 @@ char* select_str(const char* table, const char* column, const char* condition)
 
 void update(const char* table, const char* column, const char* value, const char* condition)
 {
+    if (table == NULL || column == NULL || value == NULL || condition == NULL) {
+        fprintf(stderr, "update: refusing to build a query with NULL arguments\n");
+        return;
+    }
+
     query_builder_t* qb = create_query_builder();
     update_q(qb, table);
     set_q(qb, column, value);
@@ -555,32 +561,14 @@ void load_config(Config config)
 
     clib_str_append(&sql, ", ");
 
-    value = clib_format_text("%s = '%s'", CONFIG_EDITOR, (config.editor != NULL) ? config.editor : "vim");
+    char* editor_q = sql_quote((config.editor != NULL) ? config.editor : "vim");
+    value = clib_format_text("%s = %s", CONFIG_EDITOR, editor_q);
     clib_str_append(&sql, value);
+    free(editor_q);
     free(value);
 
     clib_str_append(&sql, " WHERE id = 1;");
 
     sqlite_execute_sql(SQLITE_DB, sql);
     free(sql);
-}
-
-_Bool is_sql_injection(const char* input)
-{
-    // const char* sql_keywords[] = {"SELECT", "FROM", "WHERE", "UNION", "INSERT", "UPDATE", "DELETE", "DROP", "TRUNCATE", "EXEC", "PROCEDURE", "DECLARE"};
-    // int num_keywords = sizeof(sql_keywords) / sizeof(sql_keywords[0]);
-    //
-    // for (int i = 0; i < num_keywords; i++) {
-    //     if (strcasestr(input, sql_keywords[i]) != NULL) {
-    //         return true;
-    //     }
-    // }
-
-    // for (size_t i = 0; i < strlen(input); i++) {
-    //     if (!isalnum(input[i]) && input[i] != ' ' && input[i] != '\'' && input[i] != '"' && input[i] != '_' && input[i] != '-' && input[i] != '%') {
-    //         return true;
-    //     }
-    // }
-
-    return false;
 }

@@ -27,7 +27,7 @@ void command_set(Options options)
     }
 
     if(!is_blank(options.config_path)){
-        char* value = clib_format_text("'%s'", options.config_path);
+        char* value = sql_quote(options.config_path);
         update(TABLE_CONFIG, CONFIG_CONFIG_PATH, value, CONFIG_CONDITION);
         free(value);
     } else {
@@ -36,7 +36,7 @@ void command_set(Options options)
     }
 
     if(!is_blank(options.remote_repo)) {
-        char* value = clib_format_text("'%s'", options.remote_repo);
+        char* value = sql_quote(options.remote_repo);
         update(TABLE_CONFIG, CONFIG_REMOTE_REPO, value, CONFIG_CONDITION);
         free(value);
     } else {
@@ -45,12 +45,12 @@ void command_set(Options options)
     }
 
     if(!is_blank(options.editor)) {
-        char* value = clib_format_text("'%s'", options.editor);
+        char* value = sql_quote(options.editor);
         update(TABLE_CONFIG, CONFIG_EDITOR, value, CONFIG_CONDITION);
         free(value);
     } else {
         if(options.editor != NULL) // Only when it set blank by the user
-            ERRO("Remote repo must not be blank");
+            ERRO("Editor must not be blank");
     }
 }
 

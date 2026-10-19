@@ -4,6 +4,7 @@
 #include "extern/sqlite.h"
 #include "push_utils.h"
 #include "release_utils.h"
+#include "utils.h"
 
 void command_release(Options options)
 {
@@ -44,7 +45,9 @@ void command_release(Options options)
 
     if(options.yank != NULL){
         char* version = (char*)options.yank;
-        char* condition = clib_format_text("version = '%s'", version);
+        char* version_q = sql_quote(version);
+        char* condition = clib_format_text("version = %s", version_q);
+        free(version_q);
         int yanked = select_int(TABLE_RELEASES, RELEASES_YANKED, condition);
 
         if(yanked) {
@@ -60,7 +63,9 @@ void command_release(Options options)
 
     if(options.unyank != NULL){
         char* version = (char*)options.unyank;
-        char* condition = clib_format_text("version = '%s'", version);
+        char* version_q = sql_quote(version);
+        char* condition = clib_format_text("version = %s", version_q);
+        free(version_q);
         int yanked = select_int(TABLE_RELEASES, RELEASES_YANKED, condition);
 
         if(!yanked) {

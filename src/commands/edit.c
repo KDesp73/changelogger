@@ -64,15 +64,15 @@ void command_edit(Options options)
     _Bool arguments_used = status_set(options) || options.title != NULL || version_full_set(options);
     if(arguments_used){
         if(options.title != NULL){
-            char* condition = clib_format_text("message = '%s' AND date = '%s'", entries[index-1].message, entries[index-1].date.full);
-            char* formated_message = clib_format_text("'%s'", options.title);
+            char* condition = entry_condition(entries[index-1].message, entries[index-1].date.full);
+            char* formated_message = sql_quote(options.title);
             update(TABLE_ENTRIES, ENTRIES_MESSAGE, formated_message, condition);
             free(formated_message);
             free(condition);
         }
         
         if(status_set(options)){
-            char* condition = clib_format_text("message = '%s' AND date = '%s'", entries[index-1].message, entries[index-1].date.full);
+            char* condition = entry_condition(entries[index-1].message, entries[index-1].date.full);
             char* formated_status = clib_format_text("%d", options.status);
             update(TABLE_ENTRIES, ENTRIES_STATUS, formated_status, condition);
             free(formated_status);
@@ -80,7 +80,7 @@ void command_edit(Options options)
         }
 
         if(version_full_set(options)){
-            char* condition = clib_format_text("message = '%s' AND date = '%s'", entries[index-1].message, entries[index-1].date.full);
+            char* condition = entry_condition(entries[index-1].message, entries[index-1].date.full);
             char* formated_version = clib_format_text("'%s'", options.version.full);
             update(TABLE_ENTRIES, ENTRIES_VERSION, formated_version, condition);
             free(formated_version);
@@ -127,11 +127,10 @@ void command_edit(Options options)
                 ERRO("New message cannot be blank\n");
                 continue;
             }
-            CHECK_SQL_INJECTION(message);
             break;
         }
 
-        char* condition = clib_format_text("message = '%s' AND date = '%s'", entries[index-1].message, entries[index-1].date.full);
+        char* condition = entry_condition(entries[index-1].message, entries[index-1].date.full);
         char* formated_message = sql_quote(message);
         update(TABLE_ENTRIES, ENTRIES_MESSAGE, formated_message, condition);
         free(formated_message);
@@ -162,7 +161,7 @@ void command_edit(Options options)
             break;
         }
 
-        char* condition = clib_format_text("message = '%s' AND date = '%s'", entries[index-1].message, entries[index-1].date.full);
+        char* condition = entry_condition(entries[index-1].message, entries[index-1].date.full);
         char* formated_status = clib_format_text("%d", s);
         update(TABLE_ENTRIES, ENTRIES_STATUS, formated_status, condition);
         free(formated_status);

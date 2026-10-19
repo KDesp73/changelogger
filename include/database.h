@@ -69,14 +69,6 @@
 ");" \
 "COMMIT;"
 
-#define CHECK_SQL_INJECTION(x) \
-    do { \
-        if(is_sql_injection(x)){ \
-            PANIC("%s is an sql injection", x); \
-        } \
-    } while(0)
-
-_Bool is_sql_injection(const char* input);
 char* select_version_full(sqlite3* db);
 size_t select_version_major(sqlite3* db);
 size_t select_version_minor(sqlite3* db);
@@ -92,6 +84,13 @@ Entry* select_entries_version(sqlite3* db, const char* version, size_t *count);
 Entry* select_entries_status(sqlite3* db, Status status, size_t *count);
 Entry* select_entries_date_less(sqlite3* db, const char* date, size_t *count);
 Entry* select_entries_date_greater(sqlite3* db, const char* date, size_t *count);
+/*
+ * `condition` is concatenated into the query as-is, and `value` must
+ * therefore already be quoted. Pass both through sql_quote() (see utils.c)
+ * when they contain user data. A keyword blacklist cannot do this job:
+ * it rejects legitimate messages ("don't", "fixed the SELECT bug") while
+ * still missing payloads that don't use obvious keywords.
+ */
 void update(const char* table, const char* column, const char* value, const char* condition); // One value;
 char* select_str(const char* table, const char* column, const char* condition);
 int select_int(const char* table, const char* column, const char* condition);

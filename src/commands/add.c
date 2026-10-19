@@ -180,8 +180,6 @@ void add_commits()
 
 void add_entry(const char* message, Status status)
 {
-    CHECK_SQL_INJECTION(message);
-
     Date date;
     get_date(&date);
 
