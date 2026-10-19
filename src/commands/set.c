@@ -10,7 +10,9 @@ void command_set(Options options)
             ERRO("Version can't be 'unreleased'");
         } else {
             update_version_full(options.version.full);
-            insert_release(1);
+            // The tool did not push anything, so the release starts as
+            // not pushed and `changelogger push` can still publish it.
+            insert_release(0);
         }
     }
 

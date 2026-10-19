@@ -32,14 +32,30 @@ void command_release(Options options)
         _Bool should_push = release || options.push;
 
         char* version = update_config_version(release_type);
-        insert_release(should_push);
-        char* query = clib_format_text("UPDATE Entries SET version = '%s' WHERE version = 'unreleased'", version);
+        // The release always starts as NOT pushed: pushed must reflect
+        // what gh actually did, not what we intend to do.
+        insert_release(0);
+
+        char* version_q = sql_quote(version);
+        char* query = clib_format_text("UPDATE Entries SET version = %s WHERE version = 'unreleased'", version_q);
+        free(version_q);
         sqlite_execute_sql(SQLITE_DB, query);
+        free(query);
 
+        if(!should_push) {
+            free(version);
+            return; // Do not push the release on Github
+        }
 
-        if(!should_push) return; // Do not push the release on Github
+        if(push_release(version, options.asset)){
+            mark_release_pushed(version);
+        } else {
+            // push_release() already reported why. The release stays
+            // pending, so `changelogger push -V <version>` can retry it.
+            WARN("Release v%s was not marked as pushed.", version);
+        }
 
-        push_release(version, options.asset);
+        free(version);
         return;
     }
 
@@ -130,13 +146,35 @@ void insert_release(_Bool pushed)
     query_builder_t* qb = create_query_builder();
     insert_q(qb, TABLE_RELEASES);
     columns_q(qb, FIELDS_RELEASES);
-    char* values = clib_format_text("'%s', '%s', %d", version, date.full, pushed);
+
+    char* version_q = sql_quote(version);
+    char* date_q = sql_quote(date.full);
+    char* values = clib_format_text("%s, %s, %d", version_q, date_q, pushed);
     values_q(qb, values);
     char* query = build_query(qb);
-    
+
     sqlite_execute_sql(SQLITE_DB, query);
 
-    free(query);
+    free(version_q);
+    free(date_q);
+    free_date(&date);
+    free(version);
     free(values);
+    free(query);
+    free_query_builder(qb);
+}
+
+/*
+ * Flip the pushed flag for an existing release. Only called after gh
+ * reported success, so the database never claims a push that failed.
+ */
+void mark_release_pushed(const char* version)
+{
+    char* version_q = sql_quote(version);
+    char* condition = clib_format_text("version = %s", version_q);
+    free(version_q);
+
+    update(TABLE_RELEASES, RELEASES_PUSHED, "1", condition);
+    free(condition);
 }
 

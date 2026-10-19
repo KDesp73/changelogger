@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/wait.h>
 
 int is_number(const char *str) 
 {
@@ -298,4 +299,107 @@ char* entry_condition(const char* message, const char* date)
     free(message_q);
     free(date_q);
     return condition;
+}
+
+/*
+ * Wrap `input` in single quotes so the shell treats it as a single
+ * literal argument, escaping any embedded single quotes. Returns a
+ * freshly allocated string; caller must free().
+ */
+char* shell_quote(const char* input)
+{
+    if (input == NULL) {
+        return strdup("''");
+    }
+
+    size_t len = strlen(input);
+    size_t extra = 0;
+    for (size_t i = 0; i < len; ++i) {
+        if (input[i] == '\'') {
+            extra += 3; // ' becomes '\''
+        }
+    }
+
+    char* out = (char*)malloc(len + extra + 3);
+    if (out == NULL) {
+        return NULL;
+    }
+
+    size_t j = 0;
+    out[j++] = '\'';
+    for (size_t i = 0; i < len; ++i) {
+        if (input[i] == '\'') {
+            out[j++] = '\'';
+            out[j++] = '\\';
+            out[j++] = '\'';
+            out[j++] = '\'';
+        } else {
+            out[j++] = input[i];
+        }
+    }
+    out[j++] = '\'';
+    out[j] = '\0';
+
+    return out;
+}
+
+/*
+ * Run `command` through the shell, capture its stdout and return its
+ * exit status (or -1 if it could not be run). Unlike
+ * clib_execute_command(), the status is the real one: it comes from
+ * pclose(), not from a second shell running `echo $?`.
+ *
+ * If `output` is non-NULL the captured stdout is stored there (caller
+ * frees); otherwise it is discarded. The command's stderr is left
+ * attached to ours, so the user still sees it live.
+ */
+int execute_command_capture(const char* command, char** output)
+{
+    if (output != NULL) {
+        *output = NULL;
+    }
+
+    if (command == NULL) {
+        return -1;
+    }
+
+    FILE* pipe = popen(command, "r");
+    if (pipe == NULL) {
+        return -1;
+    }
+
+    char buffer[256];
+    char* result = NULL;
+    size_t result_size = 0;
+
+    while (fgets(buffer, sizeof(buffer), pipe) != NULL) {
+        size_t buffer_len = strlen(buffer);
+        char* grown = (char*)realloc(result, result_size + buffer_len + 1);
+        if (grown == NULL) {
+            free(result);
+            pclose(pipe);
+            return -1;
+        }
+        result = grown;
+        memcpy(result + result_size, buffer, buffer_len + 1);
+        result_size += buffer_len;
+    }
+
+    int status = pclose(pipe);
+
+    if (output != NULL) {
+        *output = result;
+    } else {
+        free(result);
+    }
+
+    if (status == -1) {
+        return -1;
+    }
+
+    if (WIFEXITED(status)) {
+        return WEXITSTATUS(status);
+    }
+
+    return -1; // Killed by a signal
 }
