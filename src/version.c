@@ -1,5 +1,5 @@
 #include "version.h"
-#include "extern/clib.h"
+#include "extern/str.h"
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>

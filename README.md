@@ -4,9 +4,38 @@ A cli tool to help you keep a changelog in all your projects
 
 ## Installation
 
+### From source
+
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/KDesp73/changelogger/refs/heads/main/config.sh) fetch install
+git clone https://github.com/KDesp73/changelogger
+cd changelogger
+./configure install
 ```
+
+### One-liner
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/KDesp73/changelogger/refs/heads/main/configure) install
+```
+
+`configure` installs into `~/.local` by default, so no `sudo` is required.
+Add `~/.local/bin` to your `PATH` if it is not there already. Use
+`--prefix DIR` to install somewhere else, and `./configure help` to see all
+the options (`--no-clparse`, `--no-completions`, `--rebuild`, ...).
+
+It builds changelogger, installs the `clparse` helper (when a prebuilt binary
+exists for your platform, verified against its published SHA-256) and the
+shell completions.
+
+### Dependencies
+
+- A C compiler and `make`
+- `sqlite3`, `cjson` and `yaml` development headers
+- `clparse` for `import` and `export --format json|yaml` (`configure` installs it)
+- `gh` for `push`
+
+On macOS: `brew install sqlite cjson libyaml`  
+On Debian/Ubuntu: `sudo apt install build-essential libsqlite3-dev libcjson-dev libyaml-dev`
 
 ## Usage
 

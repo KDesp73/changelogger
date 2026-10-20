@@ -1,5 +1,5 @@
 #include "entry.h"
-#include "extern/clib.h"
+#include "extern/str.h"
 
 void log_entry(Entry e)
 {

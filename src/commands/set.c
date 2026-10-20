@@ -9,25 +9,24 @@ void command_set(Options options)
         if(STREQ("0.0.0", options.version.full) || STREQ("unreleased", options.version.full)) {
             ERRO("Version can't be 'unreleased'");
         } else {
-            update_version_full(options.version.full);
-            insert_release(1);
+            create_release_for_version(options.version.full);
         }
     }
 
     if(always_export_set(options)){
-        char* value = clib_format_text("%d", options.always_export);
+        char* value = str_format("%d", options.always_export);
         update(TABLE_CONFIG, CONFIG_ALWAYS_EXPORT, value, CONFIG_CONDITION);
         free(value);
     }
 
     if(always_push_set(options)){
-        char* value = clib_format_text("%d", options.always_push);
+        char* value = str_format("%d", options.always_push);
         update(TABLE_CONFIG, CONFIG_ALWAYS_PUSH, value, CONFIG_CONDITION);
         free(value);
     }
 
     if(!is_blank(options.config_path)){
-        char* value = clib_format_text("'%s'", options.config_path);
+        char* value = sql_quote(options.config_path);
         update(TABLE_CONFIG, CONFIG_CONFIG_PATH, value, CONFIG_CONDITION);
         free(value);
     } else {
@@ -36,7 +35,7 @@ void command_set(Options options)
     }
 
     if(!is_blank(options.remote_repo)) {
-        char* value = clib_format_text("'%s'", options.remote_repo);
+        char* value = sql_quote(options.remote_repo);
         update(TABLE_CONFIG, CONFIG_REMOTE_REPO, value, CONFIG_CONDITION);
         free(value);
     } else {
@@ -45,12 +44,12 @@ void command_set(Options options)
     }
 
     if(!is_blank(options.editor)) {
-        char* value = clib_format_text("'%s'", options.editor);
+        char* value = sql_quote(options.editor);
         update(TABLE_CONFIG, CONFIG_EDITOR, value, CONFIG_CONDITION);
         free(value);
     } else {
         if(options.editor != NULL) // Only when it set blank by the user
-            ERRO("Remote repo must not be blank");
+            ERRO("Editor must not be blank");
     }
 }
 

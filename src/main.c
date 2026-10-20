@@ -1,3 +1,8 @@
+// NOTE: CLI_IMPLEMENTATION must be defined before anything else pulls in
+// extern/cli.h (commands.h does), otherwise the definitions are skipped.
+#define CLI_IMPLEMENTATION
+#include "extern/cli.h"
+
 #include "commands.h"
 #include "config.h"
 #include "database.h"
@@ -8,52 +13,16 @@
 #include "version.h"
 // #include <bits/getopt_ext.h>
 #include <stdio.h>
-
-#define CLIB_IMPLEMENTATION
-#include "extern/clib.h"
+#include <stdbool.h>
 
 void help_message(Command command)
 {
     switch (command) {
-        case COMMAND_ADD:
-            add_help();
-            break;
-        case COMMAND_LIST:
-            list_help();
-            break;
-        case COMMAND_SET:
-            set_help();
-            break;
-        case COMMAND_GET:
-            get_help();
-            break;
-        case COMMAND_DELETE:
-            delete_help();
-            break;
-        case COMMAND_RELEASE:
-            release_help();
-            break;
-        case COMMAND_EXPORT:
-            export_help();
-            break;
-        case COMMAND_EDIT:
-            edit_help();
-            break;
-        case COMMAND_PUSH:
-            push_help();
-            break;
-        case COMMAND_GENERATE:
-            generate_help();
-            break;
-        case COMMAND_IMPORT:
-            import_help();
-            break;
-        case COMMAND_UPDATE:
-            update_help();
-            break;
+#define COMMAND(upper, lower, usage, description, helpfn) case COMMAND_##upper: helpfn(); break;
+#include "commands.inc"
+#undef COMMAND
         case COMMAND_UNSET:
         case COMMAND_UNKNOWN:
-        case COMMAND_INIT:
         default:
             help();
             break;
@@ -68,14 +37,10 @@ void help_message(Command command)
     } while(0)
 
 #define CLEANUP \
-    cleanup(&args, &argfmt, &opts)
-
-void cleanup(CliArguments* args, char** argfmt, struct option** opts)
-{
-    free(*argfmt);
-    free(*opts);
-    clib_clean_arguments(args);
-}
+    do { \
+        free(opts); \
+        cli_args_free(&args); \
+    } while(0)
 
 Options parse_options(int argc, char** argv, Command* command) 
 {
@@ -88,35 +53,43 @@ Options parse_options(int argc, char** argv, Command* command)
 
     // NOTE: The help fields are not set since 
     // the help message is written by hand
-    CliArguments args = clib_make_cli_arguments(23,
-        clib_create_argument(ABBR_ALL, "all", "", no_argument),
-        clib_create_argument(ABBR_ALWAYS_EXPORT, "always-export", "", required_argument),
-        clib_create_argument(ABBR_ALWAYS_PUSH, "always-push", "", required_argument),
-        clib_create_argument(ABBR_ASSET, "asset", "", required_argument),
-        clib_create_argument(ABBR_COMMITS, "commits", "", no_argument),
-        clib_create_argument(ABBR_CONFIG_PATH, "config-path", "", required_argument),
-        clib_create_argument(ABBR_EDITOR, "editor", "", required_argument),
-        clib_create_argument(ABBR_FILE, "file", "", required_argument),
-        clib_create_argument(ABBR_FORMAT, "format", "", required_argument),
-        clib_create_argument(ABBR_HELP, "help", "", no_argument),
-        clib_create_argument(ABBR_INDEX, "index", "", no_argument),
-        clib_create_argument(ABBR_NEW, "new", "", required_argument),
-        clib_create_argument(ABBR_NO, "no", "", no_argument),
-        clib_create_argument(ABBR_PUSH, "push", "", no_argument),
-        clib_create_argument(ABBR_RELEASES, "releases", "", no_argument),
-        clib_create_argument(ABBR_REMOTE_REPO, "remote-repo", "", required_argument),
-        clib_create_argument(ABBR_STATUS, "status", "", required_argument),
-        clib_create_argument(ABBR_TITLE, "title", "", required_argument),
-        clib_create_argument(ABBR_UNYANK, "unyank", "", required_argument),
-        clib_create_argument(ABBR_VERSION, "version", "", no_argument),
-        clib_create_argument(ABBR_VERSION_FULL, "version-full", "", required_argument),
-        clib_create_argument(ABBR_YANK, "yank", "", required_argument),
-        clib_create_argument(ABBR_YES, "yes", "", no_argument)
+    cli_args_t args = cli_args_make(
+        cli_arg_new(ABBR_ALL, "all", "", no_argument),
+        cli_arg_new(ABBR_ALWAYS_EXPORT, "always-export", "", required_argument),
+        cli_arg_new(ABBR_ALWAYS_PUSH, "always-push", "", required_argument),
+        cli_arg_new(ABBR_ASSET, "asset", "", required_argument),
+        cli_arg_new(ABBR_COMMITS, "commits", "", no_argument),
+        cli_arg_new(ABBR_CONFIG_PATH, "config-path", "", required_argument),
+        cli_arg_new(ABBR_EDITOR, "editor", "", required_argument),
+        cli_arg_new(ABBR_FILE, "file", "", required_argument),
+        cli_arg_new(ABBR_FORMAT, "format", "", required_argument),
+        cli_arg_new(ABBR_HELP, "help", "", no_argument),
+        cli_arg_new(ABBR_INDEX, "index", "", no_argument),
+        cli_arg_new(ABBR_NEW, "new", "", required_argument),
+        cli_arg_new(ABBR_NO, "no", "", no_argument),
+        cli_arg_new(ABBR_PUSH, "push", "", no_argument),
+        cli_arg_new(ABBR_RELEASES, "releases", "", no_argument),
+        cli_arg_new(ABBR_REMOTE_REPO, "remote-repo", "", required_argument),
+        cli_arg_new(ABBR_STATUS, "status", "", required_argument),
+        cli_arg_new(ABBR_TITLE, "title", "", required_argument),
+        cli_arg_new(ABBR_UNYANK, "unyank", "", required_argument),
+        cli_arg_new(ABBR_VERSION, "version", "", no_argument),
+        cli_arg_new(ABBR_VERSION_FULL, "version-full", "", required_argument),
+        cli_arg_new(ABBR_YANK, "yank", "", required_argument),
+        cli_arg_new(ABBR_YES, "yes", "", no_argument),
+        NULL
     );
 
     int opt;
-    char* argfmt = clib_generate_cli_format_string(args);
-    struct option* opts = clib_get_options(args);
+    char argfmt[64];
+    cli_generate_format_string(argfmt, args);
+
+    struct option* opts = (struct option*)malloc(args.count * sizeof(struct option));
+    if (opts == NULL) {
+        PANIC("Failed to allocate memory for the options");
+    }
+    cli_args_to_options(opts, args);
+
     while ((opt = getopt_long(argc, argv, argfmt, opts, ((void *)0))) != -1) {
         switch (opt) {
             case ABBR_HELP:
@@ -135,8 +108,14 @@ Options parse_options(int argc, char** argv, Command* command)
                         CLEANUP;
                         exit(1);
                     }
-                } else
+                } else {
                     options.status = get_status(optarg);
+                    if (options.status == STATUS_UNKNOWN || options.status == STATUS_UNSET){
+                        ERRO("'%s' is not a valid status. See %s -h for the accepted values", optarg, EXECUTABLE_NAME);
+                        CLEANUP;
+                        exit(1);
+                    }
+                }
                 break;
             case ABBR_VERSION_FULL:
                 CHECK_USABILITY(COMMAND_LIST, COMMAND_EDIT, COMMAND_PUSH, COMMAND_SET);
@@ -206,10 +185,22 @@ Options parse_options(int argc, char** argv, Command* command)
             case ABBR_YANK:
                 CHECK_USABILITY(COMMAND_RELEASE);
 
+                if (!is_valid_version(optarg)){
+                    ERRO("Version '%s' is not valid", optarg);
+                    CLEANUP;
+                    exit(1);
+                }
+
                 options.yank = optarg;
                 break;
             case ABBR_UNYANK:
                 CHECK_USABILITY(COMMAND_RELEASE);
+
+                if (!is_valid_version(optarg)){
+                    ERRO("Version '%s' is not valid", optarg);
+                    CLEANUP;
+                    exit(1);
+                }
 
                 options.unyank = optarg;
                 break;
@@ -249,30 +240,46 @@ Options parse_options(int argc, char** argv, Command* command)
 
 int main(int argc, char** argv)
 {
-    if(clib_file_exists(SQLITE_DB)){
+    Command command;
+    Options options = parse_options(argc, argv, &command);
+
+    /*
+     * `init` is the upgrade path and `update` does not need the changelog at
+     * all, so they are the only commands that may run on an incompatible
+     * schema.
+     */
+    if(
+        command != COMMAND_INIT &&
+        command != COMMAND_UPDATE &&
+        command != COMMAND_GENERATE &&
+        fs_file_exists(SQLITE_DB) &&
+        !db_schema_current()
+    ) {
+        PANIC("The database at %s is incomplete or was created by a different version. Run '%s init' to update it.",
+              SQLITE_DB, EXECUTABLE_NAME);
+    }
+
+    if(fs_file_exists(SQLITE_DB) && command != COMMAND_UPDATE){
         DEBU("Loading config...");
         Config config = get_config();
         if(config.exists) load_config(config);
         free_config(&config);
     } 
 
-    Command command;
-    Options options = parse_options(argc, argv, &command);
-
     execute_command(command, options);
 
-    sqlite3* db;
-    sqlite3_open(SQLITE_DB, &db);
-    _Bool export = select_always_export(db);
-    sqlite3_close(db);
-
-    if(export && (
+    if(
          command == COMMAND_ADD ||
          command == COMMAND_EDIT ||
          command == COMMAND_RELEASE ||
-         command == COMMAND_DELETE)
+         command == COMMAND_DELETE
     ) {
-        execute_command(COMMAND_EXPORT, options);
+        sqlite3* db;
+        sqlite3_open(SQLITE_DB, &db);
+        _Bool export = select_always_export(db);
+        sqlite3_close(db);
+
+        if(export) execute_command(COMMAND_EXPORT, options);
     }
 
     return 0;

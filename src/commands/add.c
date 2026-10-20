@@ -1,6 +1,5 @@
 #include "commands.h"
 #include "config.h"
-#include "extern/clib.h"
 #include "extern/querybuilder.h"
 #include "extern/sqlite.h"
 #include "utils.h"
@@ -81,9 +80,12 @@ void add_commits()
     char* git_command = NULL;
     
     // Check if tag exists
-    char* tag_command = clib_format_text("git pull --quiet && git tag --list v%s", latest);
-    char* versions = clib_execute_command(tag_command);
+    char* latest_q = shell_quote(latest);
+    char* tag_command = str_format("git pull --quiet && git tag --list v%s", latest_q);
+    char* versions = NULL;
+    execute_command_capture(tag_command, &versions);
     free(tag_command);
+    free(latest_q);
     if(!STREQ(latest, "0.0.0") && is_blank(versions)){
         ERRO("v%s is not pushed", latest);
         Version v = {
@@ -99,12 +101,16 @@ void add_commits()
 
 
     if(STREQ(latest, "0.0.0")){
-        git_command = clib_format_text("git shortlog -z");
+        git_command = str_format("git shortlog -z");
     } else {
-        git_command = clib_format_text("git shortlog -z v%s..HEAD", latest);
+        char* range_q = shell_quote(latest);
+        git_command = str_format("git shortlog -z v%s..HEAD", range_q);
+        free(range_q);
     }
 
-    char* out = clib_execute_command(git_command);
+    char* out = NULL;
+    execute_command_capture(git_command, &out);
+    free(git_command);
 
     if(is_blank(out)){
         ERRO("No commit messages after v%s", latest);
@@ -114,22 +120,22 @@ void add_commits()
     char* formatted_out = extract_commit_messages(out);
     free(out);
 
-    char* buffer = clib_buffer_init();
+    char* buffer = str_buffer_init();
 
-    clib_str_append_ln(&buffer, TEMPLATE_STATUS(STATUS_ADDED));
-    clib_str_append_ln(&buffer, formatted_out);
-    clib_str_append_ln(&buffer, TEMPLATE_STATUS(STATUS_CHANGED));
-    clib_str_append_ln(&buffer, "");
-    clib_str_append_ln(&buffer, TEMPLATE_STATUS(STATUS_REMOVED));
-    clib_str_append_ln(&buffer, "");
-    clib_str_append_ln(&buffer, TEMPLATE_STATUS(STATUS_FIXED));
-    clib_str_append_ln(&buffer, "");
-    clib_str_append_ln(&buffer, TEMPLATE_STATUS(STATUS_DEPRECATED));
-    clib_str_append_ln(&buffer, "");
-    clib_str_append_ln(&buffer, TEMPLATE_STATUS(STATUS_SECURITY));
-    clib_str_append_ln(&buffer, "");
+    str_append_ln(&buffer, TEMPLATE_STATUS(STATUS_ADDED));
+    str_append_ln(&buffer, formatted_out);
+    str_append_ln(&buffer, TEMPLATE_STATUS(STATUS_CHANGED));
+    str_append_ln(&buffer, "");
+    str_append_ln(&buffer, TEMPLATE_STATUS(STATUS_REMOVED));
+    str_append_ln(&buffer, "");
+    str_append_ln(&buffer, TEMPLATE_STATUS(STATUS_FIXED));
+    str_append_ln(&buffer, "");
+    str_append_ln(&buffer, TEMPLATE_STATUS(STATUS_DEPRECATED));
+    str_append_ln(&buffer, "");
+    str_append_ln(&buffer, TEMPLATE_STATUS(STATUS_SECURITY));
+    str_append_ln(&buffer, "");
 
-    clib_write_file(TEMP_FILE, buffer, "w");
+    fs_write_file(TEMP_FILE, buffer, "w");
     free(buffer);
 
     char* editor = SELECT_CONFIG_EDITOR;
@@ -143,7 +149,7 @@ void add_commits()
         exit(0);
     }
 
-    char* user_edited_commits = clib_read_file(TEMP_FILE, "r");
+    char* user_edited_commits = fs_read_file(TEMP_FILE, "r");
     remove(TEMP_FILE);
 
     char* line = user_edited_commits;
@@ -180,8 +186,6 @@ void add_commits()
 
 void add_entry(const char* message, Status status)
 {
-    CHECK_SQL_INJECTION(message);
-
     Date date;
     get_date(&date);
 
@@ -192,10 +196,10 @@ void add_entry(const char* message, Status status)
     query_builder_t* qb = create_query_builder();
     insert_q(qb, TABLE_ENTRIES);
     columns_q(qb, "message, status, version, date");
-    char* values = clib_format_text("%s, %d, %s, %s", message_q, status, version_q, date_q);
+    char* values = str_format("%s, %d, %s, %s", message_q, status, version_q, date_q);
     values_q(qb, values);
     char* query = build_query(qb);
-    sqlite_execute_sql(SQLITE_DB, query);
+    db_execute(query);
 
     free(message_q);
     free(version_q);

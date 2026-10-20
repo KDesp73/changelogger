@@ -1,0 +1,483 @@
+#!/usr/bin/env bash
+#
+# changelogger installer and updater.
+#
+# Installs into ~/.local by default, so no elevated privileges are needed.
+# Works from a source checkout as well as through
+#   bash <(curl -fsSL https://raw.githubusercontent.com/KDesp73/changelogger/refs/heads/main/configure) install
+#
+# Run `configure help` for all the options.
+
+set -euo pipefail
+
+PROGRAM="changelogger"
+REPO="KDesp73/changelogger"
+BRANCH="main"
+RAW_URL="https://raw.githubusercontent.com/$REPO/refs/heads/$BRANCH"
+CLPARSE_VERSION="0.9.2"
+CLPARSE_REPO="marcaddeo/clparse"
+
+PREFIX="${PREFIX:-$HOME/.local}"
+BINDIR="${BINDIR:-}"
+COMMAND=""
+WANT_CLPARSE=1
+WANT_COMPLETIONS=1
+FORCE_REBUILD=0
+ASSUME_YES=0
+
+SOURCE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd)" || SOURCE_DIR="$(pwd)"
+TMP_DIR=""
+SOURCE=""
+
+info() { printf '[INFO] %s\n' "$*"; }
+warn() { printf '[WARN] %s\n' "$*" >&2; }
+error() { printf '[ERRO] %s\n' "$*" >&2; }
+die() { error "$*"; exit 1; }
+
+cleanup() {
+    if [ -n "$TMP_DIR" ]; then
+        rm -rf "$TMP_DIR"
+    fi
+}
+trap cleanup EXIT
+
+usage() {
+    cat <<EOF
+changelogger installer and updater
+
+USAGE
+  configure [command] [options]
+
+COMMANDS
+  install      Build and install $PROGRAM (default)
+  update       Fetch the latest source, build and install it
+  uninstall    Remove the installed binary and the shell completions
+  help         Print this message
+
+OPTIONS
+  --prefix DIR       Installation prefix (default: ~/.local)
+  --bindir DIR       Directory for the executable (default: PREFIX/bin)
+  --no-clparse       Do not install clparse when it is missing
+  --no-completions   Do not install the shell completions
+  --rebuild          Rebuild even when a binary is already present
+  --yes, -y          Do not ask for confirmation
+  -h, --help         Print this message
+
+ENVIRONMENT
+  PREFIX, BINDIR and CC are honoured.
+
+EXAMPLES
+  ./configure install
+  ./configure install --prefix /usr/local
+  ./configure update
+  ./configure uninstall --yes
+EOF
+}
+
+need_cmd() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+# Expand a leading ~ and make the path absolute.
+expand_path() {
+    case "$1" in
+        "~") printf '%s' "$HOME" ;;
+        "~/"*) printf '%s/%s' "$HOME" "${1#~/}" ;;
+        /*) printf '%s' "$1" ;;
+        *) printf '%s/%s' "$(pwd)" "$1" ;;
+    esac
+}
+
+ensure_tmp() {
+    if [ -z "$TMP_DIR" ]; then
+        TMP_DIR="$(mktemp -d)"
+    fi
+}
+
+build_hints() {
+    case "$(uname -s)" in
+        Darwin)
+            info "Install the dependencies with: brew install sqlite cjson libyaml"
+            ;;
+        Linux)
+            if [ -f /etc/debian_version ]; then
+                info "Install the dependencies with: sudo apt install build-essential libsqlite3-dev libcjson-dev libyaml-dev"
+            elif [ -f /etc/fedora-release ]; then
+                info "Install the dependencies with: sudo dnf install gcc make sqlite-devel cjson-devel libyaml-devel"
+            elif [ -f /etc/arch-release ]; then
+                info "Install the dependencies with: sudo pacman -S base-devel sqlite cjson libyaml"
+            else
+                info "Install the sqlite3, cjson and yaml development packages of your distribution"
+            fi
+            ;;
+        *)
+            info "Install the sqlite3, cjson and yaml development packages of your system"
+            ;;
+    esac
+}
+
+have_local_source() {
+    [ -f "$SOURCE_DIR/Makefile" ] && [ -d "$SOURCE_DIR/src" ]
+}
+
+pick_compiler() {
+    if [ -n "${CC:-}" ]; then
+        printf '%s' "$CC"
+    elif need_cmd gcc; then
+        printf 'gcc'
+    elif need_cmd clang; then
+        printf 'clang'
+    else
+        return 1
+    fi
+}
+
+build() {
+    dir="$1"
+    need_cmd make || die "'make' is required but was not found"
+    compiler="$(pick_compiler)" || die "No C compiler found. Install gcc or clang, or set CC."
+
+    info "Building $PROGRAM with $compiler"
+    if ! ( cd "$dir" && make RELEASE=1 CC="$compiler" ); then
+        error "Build failed"
+        build_hints
+        exit 1
+    fi
+}
+
+fetch_source() {
+    need_cmd git || die "No local sources found and 'git' is not installed"
+    ensure_tmp
+    SOURCE="$TMP_DIR/src"
+    info "Fetching the latest source"
+    if ! git clone --depth=1 "https://github.com/$REPO.git" "$SOURCE" >/dev/null; then
+        die "Could not clone https://github.com/$REPO.git"
+    fi
+}
+
+prepare_source() {
+    if have_local_source; then
+        SOURCE="$SOURCE_DIR"
+    else
+        fetch_source
+    fi
+}
+
+install_binary() {
+    binary="$1"
+    [ -f "$binary" ] || die "No binary found at $binary"
+
+    mkdir -p "$BINDIR" || die "Could not create $BINDIR"
+    if [ ! -w "$BINDIR" ]; then
+        error "$BINDIR is not writable"
+        info "Re-run with: sudo ./configure --bindir $BINDIR"
+        info "or install for your user: ./configure --prefix \"\$HOME/.local\""
+        exit 1
+    fi
+
+    install -m 0755 "$binary" "$BINDIR/$PROGRAM"
+    info "Installed $BINDIR/$PROGRAM"
+}
+
+path_hint() {
+    case ":$PATH:" in
+        *":$BINDIR:"*) ;;
+        *)
+            warn "$BINDIR is not in PATH"
+            info "Add this line to your shell profile:"
+            printf '  export PATH="%s:$PATH"\n' "$BINDIR"
+            ;;
+    esac
+}
+
+verify_checksum() {
+    file="$1"
+    sums="$2"
+
+    expected="$(awk '{print $1}' "$sums")"
+    [ -n "$expected" ] || die "Empty checksum file for $(basename "$file")"
+
+    if need_cmd sha256sum; then
+        actual="$(sha256sum "$file" | awk '{print $1}')"
+    elif need_cmd shasum; then
+        actual="$(shasum -a 256 "$file" | awk '{print $1}')"
+    else
+        warn "No sha256 tool available, skipping the clparse checksum verification"
+        return 0
+    fi
+
+    if [ "$expected" != "$actual" ]; then
+        die "Checksum mismatch for $(basename "$file")"
+    fi
+    info "Checksum verified"
+}
+
+install_clparse() {
+    if need_cmd clparse; then
+        info "clparse is already installed ($(command -v clparse))"
+        return
+    fi
+
+    case "$(uname -s)" in
+        Darwin) os="apple-darwin" ;;
+        Linux) os="unknown-linux-musl" ;;
+        *)
+            warn "No prebuilt clparse for $(uname -s). Install it from https://github.com/$CLPARSE_REPO"
+            return
+            ;;
+    esac
+
+    case "$(uname -m)" in
+        arm64|aarch64) arch="aarch64" ;;
+        x86_64|amd64) arch="x86_64" ;;
+        *)
+            warn "No prebuilt clparse for $(uname -m). Install it from https://github.com/$CLPARSE_REPO"
+            return
+            ;;
+    esac
+
+    if [ "$os" = "unknown-linux-musl" ] && [ "$arch" != "x86_64" ]; then
+        warn "No prebuilt clparse for Linux/$arch. Install it from https://github.com/$CLPARSE_REPO"
+        return
+    fi
+
+    need_cmd curl || die "curl is required to download clparse"
+
+    target="$arch-$os"
+    archive="clparse-$CLPARSE_VERSION-$target.tar.gz"
+    checksum="clparse-$CLPARSE_VERSION-$target.sha256"
+    base="https://github.com/$CLPARSE_REPO/releases/download/$CLPARSE_VERSION"
+
+    ensure_tmp
+    info "Downloading clparse $CLPARSE_VERSION ($target)"
+    if ! curl -fsSL "$base/$archive" -o "$TMP_DIR/$archive"; then
+        warn "Could not download $archive, skipping clparse"
+        return 0
+    fi
+    if ! curl -fsSL "$base/$checksum" -o "$TMP_DIR/$checksum"; then
+        warn "Could not download the checksum for $archive, skipping clparse"
+        return 0
+    fi
+
+    tar -xzf "$TMP_DIR/$archive" -C "$TMP_DIR"
+    if [ ! -f "$TMP_DIR/clparse" ]; then
+        warn "The clparse archive did not contain a binary, skipping clparse"
+        return 0
+    fi
+
+    # clparse publishes the checksum of the binary itself, not of the tarball.
+    verify_checksum "$TMP_DIR/clparse" "$TMP_DIR/$checksum"
+
+    if [ ! -w "$BINDIR" ]; then
+        warn "$BINDIR is not writable, leaving clparse uninstalled"
+        return
+    fi
+
+    install -m 0755 "$TMP_DIR/clparse" "$BINDIR/clparse"
+    info "Installed $BINDIR/clparse"
+}
+
+completion_path() {
+    case "$1" in
+        bash) printf '%s/share/bash-completion/completions/%s' "$PREFIX" "$PROGRAM" ;;
+        zsh) printf '%s/share/zsh/site-functions/_%s' "$PREFIX" "$PROGRAM" ;;
+        fish) printf '%s/share/fish/vendor_completions.d/%s.fish' "$PREFIX" "$PROGRAM" ;;
+    esac
+}
+
+install_completion() {
+    shell="$1"
+    dest="$(completion_path "$shell")"
+    src=""
+
+    # Prefer the completion files that ship with the sources we are installing
+    # from, so a fresh clone does not need to download them again.
+    if [ -n "$SOURCE" ] && [ -f "$SOURCE/docs/_changelogger.$shell" ]; then
+        src="$SOURCE/docs/_changelogger.$shell"
+    elif [ -f "$SOURCE_DIR/docs/_changelogger.$shell" ]; then
+        src="$SOURCE_DIR/docs/_changelogger.$shell"
+    fi
+
+    mkdir -p "$(dirname "$dest")" || return 0
+
+    if [ -n "$src" ]; then
+        install -m 0644 "$src" "$dest"
+    else
+        if ! need_cmd curl; then
+            warn "curl is not installed, skipping the $shell completions"
+            return 0
+        fi
+        if ! curl -fsSL "$RAW_URL/docs/_changelogger.$shell" -o "$dest"; then
+            warn "Could not download the $shell completions"
+            rm -f "$dest"
+            return 0
+        fi
+        chmod 0644 "$dest"
+    fi
+
+    info "Installed $shell completions ($dest)"
+}
+
+install_completions() {
+    install_completion bash
+    install_completion zsh
+    install_completion fish
+
+    case "$(basename "${SHELL:-}")" in
+        zsh)
+            info "Enable zsh completions by adding this to ~/.zshrc:"
+            printf '  fpath=(%s/share/zsh/site-functions $fpath)\n' "$PREFIX"
+            printf '  autoload -Uz compinit && compinit\n'
+            ;;
+        bash)
+            info "bash loads the completions automatically when bash-completion is installed"
+            ;;
+        fish)
+            info "fish loads the completions automatically"
+            ;;
+    esac
+}
+
+cmd_install() {
+    prepare_source
+
+    if [ "$FORCE_REBUILD" = 1 ] || [ ! -x "$SOURCE/$PROGRAM" ]; then
+        build "$SOURCE"
+    else
+        info "$PROGRAM is already built (use --rebuild to rebuild it)"
+    fi
+
+    install_binary "$SOURCE/$PROGRAM"
+
+    if [ "$WANT_CLPARSE" = 1 ]; then
+        install_clparse
+    fi
+    if [ "$WANT_COMPLETIONS" = 1 ]; then
+        install_completions
+    fi
+
+    path_hint
+    info "Done"
+}
+
+cmd_update() {
+    if have_local_source && [ -d "$SOURCE_DIR/.git" ] && need_cmd git; then
+        info "Updating $SOURCE_DIR"
+        if ! git -C "$SOURCE_DIR" pull --ff-only; then
+            warn "Could not update the checkout, building the sources as they are"
+        fi
+        SOURCE="$SOURCE_DIR"
+    elif have_local_source; then
+        SOURCE="$SOURCE_DIR"
+    else
+        fetch_source
+    fi
+
+    build "$SOURCE"
+    install_binary "$SOURCE/$PROGRAM"
+
+    if [ "$WANT_CLPARSE" = 1 ]; then
+        install_clparse
+    fi
+    if [ "$WANT_COMPLETIONS" = 1 ]; then
+        install_completions
+    fi
+
+    path_hint
+    info "Done"
+}
+
+cmd_uninstall() {
+    if [ -e "$BINDIR/$PROGRAM" ]; then
+        if [ "$ASSUME_YES" = 0 ]; then
+            printf 'Remove %s? [y/N] ' "$BINDIR/$PROGRAM"
+            read -r answer || answer=""
+            case "$answer" in
+                y|Y|yes|YES) ;;
+                *) info "Aborted"; return ;;
+            esac
+        fi
+        rm -f "$BINDIR/$PROGRAM"
+        info "Removed $BINDIR/$PROGRAM"
+    else
+        warn "$BINDIR/$PROGRAM does not exist"
+    fi
+
+    for shell in bash zsh fish; do
+        dest="$(completion_path "$shell")"
+        if [ -e "$dest" ]; then
+            rm -f "$dest"
+            info "Removed $dest"
+        fi
+    done
+
+    if [ -e "$BINDIR/clparse" ]; then
+        info "Left $BINDIR/clparse in place (remove it manually if it is not used elsewhere)"
+    elif need_cmd clparse; then
+        info "clparse was left installed ($(command -v clparse))"
+    fi
+}
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        install|update|uninstall|help)
+            COMMAND="$1"
+            shift
+            ;;
+        -h|--help)
+            COMMAND="help"
+            shift
+            ;;
+        --prefix)
+            [ $# -ge 2 ] || die "--prefix requires a directory"
+            PREFIX="$2"
+            shift 2
+            ;;
+        --prefix=*)
+            PREFIX="${1#*=}"
+            shift
+            ;;
+        --bindir)
+            [ $# -ge 2 ] || die "--bindir requires a directory"
+            BINDIR="$2"
+            shift 2
+            ;;
+        --bindir=*)
+            BINDIR="${1#*=}"
+            shift
+            ;;
+        --no-clparse)
+            WANT_CLPARSE=0
+            shift
+            ;;
+        --no-completions)
+            WANT_COMPLETIONS=0
+            shift
+            ;;
+        --rebuild)
+            FORCE_REBUILD=1
+            shift
+            ;;
+        --yes|-y)
+            ASSUME_YES=1
+            shift
+            ;;
+        *)
+            error "Unknown argument: $1"
+            usage
+            exit 1
+            ;;
+    esac
+done
+
+COMMAND="${COMMAND:-install}"
+[ -n "$PREFIX" ] || die "--prefix must not be empty"
+PREFIX="$(expand_path "$PREFIX")"
+BINDIR="$(expand_path "${BINDIR:-$PREFIX/bin}")"
+
+case "$COMMAND" in
+    install) cmd_install ;;
+    update) cmd_update ;;
+    uninstall) cmd_uninstall ;;
+    help) usage ;;
+esac

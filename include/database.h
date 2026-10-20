@@ -37,6 +37,15 @@
 #define CONFIG_CONDITION "id = 1"
 #define VERSION_UNRELEASED "unreleased"
 
+/* How long a connection waits for a lock held by a concurrent invocation */
+#define DB_BUSY_TIMEOUT_MS 5000
+
+/*
+ * Schema version stored in `PRAGMA user_version`. Bump it whenever
+ * GENERATION_QUERY changes in a way that needs `init` to run again.
+ */
+#define SCHEMA_VERSION 1
+
 #define GENERATION_QUERY \
 "BEGIN TRANSACTION;" \
 "CREATE TABLE IF NOT EXISTS \"Entries\" (" \
@@ -69,14 +78,6 @@
 ");" \
 "COMMIT;"
 
-#define CHECK_SQL_INJECTION(x) \
-    do { \
-        if(is_sql_injection(x)){ \
-            PANIC("%s is an sql injection", x); \
-        } \
-    } while(0)
-
-_Bool is_sql_injection(const char* input);
 char* select_version_full(sqlite3* db);
 size_t select_version_major(sqlite3* db);
 size_t select_version_minor(sqlite3* db);
@@ -85,18 +86,38 @@ _Bool select_always_push(sqlite3* db);
 _Bool select_always_export(sqlite3* db);
 char* select_config_path(sqlite3* db);
 char** select_releases_version(sqlite3* db, size_t* count);
-Entry* select_entries_order_by(sqlite3* db, const char* order_by, size_t *count);
+Entry* select_entries_order_by(sqlite3* db, const char* order_by, size_t *count, int* failed);
 Release* select_releases(sqlite3* db, const char* condition, const char* order_by, size_t *count);
 Entry* select_entries(sqlite3* db, const char* condition, const char* order_by, size_t *count);
 Entry* select_entries_version(sqlite3* db, const char* version, size_t *count);
 Entry* select_entries_status(sqlite3* db, Status status, size_t *count);
 Entry* select_entries_date_less(sqlite3* db, const char* date, size_t *count);
 Entry* select_entries_date_greater(sqlite3* db, const char* date, size_t *count);
+/*
+ * `condition` is concatenated into the query as-is, and `value` must
+ * therefore already be quoted. Pass both through sql_quote() (see utils.c)
+ * when they contain user data. A keyword blacklist cannot do this job:
+ * it rejects legitimate messages ("don't", "fixed the SELECT bug") while
+ * still missing payloads that don't use obvious keywords.
+ */
 void update(const char* table, const char* column, const char* value, const char* condition); // One value;
+/*
+ * Runs `sql` (a single statement or a script) against the changelog database.
+ * A failure is fatal: the caller cannot recover from it, and continuing would
+ * leave the data inconsistent. Closing the connection on failure also rolls
+ * back a script that opened a transaction and never reached COMMIT.
+ */
+void db_execute(const char* sql);
 char* select_str(const char* table, const char* column, const char* condition);
 int select_int(const char* table, const char* column, const char* condition);
 int config_exists();
-void update_version_full(const char* version);
+/*
+ * Returns 1 when the database has the tables and Config row that this binary
+ * expects. Databases created before the schema version was introduced report
+ * user_version 0 and are accepted when their tables are intact; `init`
+ * stamps them. A newer schema is rejected.
+ */
+int db_schema_current(void);
 
 #define SELECT_CONFIG_REMOTE \
     select_str(TABLE_CONFIG, CONFIG_REMOTE_REPO, CONFIG_CONDITION)

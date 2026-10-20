@@ -1,8 +1,8 @@
 #include "commands.h"
 #include "database.h"
-#include "extern/clib.h"
 #include "utils.h"
 #include "push_utils.h"
+#include <string.h>
 
 void command_push(Options options)
 {
@@ -16,7 +16,13 @@ void command_push(Options options)
         sqlite3_close(db);
     }
 
-    handle_push_release(version, options);
+    if (version == NULL) {
+        PANIC("No version to push. Run '%s release' first", EXECUTABLE_NAME);
+    }
+
+    if (!handle_push_release(version, options)) {
+        exit(1);
+    }
 }
 
 #define DEFAULT_WARNING_MESSAGE \
@@ -40,36 +46,16 @@ void make_sure_user_wants_to_proceed_with_releasing(Options options)
 
 int is_gh_cli_available()
 {
-    int status = system("gh --version");
-    if (status != 0) {
-        ERRO("gh-cli is not available on your system.\n");
+    // Silence gh's output: `gh --version` otherwise prints to our stdout
+    // on every push, and `gh auth status` writes its result to stderr,
+    // which makes parsing its stdout unreliable across gh versions.
+    if (system("gh --version >/dev/null 2>&1") != 0) {
+        ERRO("gh-cli is not available on your system.");
         return 0;
     }
 
-    char buffer[1024];
-    FILE *fp = popen("gh auth status", "r");
-    if (fp == NULL) {
-        ERRO("Failed to run gh auth status command.\n");
-        return 0;
-    }
-
-    // Initialize a variable to track if "Logged in" was found
-    int logged_in = 0;
-
-    // Read each line of output
-    while (fgets(buffer, sizeof(buffer), fp) != NULL) {
-        // Check if the line contains "Logged in"
-        if (strstr(buffer, "Logged in") != NULL) {
-            logged_in = 1;  // Set flag if logged in
-            break; // We found the necessary information, no need to continue
-        }
-    }
-    
-    pclose(fp);
-
-    // Check if we were logged in
-    if (!logged_in) {
-        ERRO("gh-cli is not properly set up. Please run 'gh auth login' to authenticate.\n");
+    if (system("gh auth status >/dev/null 2>&1") != 0) {
+        ERRO("gh-cli is not properly set up. Please run 'gh auth login' to authenticate.");
         return 0;
     }
 
@@ -84,41 +70,88 @@ int push_release(const char* version, const char* asset)
 
     command_export((Options){0});
 
-    char* asset_str = clib_format_text(" '%s' ", asset);
-    char* gh_command = clib_format_text(
-        "gh release create v%s%s-F %s/%s.md -t v%s",
-        version, 
-        (asset) ? asset_str : " ", 
-        CHANGELOG_DIR, 
-        version, 
-        version
-    );
-    printf("%s\n", gh_command);
-    clib_execute_command(gh_command);
-    char* rc = clib_execute_command("echo $?");
-    free(asset_str);
+    char* asset_arg = NULL;
+    if (asset != NULL && !is_blank(asset)) {
+        asset_arg = shell_quote(asset);
+    }
+
+    /*
+     * The version reaches this function from the database as well as from
+     * --version-full, so an imported CHANGELOG.md decides its content. It is
+     * quoted before it lands in a shell command, and rejected if it could
+     * escape the .changelog directory.
+     */
+    if (strchr(version, '/') != NULL) {
+        PANIC("Invalid version: %s", version);
+    }
+    char* version_q = shell_quote(version);
+
+    char* gh_command = NULL;
+    if (asset_arg != NULL) {
+        gh_command = str_format(
+            "gh release create v%s %s -F %s/%s.md -t v%s",
+            version_q,
+            asset_arg,
+            CHANGELOG_DIR,
+            version_q,
+            version_q
+        );
+    } else {
+        gh_command = str_format(
+            "gh release create v%s -F %s/%s.md -t v%s",
+            version_q,
+            CHANGELOG_DIR,
+            version_q,
+            version_q
+        );
+    }
+
+    // gh prints its own errors (stderr stays attached to the terminal),
+    // and the release URL on stdout, which we echo back.
+    char* out = NULL;
+    int status = execute_command_capture(gh_command, &out);
+    if (out != NULL) {
+        fputs(out, (status == 0) ? stdout : stderr);
+        free(out);
+    }
+
+    free(asset_arg);
+    free(version_q);
     free(gh_command);
 
-    return STREQ(rc, "0");
+    if (status != 0) {
+        ERRO("Could not push release v%s to Github (gh exited with code %d)", version, status);
+        return 0;
+    }
+
+    return 1;
 }
 
-void handle_push_release(const char* version, Options options)
+int handle_push_release(const char* version, Options options)
 {
-    char* condition = clib_format_text("version = '%s'", version);
+    char* version_q = sql_quote(version);
+    char* condition = str_format("version = %s", version_q);
+    free(version_q);
     int pushed = select_int(TABLE_RELEASES, RELEASES_PUSHED, condition);
 
     if(pushed) {
         WARN("This release is already pushed. Aborting.");
         free(condition);
-        return;
+        return 1; // Nothing left to do, but this is not a failure
     }
 
     make_sure_user_wants_to_proceed_with_releasing(options);
-    if(push_release(version, options.asset)){
+    int result = push_release(version, options.asset);
+    if(result){
         update(TABLE_RELEASES, RELEASES_PUSHED, "1", condition);
     } else {
-        // ERRO("Could not push release to Github");
+        // push_release() already reported the failure. Leave pushed = 0
+        // so the release stays pending and `changelogger push` can be
+        // retried once the problem is fixed.
+        WARN("Release v%s was not marked as pushed.", version);
     }
     free(condition);
+
+    return result;
 }
 

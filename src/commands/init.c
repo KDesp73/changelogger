@@ -5,14 +5,19 @@
 
 void command_init(Options options)
 {
-    if(!clib_directory_exists(CHANGELOG_DIR)) {
-        clib_create_directory(CHANGELOG_DIR);
+    (void) options;
+
+    if(!fs_directory_exists(CHANGELOG_DIR)) {
+        fs_create_directory(CHANGELOG_DIR);
     } else INFO("%s/ is located in this directory", CHANGELOG_DIR);
 
-    if(!clib_file_exists(SQLITE_DB)) {
+    if(!fs_file_exists(SQLITE_DB)) {
         sqlite_create_database(SQLITE_DB);
-        sqlite_execute_sql(SQLITE_DB, GENERATION_QUERY);
     } else INFO("%s is already created", SQLITE_DB);
+
+    // Idempotent: also adds tables that a database from an older version is
+    // missing, so `init` doubles as the schema upgrade path.
+    db_execute(GENERATION_QUERY);
 
     if(!config_exists()){
         query_builder_t* qb = create_query_builder();
@@ -21,7 +26,11 @@ void command_init(Options options)
                       "version_patch, always_export, always_push, remote_repo");
         values_q(qb, "'', 0, 0, 0, 0, 0, ''"); // "Starting with version 0.0.0"
         char* query = build_query(qb);
-        sqlite_execute_sql(SQLITE_DB, query);
+        db_execute(query);
         free(query);
     } else INFO("Config is already initialized");
+
+    char* schema = str_format("PRAGMA user_version = %d;", SCHEMA_VERSION);
+    db_execute(schema);
+    free(schema);
 }

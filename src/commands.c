@@ -1,119 +1,127 @@
 #include "help.h"
 #include "options.h"
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <strings.h>
 #include <sys/wait.h>
-#define CLIB_IMPLEMENTATION
-#include "extern/clib.h"
+#include "extern/ansi.h"
 #include "commands.h"
+
+/*
+ * Commands take their options by value, so each one gets a thin adapter that
+ * fits cli.h's bool (*)(void*) handler signature.
+ */
+#define COMMAND(upper, lower, usage, description, helpfn) \
+    static bool handle_##lower(void* ctx) { command_##lower(*(Options*) ctx); return true; }
+
+#include "commands.inc"
+
+#undef COMMAND
+
+static const CommandSpec command_table[] = {
+#define COMMAND(upper, lower, usage, description, helpfn) \
+    { COMMAND_##upper, #lower, usage, description, handle_##lower },
+#include "commands.inc"
+#undef COMMAND
+};
+
+#define COMMAND_COUNT (sizeof(command_table) / sizeof(command_table[0]))
+
+_Static_assert(sizeof(command_table) / sizeof(command_table[0]) <= MAX_COMMANDS,
+               "more commands than the Dispatcher can hold");
+
+static Dispatcher dispatcher;
+static bool dispatcher_ready = false;
+
+static void register_commands(void)
+{
+    if (dispatcher_ready) {
+        return;
+    }
+
+    dispatcher_init(&dispatcher);
+    for (size_t i = 0; i < COMMAND_COUNT; ++i) {
+        dispatcher_add(&dispatcher, command_table[i].name,
+                       command_table[i].description, command_table[i].handler);
+    }
+    dispatcher_ready = true;
+}
+
+Dispatcher* command_dispatcher(void)
+{
+    register_commands();
+    return &dispatcher;
+}
+
+const CommandSpec* command_specs(size_t* count)
+{
+    if (count != NULL) {
+        *count = COMMAND_COUNT;
+    }
+    return command_table;
+}
+
+static const CommandSpec* find_spec(Command command)
+{
+    for (size_t i = 0; i < COMMAND_COUNT; ++i) {
+        if (command_table[i].command == command) {
+            return &command_table[i];
+        }
+    }
+    return NULL;
+}
 
 Command get_command(char* command)
 {
-#define COMPARE_AND_RETURN_COMMAND(c) \
-    else if(STREQ(command, command_to_string(c))) return c;
+    if (command == NULL) {
+        return COMMAND_UNSET;
+    }
 
-    if(command == NULL) return COMMAND_UNSET;
-    COMPARE_AND_RETURN_COMMAND(COMMAND_EXPORT)
-    COMPARE_AND_RETURN_COMMAND(COMMAND_PUSH)
-    COMPARE_AND_RETURN_COMMAND(COMMAND_ADD)
-    COMPARE_AND_RETURN_COMMAND(COMMAND_GET)
-    COMPARE_AND_RETURN_COMMAND(COMMAND_INIT)
-    COMPARE_AND_RETURN_COMMAND(COMMAND_SET)
-    COMPARE_AND_RETURN_COMMAND(COMMAND_LIST)
-    COMPARE_AND_RETURN_COMMAND(COMMAND_DELETE)
-    COMPARE_AND_RETURN_COMMAND(COMMAND_RELEASE)
-    COMPARE_AND_RETURN_COMMAND(COMMAND_EDIT)
-    COMPARE_AND_RETURN_COMMAND(COMMAND_GENERATE)
-    COMPARE_AND_RETURN_COMMAND(COMMAND_IMPORT)
-    COMPARE_AND_RETURN_COMMAND(COMMAND_UPDATE)
-    else return COMMAND_UNKNOWN;
+    for (size_t i = 0; i < COMMAND_COUNT; ++i) {
+        if (STREQ(command, command_table[i].name)) {
+            return command_table[i].command;
+        }
+    }
 
-#undef COMPARE_AND_RETURN_COMMAND
+    return COMMAND_UNKNOWN;
 }
 
 void execute_command(Command command, Options options)
 {
-    switch (command) {
-    case COMMAND_UNKNOWN:
+    if (command == COMMAND_UNKNOWN) {
         ERRO("Unknown command: %s", options.argv[1]);
-        break;
-    case COMMAND_UNSET:
+        help();
+        return;
+    }
+    if (command == COMMAND_UNSET) {
         ERRO("Command not found");
-        break;
-    case COMMAND_INIT:
-        command_init(options);
-        return;
-    case COMMAND_ADD:
-        command_add(options);
-        return;
-    case COMMAND_SET:
-        command_set(options);
-        return;
-    case COMMAND_LIST:
-        command_list(options);
-        return;
-    case COMMAND_DELETE:
-        command_delete(options);
-        return;
-    case COMMAND_RELEASE:
-        command_release(options);
-        return;
-    case COMMAND_EXPORT:
-        command_export(options);
-        return;
-    case COMMAND_GET:
-        command_get(options);
-        return;
-    case COMMAND_EDIT:
-        command_edit(options);
-        return;
-    case COMMAND_PUSH:
-        command_push(options);
-        return;
-    case COMMAND_GENERATE:
-        command_generate(options);
-        return;
-    case COMMAND_IMPORT:
-        command_import(options);
-        return;
-    case COMMAND_UPDATE:
-        command_update(options);
+        help();
         return;
     }
 
-    help();
+    const CommandSpec* spec = find_spec(command);
+    HandlerFunc handler = (spec != NULL)
+        ? dispatcher_find(command_dispatcher(), spec->name)
+        : NULL;
+
+    if (handler == NULL) {
+        help();
+        return;
+    }
+
+    if (!handler(&options)) {
+        exit(1);
+    }
 }
 
 char* command_to_string(Command command)
 {
     switch (command) {
-    case COMMAND_INIT:
-        return "init";
-    case COMMAND_ADD:
-        return "add";
-    case COMMAND_LIST:
-        return "list";
-    case COMMAND_SET:
-        return "set";
-    case COMMAND_DELETE:
-        return "delete";
-    case COMMAND_RELEASE:
-        return "release";
-    case COMMAND_GET:
-        return "get";
-    case COMMAND_EXPORT:
-        return "export";
-    case COMMAND_EDIT:
-        return "edit";
-    case COMMAND_PUSH:
-        return "push";
-    case COMMAND_GENERATE:
-        return "generate";
-    case COMMAND_IMPORT:
-        return "import";
-    case COMMAND_UPDATE:
-        return "update";
+#define COMMAND(upper, lower, usage, description, helpfn) case COMMAND_##upper: return #lower;
+#include "commands.inc"
+#undef COMMAND
     case COMMAND_UNSET:
     case COMMAND_UNKNOWN:
     default:
@@ -125,35 +133,38 @@ char* command_to_string(Command command)
 
 char* is_usable(
     ArgumentAbbr abbr, 
-    CliArguments args,
+    cli_args_t args,
     Command command, 
     Command* compatible_commands, size_t commands_size
 )
 {
-    char* commands_str = clib_buffer_init();
+    char* commands_str = str_buffer_init();
     for(size_t i = 0; i < commands_size; ++i){
         char* com;
         if(i == 0)
-            com = clib_format_text("%s%s%s", BOLD, command_to_string(compatible_commands[i]), RESET);
+            com = str_format("%s%s%s", ANSI_BOLD, command_to_string(compatible_commands[i]), ANSI_RESET);
         else if(i == commands_size - 1)
-            com = clib_format_text(" or %s%s%s", BOLD, command_to_string(compatible_commands[i]), RESET);
+            com = str_format(" or %s%s%s", ANSI_BOLD, command_to_string(compatible_commands[i]), ANSI_RESET);
         else 
-            com = clib_format_text(", %s%s%s", BOLD, command_to_string(compatible_commands[i]), RESET);
+            com = str_format(", %s%s%s", ANSI_BOLD, command_to_string(compatible_commands[i]), ANSI_RESET);
 
-        clib_str_append(&commands_str, com);
+        str_append(&commands_str, com);
         free(com);
     }
 
     for(size_t i = 0; i < commands_size; ++i) {
-        if(command == compatible_commands[i]) return NULL;
+        if(command == compatible_commands[i]) {
+            free(commands_str);
+            return NULL;
+        }
     }
 
-    char* flag = NULL;
+    char* flag = "";
     for(size_t i = 0; i < args.count; i++){
         if(args.args[i]->abr == abbr) flag = args.args[i]->full;
     }
 
-    char* ret = clib_format_text("--%s can only be used with %s", flag, commands_str);
+    char* ret = str_format("--%s can only be used with %s", flag, commands_str);
     free(commands_str);
     return ret;
 }

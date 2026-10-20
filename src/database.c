@@ -1,13 +1,81 @@
 #include "database.h"
 #include "date.h"
-#define CLIB_IMPLEMENTATION
-#include "extern/clib.h"
+#include "extern/logging.h"
+#include "extern/str.h"
 #include "config.h"
 #include "extern/querybuilder.h"
 #include "extern/sqlite.h"
+#include "utils.h"
 #include "version.h"
 #include <stdlib.h>
 #include <string.h>
+
+void db_execute(const char* sql)
+{
+    if (sql == NULL) {
+        PANIC("db_execute: no statement given");
+    }
+
+    sqlite3* db = NULL;
+    if (sqlite3_open(SQLITE_DB, &db) != SQLITE_OK) {
+        PANIC("Failed to open %s: %s", SQLITE_DB, sqlite3_errmsg(db));
+    }
+
+    sqlite3_busy_timeout(db, DB_BUSY_TIMEOUT_MS);
+
+    char* error = NULL;
+    if (sqlite3_exec(db, sql, NULL, NULL, &error) != SQLITE_OK) {
+        ERRO("Failed to execute statement: %s",
+             error != NULL ? error : sqlite3_errmsg(db));
+        sqlite3_free(error);
+        sqlite3_close(db); // an unfinished transaction is rolled back here
+        exit(1);
+    }
+
+    sqlite3_close(db);
+}
+
+int db_schema_current(void)
+{
+    sqlite3* db = NULL;
+    if (sqlite3_open(SQLITE_DB, &db) != SQLITE_OK) {
+        ERRO("Failed to open %s: %s", SQLITE_DB, sqlite3_errmsg(db));
+        sqlite3_close(db);
+        return 0;
+    }
+    sqlite3_busy_timeout(db, DB_BUSY_TIMEOUT_MS);
+
+    int current = 0;
+    sqlite3_stmt* stmt = NULL;
+    if (sqlite3_prepare_v2(db, "PRAGMA user_version;", -1, &stmt, NULL) == SQLITE_OK &&
+        sqlite3_step(stmt) == SQLITE_ROW) {
+        int version = sqlite3_column_int(stmt, 0);
+        /*
+         * 0 means the database predates the schema version. Either way the
+         * tables (and the Config row) must actually be there, which also
+         * catches a database that was damaged or edited by hand. A future
+         * schema version is rejected outright.
+         */
+        if (version == SCHEMA_VERSION || version == 0) {
+            const char* sql =
+                "SELECT (SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'Entries') +"
+                       " (SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'Config') +"
+                       " (SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'Releases') +"
+                       " (SELECT COUNT(*) FROM Config WHERE id = 1);";
+            sqlite3_stmt* check = NULL;
+            if (sqlite3_prepare_v2(db, sql, -1, &check, NULL) == SQLITE_OK &&
+                sqlite3_step(check) == SQLITE_ROW &&
+                sqlite3_column_int(check, 0) == 4) {
+                current = 1;
+            }
+            sqlite3_finalize(check);
+        }
+    }
+    sqlite3_finalize(stmt);
+
+    sqlite3_close(db);
+    return current;
+}
 
 size_t select_version_major(sqlite3 *db)
 {
@@ -99,28 +167,6 @@ char* select_version_full(sqlite3* db)
     return v.full;
 }
 
-void update_version_full(const char* version)
-{
-    if(!is_valid_version(version)) return;
-
-    Version v = {0};
-    v.full = strdup(version);
-
-    parse_version(&v);
-    make_version(&v);
-    char* patch = clib_format_text("%zu", v.patch);
-    char* minor = clib_format_text("%zu", v.minor);
-    char* major = clib_format_text("%zu", v.major);
-
-    update(TABLE_CONFIG, CONFIG_VERSION_PATCH, patch, CONFIG_CONDITION);
-    update(TABLE_CONFIG, CONFIG_VERSION_MINOR, minor, CONFIG_CONDITION);
-    update(TABLE_CONFIG, CONFIG_VERSION_MAJOR, major, CONFIG_CONDITION);
-
-    free(patch);
-    free(minor);
-    free(major);
-}
-
 // Function to select the config path
 char* select_config_path(sqlite3 *db)
 {
@@ -139,47 +185,113 @@ char* select_config_path(sqlite3 *db)
 }
 
 
-Entry* select_entries_order_by(sqlite3* db, const char* column, size_t *count)
+static void free_entries(Entry* entries, size_t count)
 {
-    char *sql = clib_format_text("SELECT * FROM Entries ORDER BY %s;", column);
-    sqlite3_stmt *stmt;
+    for (size_t i = 0; i < count; ++i) {
+        free(entries[i].version.full);
+        free(entries[i].message);
+        free(entries[i].date.full);
+    }
+    free(entries);
+}
+
+/*
+ * Read every entry, ordered by `column`. Returns NULL when there is nothing
+ * to return; `failed` is set when the query itself did not succeed
+ * (prepare/step/allocation error), so callers can tell "no rows" apart from
+ * "the database could not be read".
+ */
+Entry* select_entries_order_by(sqlite3* db, const char* column, size_t *count, int* failed)
+{
+    char *sql = str_format("SELECT * FROM Entries ORDER BY %s;", column);
+    sqlite3_stmt *stmt = NULL;
     Entry *entries = NULL;
     size_t entry_count = 0;
+    int query_failed = 0;
+
+    *count = 0;
+    if (failed != NULL) *failed = 0;
+
+    if (sql == NULL) {
+        if (failed != NULL) *failed = 1;
+        return NULL;
+    }
 
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) == SQLITE_OK) {
-        while (sqlite3_step(stmt) == SQLITE_ROW) {
-            entries = realloc(entries, sizeof(Entry) * (entry_count + 1));
-            entries[entry_count].status = sqlite3_column_int(stmt, 0);
-            entries[entry_count].version.full = strdup((char*) sqlite3_column_text(stmt, 1));
-            entries[entry_count].message = strdup((const char *)sqlite3_column_text(stmt, 2));
-            entries[entry_count].date.full = strdup((char*) sqlite3_column_text(stmt, 4));
+        int step;
+        while ((step = sqlite3_step(stmt)) == SQLITE_ROW) {
+            const char* version_text = (const char*) sqlite3_column_text(stmt, 1);
+            const char* message_text = (const char*) sqlite3_column_text(stmt, 2);
+            const char* date_text = (const char*) sqlite3_column_text(stmt, 4);
 
-            parse_version(&entries[entry_count].version);
-            entry_count++;
+            if (version_text == NULL || message_text == NULL || date_text == NULL) {
+                query_failed = 1;
+                break;
+            }
+
+            Entry entry = {0};
+            entry.status = sqlite3_column_int(stmt, 0);
+            entry.version.full = strdup(version_text);
+            entry.message = strdup(message_text);
+            entry.date.full = strdup(date_text);
+
+            if (entry.version.full == NULL || entry.message == NULL || entry.date.full == NULL) {
+                free(entry.version.full);
+                free(entry.message);
+                free(entry.date.full);
+                query_failed = 1;
+                break;
+            }
+
+            Entry* grown = realloc(entries, sizeof(Entry) * (entry_count + 1));
+            if (grown == NULL) {
+                free(entry.version.full);
+                free(entry.message);
+                free(entry.date.full);
+                query_failed = 1;
+                break;
+            }
+
+            entries = grown;
+            parse_version(&entry.version);
+            entries[entry_count++] = entry;
         }
-    }
-    sqlite3_finalize(stmt);
-    *count = entry_count;
 
+        /* The loop only leaves with SQLITE_DONE when every row was read */
+        if (step != SQLITE_DONE) query_failed = 1;
+    } else {
+        query_failed = 1;
+    }
+
+    sqlite3_finalize(stmt); /* NULL is a no-op */
     free(sql);
+
+    if (query_failed) {
+        free_entries(entries, entry_count);
+        entries = NULL;
+        entry_count = 0;
+        if (failed != NULL) *failed = 1;
+    }
+
+    *count = entry_count;
     return entries;
 }
 
 Release* select_releases(sqlite3* db, const char* condition, const char* order_by, size_t *count)
 {
-    char *sql = clib_buffer_init();
-    clib_str_append(&sql, "SELECT * FROM Releases");
+    char *sql = str_buffer_init();
+    str_append(&sql, "SELECT * FROM Releases");
     if(condition != NULL){
-        char* where = clib_format_text(" WHERE %s", condition);
-        clib_str_append(&sql, where);
+        char* where = str_format(" WHERE %s", condition);
+        str_append(&sql, where);
         free(where);
     }
     if(order_by != NULL){
-        char* orderby = clib_format_text(" ORDER BY %s", order_by);
-        clib_str_append(&sql, orderby);
+        char* orderby = str_format(" ORDER BY %s", order_by);
+        str_append(&sql, orderby);
         free(orderby);
     }
-    clib_str_append(&sql, ";");
+    str_append(&sql, ";");
 
     sqlite3_stmt *stmt;
     Release* releases = NULL;
@@ -206,19 +318,19 @@ Release* select_releases(sqlite3* db, const char* condition, const char* order_b
 
 Entry* select_entries(sqlite3* db, const char* condition, const char* order_by, size_t *count)
 {
-    char *sql = clib_buffer_init();
-    clib_str_append(&sql, "SELECT * FROM Entries");
+    char *sql = str_buffer_init();
+    str_append(&sql, "SELECT * FROM Entries");
     if(condition != NULL){
-        char* where = clib_format_text(" WHERE %s", condition);
-        clib_str_append(&sql, where);
+        char* where = str_format(" WHERE %s", condition);
+        str_append(&sql, where);
         free(where);
     }
     if(order_by != NULL){
-        char* orderby = clib_format_text(" ORDER BY %s", order_by);
-        clib_str_append(&sql, orderby);
+        char* orderby = str_format(" ORDER BY %s", order_by);
+        str_append(&sql, orderby);
         free(orderby);
     }
-    clib_str_append(&sql, ";");
+    str_append(&sql, ";");
 
     sqlite3_stmt *stmt;
     Entry *entries = NULL;
@@ -246,7 +358,7 @@ Entry* select_entries(sqlite3* db, const char* condition, const char* order_by, 
 // Function to select entries by version
 Entry* select_entries_version(sqlite3* db, const char* version, size_t *count)
 {
-    char *sql = clib_format_text("SELECT * FROM Entries WHERE version = %s;", version);
+    char *sql = str_format("SELECT * FROM Entries WHERE version = %s;", version);
     sqlite3_stmt *stmt;
     Entry *entries = NULL;
     size_t entry_count = 0;
@@ -363,7 +475,7 @@ int select_int(const char* table, const char* column, const char* condition)
     rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
     if (rc != SQLITE_OK) {
         fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db));
-        sqlite3_free(sql);
+        free(sql);
         sqlite3_close(db);
         return -1; // Return an error code
     }
@@ -375,7 +487,7 @@ int select_int(const char* table, const char* column, const char* condition)
 
     // Clean up
     sqlite3_finalize(stmt);
-    // sqlite3_free(sql);
+    free(sql);
     sqlite3_close(db);
 
     return result; // Return the integer result
@@ -400,7 +512,7 @@ char* select_str(const char* table, const char* column, const char* condition)
     rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
     if (rc != SQLITE_OK) {
         fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db));
-        sqlite3_free(sql);
+        free(sql);
         sqlite3_close(db);
         return NULL;
     }
@@ -413,7 +525,7 @@ char* select_str(const char* table, const char* column, const char* condition)
     }
 
     sqlite3_finalize(stmt);
-    // sqlite3_free(sql);
+    free(sql);
     sqlite3_close(db);
 
     return result; 
@@ -421,12 +533,17 @@ char* select_str(const char* table, const char* column, const char* condition)
 
 void update(const char* table, const char* column, const char* value, const char* condition)
 {
+    if (table == NULL || column == NULL || value == NULL || condition == NULL) {
+        fprintf(stderr, "update: refusing to build a query with NULL arguments\n");
+        return;
+    }
+
     query_builder_t* qb = create_query_builder();
     update_q(qb, table);
     set_q(qb, column, value);
     where_q(qb, condition);
     char* query = build_query(qb);
-    sqlite_execute_sql(SQLITE_DB, query);
+    db_execute(query);
     free(query);
 }
 
@@ -540,47 +657,29 @@ char** select_releases_version(sqlite3* db, size_t* count) {
 
 void load_config(Config config)
 {
-    char* sql = clib_buffer_init();
-    clib_str_append(&sql, "UPDATE Config SET ");
+    char* sql = str_buffer_init();
+    str_append(&sql, "UPDATE Config SET ");
 
-    char* value = clib_format_text("%s = %d", CONFIG_ALWAYS_EXPORT, config.always_export);
-    clib_str_append(&sql, value);
+    char* value = str_format("%s = %d", CONFIG_ALWAYS_EXPORT, config.always_export);
+    str_append(&sql, value);
     free(value);
 
-    clib_str_append(&sql, ", ");
+    str_append(&sql, ", ");
 
-    value = clib_format_text("%s = %d", CONFIG_ALWAYS_PUSH, config.always_push);
-    clib_str_append(&sql, value);
+    value = str_format("%s = %d", CONFIG_ALWAYS_PUSH, config.always_push);
+    str_append(&sql, value);
     free(value);
 
-    clib_str_append(&sql, ", ");
+    str_append(&sql, ", ");
 
-    value = clib_format_text("%s = '%s'", CONFIG_EDITOR, (config.editor != NULL) ? config.editor : "vim");
-    clib_str_append(&sql, value);
+    char* editor_q = sql_quote((config.editor != NULL) ? config.editor : "vim");
+    value = str_format("%s = %s", CONFIG_EDITOR, editor_q);
+    str_append(&sql, value);
+    free(editor_q);
     free(value);
 
-    clib_str_append(&sql, " WHERE id = 1;");
+    str_append(&sql, " WHERE id = 1;");
 
-    sqlite_execute_sql(SQLITE_DB, sql);
+    db_execute(sql);
     free(sql);
-}
-
-_Bool is_sql_injection(const char* input)
-{
-    // const char* sql_keywords[] = {"SELECT", "FROM", "WHERE", "UNION", "INSERT", "UPDATE", "DELETE", "DROP", "TRUNCATE", "EXEC", "PROCEDURE", "DECLARE"};
-    // int num_keywords = sizeof(sql_keywords) / sizeof(sql_keywords[0]);
-    //
-    // for (int i = 0; i < num_keywords; i++) {
-    //     if (strcasestr(input, sql_keywords[i]) != NULL) {
-    //         return true;
-    //     }
-    // }
-
-    // for (size_t i = 0; i < strlen(input); i++) {
-    //     if (!isalnum(input[i]) && input[i] != ' ' && input[i] != '\'' && input[i] != '"' && input[i] != '_' && input[i] != '-' && input[i] != '%') {
-    //         return true;
-    //     }
-    // }
-
-    return false;
 }

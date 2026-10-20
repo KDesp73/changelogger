@@ -1,9 +1,11 @@
 #include "database.h"
 #include <string.h>
-#define CLIB_IMPLEMENTATION
-#include "extern/clib.h"
+#include "extern/fs.h"
+#include "extern/logging.h"
+#include "extern/str.h"
 #include "config.h"
 #include "utils.h"
+#include <stdbool.h>
 #include <yaml.h>
 
 
@@ -13,8 +15,10 @@ int install_autocompletion(Shell shell)
     switch (shell) {
         case SHELL_ZSH:
             path = ZSH_AUTOCOMPLETE_PATH;
+            break;
         case SHELL_BASH:
             path = BASH_AUTOCOMPLETE_PATH;
+            break;
         case SHELL_FISH:
             path = FISH_AUTOCOMPLETE_PATH;
             break;
@@ -23,8 +27,16 @@ int install_autocompletion(Shell shell)
             return 0;
     }
 
-    char* command = clib_format_text("curl -s https://raw.githubusercontent.com/KDesp73/changelogger/main/docs/_changelogger.%s -o %s", shell_to_string(shell), path);
-    clib_execute_command(command);
+    char* command = str_format("curl -s https://raw.githubusercontent.com/KDesp73/changelogger/main/docs/_changelogger.%s -o %s", shell_to_string(shell), path);
+    char* output = NULL;
+    int status = execute_command_capture(command, &output);
+    free(command);
+    free(output);
+
+    if (status != 0) {
+        WARN("Failed to download the autocompletion script for %s", shell_to_string(shell));
+        return 0;
+    }
     return 1;
 }
 
@@ -72,7 +84,7 @@ int config_found(const char* path)
 {
     if(path == NULL) return false;
 
-    return clib_file_exists(path);
+    return fs_file_exists(path);
 }
 
 
@@ -90,7 +102,7 @@ Config parse_config(const char* path)
 {
     const char* default_config = CHANGELOGGER_DEFAULT_CONFIG_PATH;
     const char* file = (path == NULL) ? default_config : path;
-    const char* yaml_data = clib_read_file(file, "r");
+    const char* yaml_data = fs_read_file(file, "r");
 
     free((char*) default_config);
 

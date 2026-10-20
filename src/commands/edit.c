@@ -4,6 +4,31 @@
 
 void command_edit(Options options)
 {
+    /*
+     * Entries may only point at versions that exist in Releases. Letting an
+     * arbitrary version through (which used to work) left entries orphaned and
+     * made `export` crash on the missing release date. "0.0.0" is how
+     * `parse_version` represents the unreleased version, so it is exempt too.
+     */
+    _Bool unreleased = version_full_set(options) &&
+                       (STREQ(options.version.full, VERSION_UNRELEASED) ||
+                        STREQ(options.version.full, "0.0.0"));
+
+    if (version_full_set(options) && !unreleased) {
+        char* version_q = sql_quote(options.version.full);
+        char* condition = str_format("version = %s", version_q);
+        char* release = select_str(TABLE_RELEASES, RELEASES_VERSION, condition);
+        free(condition);
+        free(version_q);
+
+        if (release == NULL) {
+            ERRO("There is no release with version '%s'", options.version.full);
+            INFO("Create it with '%s release --new patch' or import a changelog that contains it", EXECUTABLE_NAME);
+            exit(1);
+        }
+        free(release);
+    }
+
     Options list_options = {
         .version.full = VERSION_UNRELEASED,
         .argc = !options.all,
@@ -39,13 +64,19 @@ void command_edit(Options options)
     while (1) {
         printf("Enter index to edit: ");
         if (scanf("%9s", index_str) != 1) {
-            ERRO("Error reading input.\n");
+            if (input_finished()) {
+                putchar('\n');
+                ERRO("No input available, aborting");
+                free(entries);
+                exit(1);
+            }
+            ERRO("Error reading input.");
             clear_input_buffer();
             continue;
         }
 
         if (!is_number(index_str)) {
-            ERRO("'%s' is not a number\n", index_str);
+            ERRO("'%s' is not a number", index_str);
             clear_input_buffer();
             continue;
         }
@@ -64,24 +95,24 @@ void command_edit(Options options)
     _Bool arguments_used = status_set(options) || options.title != NULL || version_full_set(options);
     if(arguments_used){
         if(options.title != NULL){
-            char* condition = clib_format_text("message = '%s' AND date = '%s'", entries[index-1].message, entries[index-1].date.full);
-            char* formated_message = clib_format_text("'%s'", options.title);
+            char* condition = entry_condition(entries[index-1].message, entries[index-1].date.full);
+            char* formated_message = sql_quote(options.title);
             update(TABLE_ENTRIES, ENTRIES_MESSAGE, formated_message, condition);
             free(formated_message);
             free(condition);
         }
         
         if(status_set(options)){
-            char* condition = clib_format_text("message = '%s' AND date = '%s'", entries[index-1].message, entries[index-1].date.full);
-            char* formated_status = clib_format_text("%d", options.status);
+            char* condition = entry_condition(entries[index-1].message, entries[index-1].date.full);
+            char* formated_status = str_format("%d", options.status);
             update(TABLE_ENTRIES, ENTRIES_STATUS, formated_status, condition);
             free(formated_status);
             free(condition);
         }
 
         if(version_full_set(options)){
-            char* condition = clib_format_text("message = '%s' AND date = '%s'", entries[index-1].message, entries[index-1].date.full);
-            char* formated_version = clib_format_text("'%s'", options.version.full);
+            char* condition = entry_condition(entries[index-1].message, entries[index-1].date.full);
+            char* formated_version = sql_quote(unreleased ? VERSION_UNRELEASED : options.version.full);
             update(TABLE_ENTRIES, ENTRIES_VERSION, formated_version, condition);
             free(formated_version);
             free(condition);
@@ -93,7 +124,13 @@ void command_edit(Options options)
     while (1) {
         printf("Select value to edit {(t)itle | (s)tatus}: ");
         if (scanf("%1s", choice) != 1) {
-            ERRO("Error reading input.\n");
+            if (input_finished()) {
+                putchar('\n');
+                ERRO("No input available, aborting");
+                free(entries);
+                exit(1);
+            }
+            ERRO("Error reading input.");
             clear_input_buffer();
             continue;
         }
@@ -101,7 +138,7 @@ void command_edit(Options options)
         if (choice[0] == 't' || choice[0] == 's') {
             break;
         } else {
-            ERRO("'%s' is not a valid option. Please enter 't' or 's'.\n", choice);
+            ERRO("'%s' is not a valid option. Please enter 't' or 's'.", choice);
             clear_input_buffer();
         }
     }
@@ -115,6 +152,13 @@ void command_edit(Options options)
             printf("Enter new message: ");
             ssize_t read = getline(&message, &message_cap, stdin);
             if (read == -1) {
+                if (input_finished()) {
+                    putchar('\n');
+                    ERRO("No input available, aborting");
+                    free(message);
+                    free(entries);
+                    exit(1);
+                }
                 fprintf(stderr, "Error reading input.\n");
                 continue;
             }
@@ -127,11 +171,10 @@ void command_edit(Options options)
                 ERRO("New message cannot be blank\n");
                 continue;
             }
-            CHECK_SQL_INJECTION(message);
             break;
         }
 
-        char* condition = clib_format_text("message = '%s' AND date = '%s'", entries[index-1].message, entries[index-1].date.full);
+        char* condition = entry_condition(entries[index-1].message, entries[index-1].date.full);
         char* formated_message = sql_quote(message);
         update(TABLE_ENTRIES, ENTRIES_MESSAGE, formated_message, condition);
         free(formated_message);
@@ -143,6 +186,12 @@ void command_edit(Options options)
         while(1){
             printf("Enter new status: ");
             if (fgets(status, sizeof(status), stdin) == NULL) {
+                if (input_finished()) {
+                    putchar('\n');
+                    ERRO("No input available, aborting");
+                    free(entries);
+                    exit(1);
+                }
                 fprintf(stderr, "Error reading input.\n");
                 continue;
             }
@@ -162,8 +211,8 @@ void command_edit(Options options)
             break;
         }
 
-        char* condition = clib_format_text("message = '%s' AND date = '%s'", entries[index-1].message, entries[index-1].date.full);
-        char* formated_status = clib_format_text("%d", s);
+        char* condition = entry_condition(entries[index-1].message, entries[index-1].date.full);
+        char* formated_status = str_format("%d", s);
         update(TABLE_ENTRIES, ENTRIES_STATUS, formated_status, condition);
         free(formated_status);
         free(condition);

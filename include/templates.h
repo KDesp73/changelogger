@@ -1,24 +1,25 @@
 #ifndef TEMPLATES_H
 #define TEMPLATES_H
 
+#include "extern/str.h"
 #include "status.h"
 
 #define TEMPLATE_YANKED "[YANKED]"
 
 #define TEMPLATE_RELEASE(version, date, yanked) \
-    clib_format_text("\n## [%s] - %s %s", version, date, (yanked) ? TEMPLATE_YANKED : "")
+    str_format("\n## [%s] - %s%s", version, date, (yanked) ? " " TEMPLATE_YANKED : "")
 
 #define TEMPLATE_UNRELEASED "\n## [Unreleased]"
 
 #define TEMPLATE_ENTRY(title) \
-    clib_format_text("- %s", title)
+    str_format("- %s", title)
 
 char* template_status(Status status);
 #define TEMPLATE_STATUS(status) \
     template_status(status)
 
 #define TEMPLATE_RELEASE_LINK(version, link) \
-    clib_format_text("[%s]: %s", version, link)
+    str_format("[%s]: %s", version, link)
 
 #define TEMPLATE_HEADER "# Changelog\n"
 

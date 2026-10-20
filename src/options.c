@@ -1,7 +1,7 @@
 #include "options.h"
-#define CLIB_IMPLEMENTATION
-#include "extern/clib.h"
+#include "extern/str.h"
 #include "status.h"
+#include <stdbool.h>
 #include <stdio.h>
 
 
@@ -17,7 +17,7 @@ void log_options(Options options)
 
 int always_push_set(Options options)
 {
-    char* option = clib_format_text("-%c", ABBR_ALWAYS_PUSH);
+    char* option = str_format("-%c", ABBR_ALWAYS_PUSH);
     for(size_t i = 0; i < options.argc; ++i){
         if(
             STREQ(options.argv[i], "--always-push") ||
@@ -30,7 +30,7 @@ int always_push_set(Options options)
 
 int always_export_set(Options options)
 {
-    char* option = clib_format_text("-%c", ABBR_ALWAYS_EXPORT);
+    char* option = str_format("-%c", ABBR_ALWAYS_EXPORT);
     for(size_t i = 0; i < options.argc; ++i){
         if(
             STREQ(options.argv[i], "--always-export") ||
@@ -43,7 +43,7 @@ int always_export_set(Options options)
 
 int status_set(Options options)
 {
-    char* option = clib_format_text("-%c", ABBR_STATUS);
+    char* option = str_format("-%c", ABBR_STATUS);
     for(size_t i = 0; i < options.argc; ++i){
         if(
             STREQ(options.argv[i], "--status") ||
@@ -56,7 +56,7 @@ int status_set(Options options)
 
 int version_full_set(Options options)
 {
-    char* option = clib_format_text("-%c", ABBR_VERSION_FULL);
+    char* option = str_format("-%c", ABBR_VERSION_FULL);
     for(size_t i = 0; i < options.argc; ++i){
         if(
             STREQ(options.argv[i], "--version-full") ||
