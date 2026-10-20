@@ -70,7 +70,10 @@ compile_commands.json: $(SRC_FILES)
 	bear -- make
 
 install:
-	./config.sh install
+	./configure install
+
+uninstall:
+	./configure uninstall
 
 autocomplete:
 	complgen aot ./docs/changelogger.usage --zsh-script ./docs/_changelogger.zsh
@@ -78,6 +81,6 @@ autocomplete:
 	complgen aot ./docs/changelogger.usage --fish-script ./docs/_changelogger.fish
 
 # Phony target to avoid conflicts with file names
-.PHONY: all clean install autocomplete compile_commands.json
+.PHONY: all clean install uninstall autocomplete compile_commands.json
 
 -include $(DEP_FILES)
