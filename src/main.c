@@ -18,45 +18,11 @@
 void help_message(Command command)
 {
     switch (command) {
-        case COMMAND_ADD:
-            add_help();
-            break;
-        case COMMAND_LIST:
-            list_help();
-            break;
-        case COMMAND_SET:
-            set_help();
-            break;
-        case COMMAND_GET:
-            get_help();
-            break;
-        case COMMAND_DELETE:
-            delete_help();
-            break;
-        case COMMAND_RELEASE:
-            release_help();
-            break;
-        case COMMAND_EXPORT:
-            export_help();
-            break;
-        case COMMAND_EDIT:
-            edit_help();
-            break;
-        case COMMAND_PUSH:
-            push_help();
-            break;
-        case COMMAND_GENERATE:
-            generate_help();
-            break;
-        case COMMAND_IMPORT:
-            import_help();
-            break;
-        case COMMAND_UPDATE:
-            update_help();
-            break;
+#define COMMAND(upper, lower, usage, description, helpfn) case COMMAND_##upper: helpfn(); break;
+#include "commands.inc"
+#undef COMMAND
         case COMMAND_UNSET:
         case COMMAND_UNKNOWN:
-        case COMMAND_INIT:
         default:
             help();
             break;

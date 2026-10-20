@@ -1,9 +1,11 @@
 #include "help.h"
+#include "commands.h"
 #include "config.h"
 #include "options.h"
 #include "extern/ansi.h"
 #include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
 
 #define PTN(format, ...) \
     do { \
@@ -25,19 +27,17 @@ void help()
     PTN("");
 
     PTN("%sCOMMANDS%s", ANSI_BOLD, ANSI_RESET);
-    PTNI("init                          Initializes the changelog");
-    PTNI("add <msg> [<options>]         Adds an entry");
-    PTNI("list [<options>]              Lists all entries");
-    PTNI("edit <options>                Edit any of the unreleased entries");
-    PTNI("delete <options>              Delete any of the unreleased entries");
-    PTNI("set <options>                 Sets a variable");     
-    PTNI("get <options>                 Returns a variable");
-    PTNI("release <options>             Creates a new release");
-    PTNI("push <options>                Push an unpushed release to Github");
-    PTNI("export [<options>]            Exports the CHANGELOG.md file");
-    PTNI("generate <value>              Generate various files");
-    PTNI("import <options>              Import CHANGELOG.md file into the database");
-    PTNI("update                        Updated changelogger to the latest version");
+
+    size_t count = 0;
+    const CommandSpec* commands = command_specs(&count);
+    size_t width = 30;
+    for (size_t i = 0; i < count; ++i) {
+        size_t len = strlen(commands[i].usage) + 2;
+        if (len > width) width = len;
+    }
+    for (size_t i = 0; i < count; ++i) {
+        PTNI("%-*s%s", (int) width, commands[i].usage, commands[i].description);
+    }
 
     PTN("");
 

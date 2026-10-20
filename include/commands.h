@@ -9,38 +9,18 @@
 typedef enum {
     COMMAND_UNSET = -2,
     COMMAND_UNKNOWN = -1,
-    COMMAND_INIT,
-    COMMAND_ADD,
-    COMMAND_LIST,
-    COMMAND_SET,
-    COMMAND_GET,
-    COMMAND_DELETE,
-    COMMAND_RELEASE,
-    COMMAND_EXPORT,
-    COMMAND_EDIT,
-    COMMAND_PUSH,
-    COMMAND_GENERATE,
-    COMMAND_IMPORT,
-    COMMAND_UPDATE,
+#define COMMAND(upper, lower, usage, description, helpfn) COMMAND_##upper,
+#include "commands.inc"
+#undef COMMAND
 } Command;
 
 void execute_command(Command command, Options options);
 Command get_command(char* command);
 char* command_to_string(Command command);
 
-void command_init(Options options);
-void command_add(Options options);
-void command_set(Options options);
-void command_list(Options options);
-void command_delete(Options options);
-void command_release(Options options);
-void command_export(Options options);
-void command_get(Options options);
-void command_edit(Options options);
-void command_push(Options options);
-void command_generate(Options options);
-void command_import(Options options);
-void command_update(Options options);
+#define COMMAND(upper, lower, usage, description, helpfn) void command_##lower(Options options);
+#include "commands.inc"
+#undef COMMAND
 
 /**
  * NULL is true
@@ -52,5 +32,17 @@ char* is_usable(
     Command command, 
     Command* compatible_commands, size_t commands_size
 );
+
+/* One entry per command: how it is dispatched and how help lists it */
+typedef struct {
+    Command command;
+    const char* name;
+    const char* usage;
+    const char* description;
+    HandlerFunc handler;
+} CommandSpec;
+
+const CommandSpec* command_specs(size_t* count);
+Dispatcher* command_dispatcher(void);
 
 #endif // COMMANDS_H
