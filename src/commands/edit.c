@@ -73,7 +73,7 @@ void command_edit(Options options)
         
         if(status_set(options)){
             char* condition = entry_condition(entries[index-1].message, entries[index-1].date.full);
-            char* formated_status = clib_format_text("%d", options.status);
+            char* formated_status = str_format("%d", options.status);
             update(TABLE_ENTRIES, ENTRIES_STATUS, formated_status, condition);
             free(formated_status);
             free(condition);
@@ -81,7 +81,7 @@ void command_edit(Options options)
 
         if(version_full_set(options)){
             char* condition = entry_condition(entries[index-1].message, entries[index-1].date.full);
-            char* formated_version = clib_format_text("'%s'", options.version.full);
+            char* formated_version = str_format("'%s'", options.version.full);
             update(TABLE_ENTRIES, ENTRIES_VERSION, formated_version, condition);
             free(formated_version);
             free(condition);
@@ -162,7 +162,7 @@ void command_edit(Options options)
         }
 
         char* condition = entry_condition(entries[index-1].message, entries[index-1].date.full);
-        char* formated_status = clib_format_text("%d", s);
+        char* formated_status = str_format("%d", s);
         update(TABLE_ENTRIES, ENTRIES_STATUS, formated_status, condition);
         free(formated_status);
         free(condition);

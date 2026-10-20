@@ -1,7 +1,12 @@
-#include "extern/clib.h"
+#define STR_IMPLEMENTATION
+#define FS_IMPLEMENTATION
+#include "extern/str.h"
+#include "extern/fs.h"
+#include "extern/logging.h"
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 #include <sys/wait.h>
 
@@ -123,7 +128,7 @@ void append_line(const char* file, const char* line, size_t index)
     fclose(fp);
 }
 
-// TODO: add to clib.h
+// NOTE: candidate for include/extern/str.h
 int is_blank(const char *str) 
 {
     if (str == NULL) {
@@ -345,9 +350,9 @@ char* shell_quote(const char* input)
 
 /*
  * Run `command` through the shell, capture its stdout and return its
- * exit status (or -1 if it could not be run). Unlike
- * clib_execute_command(), the status is the real one: it comes from
- * pclose(), not from a second shell running `echo $?`.
+ * exit status (or -1 if it could not be run). The status is the real
+ * one: it comes from pclose(), not from a second shell running
+ * `echo $?`.
  *
  * If `output` is non-NULL the captured stdout is stored there (caller
  * frees); otherwise it is discarded. The command's stderr is left

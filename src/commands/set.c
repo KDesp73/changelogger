@@ -17,13 +17,13 @@ void command_set(Options options)
     }
 
     if(always_export_set(options)){
-        char* value = clib_format_text("%d", options.always_export);
+        char* value = str_format("%d", options.always_export);
         update(TABLE_CONFIG, CONFIG_ALWAYS_EXPORT, value, CONFIG_CONDITION);
         free(value);
     }
 
     if(always_push_set(options)){
-        char* value = clib_format_text("%d", options.always_push);
+        char* value = str_format("%d", options.always_push);
         update(TABLE_CONFIG, CONFIG_ALWAYS_PUSH, value, CONFIG_CONDITION);
         free(value);
     }

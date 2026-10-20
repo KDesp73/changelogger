@@ -1,7 +1,9 @@
 #ifndef COMMANDS_H
 #define COMMANDS_H
-#define CLIB_IMPLEMENTATION
-#include "extern/clib.h"
+#include "extern/cli.h"
+#include "extern/fs.h"
+#include "extern/logging.h"
+#include "extern/str.h"
 #include "options.h"
 
 typedef enum {
@@ -46,7 +48,7 @@ void command_update(Options options);
  */
 char* is_usable(
     ArgumentAbbr abbr, 
-    CliArguments args,
+    cli_args_t args,
     Command command, 
     Command* compatible_commands, size_t commands_size
 );

@@ -2,9 +2,11 @@
 #include "status.h"
 #include <stdlib.h>
 #include <string.h>
-#define CLIB_IMPLEMENTATION
-#include "extern/clib.h"
+#include "extern/logging.h"
+#include "extern/str.h"
+#include <stdbool.h>
 #include <cjson/cJSON.h>
+#include "utils.h"
 
 #define INITIAL_CAPACITY 16
 
@@ -86,11 +88,13 @@ Changelog parse(const char* file)
 {
     Changelog changelog = {0};
 
-    char* command = clib_format_text("/usr/bin/clparse -f json %s", file);
-    char* json_string = clib_execute_command(command);
+    char* command = str_format("/usr/bin/clparse -f json %s", file);
+    char* json_string = NULL;
+    int status = execute_command_capture(command, &json_string);
     free(command);
 
-    if (json_string == NULL) {
+    if (status != 0 || json_string == NULL) {
+        free(json_string);
         ERRO("Failed to parse %s", file);
         return changelog;
     }
@@ -207,7 +211,7 @@ void log_changelog(Changelog changelog)
         ParserRelease r = changelog.releases[i];
         printf("Release v%s\n", (r.version == NULL) ? "Unreleased" : r.version);
         printf("  Link: %s\n", (r.link == NULL) ? "NULL" : r.link);
-        printf("  Yanked: %s\n", BOOL(r.yanked));
+        printf("  Yanked: %s\n", r.yanked ? "true" : "false");
         printf("  Date: %s\n", (r.date == NULL) ? "NULL" : r.date);
         printf("  Changes:\n");
         for (size_t j = 0; j < r.change_count; ++j) {

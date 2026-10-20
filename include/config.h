@@ -1,6 +1,8 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#include "extern/str.h"
+
 #define EXECUTABLE_NAME "changelogger"
 #define VERSION "0.0.20"
 
@@ -11,7 +13,7 @@
 #define SQLITE_DB ".changelog/changelog.db"
 #define TEMP_FILE ".changelog/commits.md"
 #define CHANGELOGGER_DEFAULT_CONFIG_PATH \
-    clib_format_text("%s/.config/.changelogger.yml", getenv("HOME"))
+    str_format("%s/.config/.changelogger.yml", getenv("HOME"))
 
 #define BASH_AUTOCOMPLETE_PATH "/etc/bash_completion.d/changelogger.bash"
 #define ZSH_AUTOCOMPLETE_PATH "/usr/share/zsh/functions/Completion/_changelogger"

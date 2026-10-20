@@ -1,6 +1,5 @@
 #include "commands.h"
 #include "database.h"
-#include "extern/clib.h"
 #include "utils.h"
 #include "push_utils.h"
 
@@ -71,7 +70,7 @@ int push_release(const char* version, const char* asset)
 
     char* gh_command = NULL;
     if (asset_arg != NULL) {
-        gh_command = clib_format_text(
+        gh_command = str_format(
             "gh release create v%s %s -F %s/%s.md -t v%s",
             version,
             asset_arg,
@@ -80,7 +79,7 @@ int push_release(const char* version, const char* asset)
             version
         );
     } else {
-        gh_command = clib_format_text(
+        gh_command = str_format(
             "gh release create v%s -F %s/%s.md -t v%s",
             version,
             CHANGELOG_DIR,
@@ -112,7 +111,7 @@ int push_release(const char* version, const char* asset)
 void handle_push_release(const char* version, Options options)
 {
     char* version_q = sql_quote(version);
-    char* condition = clib_format_text("version = %s", version_q);
+    char* condition = str_format("version = %s", version_q);
     free(version_q);
     int pushed = select_int(TABLE_RELEASES, RELEASES_PUSHED, condition);
 

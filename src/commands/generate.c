@@ -1,5 +1,6 @@
 #include "commands.h"
 #include "config.h"
+#include <stdbool.h>
 
 void command_generate(Options options)
 {
@@ -39,7 +40,7 @@ void command_generate(Options options)
             return;
         }
 
-        clib_write_file(default_path, config, "w");
+        fs_write_file(default_path, config, "w");
         free(default_path);
     } else if(STREQ(value, "autocomplete")){
         if (getuid() != 0) {

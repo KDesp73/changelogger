@@ -67,7 +67,7 @@ void load_releases(Changelog changelog)
         query_builder_t* qb = create_query_builder();
         insert_q(qb, TABLE_RELEASES);
         columns_q(qb, "version, date, pushed, yanked");
-        char* values = clib_format_text("%s, %s, 0, %d", version_q, date_q, r.yanked);
+        char* values = str_format("%s, %s, 0, %d", version_q, date_q, r.yanked);
         values_q(qb, values);
         char* sql = build_query(qb);
         sqlite_execute_sql(SQLITE_DB, sql);
@@ -110,7 +110,7 @@ void load_entries(Changelog changelog)
             query_builder_t* qb = create_query_builder();
             insert_q(qb, TABLE_ENTRIES);
             columns_q(qb, "message, status, version, date");
-            char* values = clib_format_text(
+            char* values = str_format(
                 "%s, %d, %s, %s",
                 message_q,
                 entry_status,
@@ -154,9 +154,9 @@ void load_version(Changelog changelog)
 
     printf("Loading version %s\n", v.full);
 
-    char* major = clib_format_text("%zu", v.major);
-    char* minor = clib_format_text("%zu", v.minor);
-    char* patch = clib_format_text("%zu", v.patch);
+    char* major = str_format("%zu", v.major);
+    char* minor = str_format("%zu", v.minor);
+    char* patch = str_format("%zu", v.patch);
 
     update(TABLE_CONFIG, CONFIG_VERSION_MAJOR, major, CONFIG_CONDITION);
     update(TABLE_CONFIG, CONFIG_VERSION_MINOR, minor, CONFIG_CONDITION);

@@ -37,7 +37,7 @@ void command_release(Options options)
         insert_release(0);
 
         char* version_q = sql_quote(version);
-        char* query = clib_format_text("UPDATE Entries SET version = %s WHERE version = 'unreleased'", version_q);
+        char* query = str_format("UPDATE Entries SET version = %s WHERE version = 'unreleased'", version_q);
         free(version_q);
         sqlite_execute_sql(SQLITE_DB, query);
         free(query);
@@ -62,7 +62,7 @@ void command_release(Options options)
     if(options.yank != NULL){
         char* version = (char*)options.yank;
         char* version_q = sql_quote(version);
-        char* condition = clib_format_text("version = %s", version_q);
+        char* condition = str_format("version = %s", version_q);
         free(version_q);
         int yanked = select_int(TABLE_RELEASES, RELEASES_YANKED, condition);
 
@@ -80,7 +80,7 @@ void command_release(Options options)
     if(options.unyank != NULL){
         char* version = (char*)options.unyank;
         char* version_q = sql_quote(version);
-        char* condition = clib_format_text("version = %s", version_q);
+        char* condition = str_format("version = %s", version_q);
         free(version_q);
         int yanked = select_int(TABLE_RELEASES, RELEASES_YANKED, condition);
 
@@ -106,7 +106,7 @@ char* update_config_version(const char* release_type)
         update(TABLE_CONFIG, CONFIG_VERSION_PATCH, "0", CONFIG_CONDITION);
 
         size_t major = select_version_major(db);
-        char* major_inc = clib_format_text("%zu", major+1);
+        char* major_inc = str_format("%zu", major+1);
         update(TABLE_CONFIG, CONFIG_VERSION_MAJOR, major_inc, CONFIG_CONDITION);
         free(major_inc);
     }
@@ -116,14 +116,14 @@ char* update_config_version(const char* release_type)
         update(TABLE_CONFIG, CONFIG_VERSION_PATCH, "0", CONFIG_CONDITION);
 
         size_t minor = select_version_minor(db);
-        char* minor_inc = clib_format_text("%zu", minor+1);
+        char* minor_inc = str_format("%zu", minor+1);
         update(TABLE_CONFIG, CONFIG_VERSION_MINOR, minor_inc, CONFIG_CONDITION);
         free(minor_inc);
     }
 
     if(STREQ(release_type, "patch")) {
         size_t patch = select_version_patch(db);
-        char* patch_inc = clib_format_text("%zu", patch+1);
+        char* patch_inc = str_format("%zu", patch+1);
         update(TABLE_CONFIG, CONFIG_VERSION_PATCH, patch_inc, CONFIG_CONDITION);
         free(patch_inc);
     }
@@ -149,7 +149,7 @@ void insert_release(_Bool pushed)
 
     char* version_q = sql_quote(version);
     char* date_q = sql_quote(date.full);
-    char* values = clib_format_text("%s, %s, %d", version_q, date_q, pushed);
+    char* values = str_format("%s, %s, %d", version_q, date_q, pushed);
     values_q(qb, values);
     char* query = build_query(qb);
 
@@ -171,7 +171,7 @@ void insert_release(_Bool pushed)
 void mark_release_pushed(const char* version)
 {
     char* version_q = sql_quote(version);
-    char* condition = clib_format_text("version = %s", version_q);
+    char* condition = str_format("version = %s", version_q);
     free(version_q);
 
     update(TABLE_RELEASES, RELEASES_PUSHED, "1", condition);

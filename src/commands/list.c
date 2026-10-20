@@ -34,19 +34,19 @@ void command_list(Options options)
     }
 
     if(version_full_set(options) || status_set(options)) {
-        condition = clib_buffer_init();
+        condition = str_buffer_init();
     }
 
     if(version_full_set(options)){
-        char* version = clib_format_text("version = '%s'", (STREQ(options.version.full, "0.0.0")) ? VERSION_UNRELEASED : options.version.full);
-        clib_str_append(&condition, version);
+        char* version = str_format("version = '%s'", (STREQ(options.version.full, "0.0.0")) ? VERSION_UNRELEASED : options.version.full);
+        str_append(&condition, version);
         free(version);
     }
 
     if(status_set(options)){
-        if(version_full_set(options)) clib_str_append(&condition, " AND ");
-        char* status = clib_format_text("status = %d", options.status);
-        clib_str_append(&condition, status);
+        if(version_full_set(options)) str_append(&condition, " AND ");
+        char* status = str_format("status = %d", options.status);
+        str_append(&condition, status);
         free(status);
     }
 

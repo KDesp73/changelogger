@@ -1,7 +1,6 @@
 #include "database.h"
 #include "date.h"
-#define CLIB_IMPLEMENTATION
-#include "extern/clib.h"
+#include "extern/str.h"
 #include "config.h"
 #include "extern/querybuilder.h"
 #include "extern/sqlite.h"
@@ -109,9 +108,9 @@ void update_version_full(const char* version)
 
     parse_version(&v);
     make_version(&v);
-    char* patch = clib_format_text("%zu", v.patch);
-    char* minor = clib_format_text("%zu", v.minor);
-    char* major = clib_format_text("%zu", v.major);
+    char* patch = str_format("%zu", v.patch);
+    char* minor = str_format("%zu", v.minor);
+    char* major = str_format("%zu", v.major);
 
     update(TABLE_CONFIG, CONFIG_VERSION_PATCH, patch, CONFIG_CONDITION);
     update(TABLE_CONFIG, CONFIG_VERSION_MINOR, minor, CONFIG_CONDITION);
@@ -142,7 +141,7 @@ char* select_config_path(sqlite3 *db)
 
 Entry* select_entries_order_by(sqlite3* db, const char* column, size_t *count)
 {
-    char *sql = clib_format_text("SELECT * FROM Entries ORDER BY %s;", column);
+    char *sql = str_format("SELECT * FROM Entries ORDER BY %s;", column);
     sqlite3_stmt *stmt;
     Entry *entries = NULL;
     size_t entry_count = 0;
@@ -168,19 +167,19 @@ Entry* select_entries_order_by(sqlite3* db, const char* column, size_t *count)
 
 Release* select_releases(sqlite3* db, const char* condition, const char* order_by, size_t *count)
 {
-    char *sql = clib_buffer_init();
-    clib_str_append(&sql, "SELECT * FROM Releases");
+    char *sql = str_buffer_init();
+    str_append(&sql, "SELECT * FROM Releases");
     if(condition != NULL){
-        char* where = clib_format_text(" WHERE %s", condition);
-        clib_str_append(&sql, where);
+        char* where = str_format(" WHERE %s", condition);
+        str_append(&sql, where);
         free(where);
     }
     if(order_by != NULL){
-        char* orderby = clib_format_text(" ORDER BY %s", order_by);
-        clib_str_append(&sql, orderby);
+        char* orderby = str_format(" ORDER BY %s", order_by);
+        str_append(&sql, orderby);
         free(orderby);
     }
-    clib_str_append(&sql, ";");
+    str_append(&sql, ";");
 
     sqlite3_stmt *stmt;
     Release* releases = NULL;
@@ -207,19 +206,19 @@ Release* select_releases(sqlite3* db, const char* condition, const char* order_b
 
 Entry* select_entries(sqlite3* db, const char* condition, const char* order_by, size_t *count)
 {
-    char *sql = clib_buffer_init();
-    clib_str_append(&sql, "SELECT * FROM Entries");
+    char *sql = str_buffer_init();
+    str_append(&sql, "SELECT * FROM Entries");
     if(condition != NULL){
-        char* where = clib_format_text(" WHERE %s", condition);
-        clib_str_append(&sql, where);
+        char* where = str_format(" WHERE %s", condition);
+        str_append(&sql, where);
         free(where);
     }
     if(order_by != NULL){
-        char* orderby = clib_format_text(" ORDER BY %s", order_by);
-        clib_str_append(&sql, orderby);
+        char* orderby = str_format(" ORDER BY %s", order_by);
+        str_append(&sql, orderby);
         free(orderby);
     }
-    clib_str_append(&sql, ";");
+    str_append(&sql, ";");
 
     sqlite3_stmt *stmt;
     Entry *entries = NULL;
@@ -247,7 +246,7 @@ Entry* select_entries(sqlite3* db, const char* condition, const char* order_by, 
 // Function to select entries by version
 Entry* select_entries_version(sqlite3* db, const char* version, size_t *count)
 {
-    char *sql = clib_format_text("SELECT * FROM Entries WHERE version = %s;", version);
+    char *sql = str_format("SELECT * FROM Entries WHERE version = %s;", version);
     sqlite3_stmt *stmt;
     Entry *entries = NULL;
     size_t entry_count = 0;
@@ -546,28 +545,28 @@ char** select_releases_version(sqlite3* db, size_t* count) {
 
 void load_config(Config config)
 {
-    char* sql = clib_buffer_init();
-    clib_str_append(&sql, "UPDATE Config SET ");
+    char* sql = str_buffer_init();
+    str_append(&sql, "UPDATE Config SET ");
 
-    char* value = clib_format_text("%s = %d", CONFIG_ALWAYS_EXPORT, config.always_export);
-    clib_str_append(&sql, value);
+    char* value = str_format("%s = %d", CONFIG_ALWAYS_EXPORT, config.always_export);
+    str_append(&sql, value);
     free(value);
 
-    clib_str_append(&sql, ", ");
+    str_append(&sql, ", ");
 
-    value = clib_format_text("%s = %d", CONFIG_ALWAYS_PUSH, config.always_push);
-    clib_str_append(&sql, value);
+    value = str_format("%s = %d", CONFIG_ALWAYS_PUSH, config.always_push);
+    str_append(&sql, value);
     free(value);
 
-    clib_str_append(&sql, ", ");
+    str_append(&sql, ", ");
 
     char* editor_q = sql_quote((config.editor != NULL) ? config.editor : "vim");
-    value = clib_format_text("%s = %s", CONFIG_EDITOR, editor_q);
-    clib_str_append(&sql, value);
+    value = str_format("%s = %s", CONFIG_EDITOR, editor_q);
+    str_append(&sql, value);
     free(editor_q);
     free(value);
 
-    clib_str_append(&sql, " WHERE id = 1;");
+    str_append(&sql, " WHERE id = 1;");
 
     sqlite_execute_sql(SQLITE_DB, sql);
     free(sql);

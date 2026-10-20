@@ -1,8 +1,8 @@
 #include "help.h"
 #include "config.h"
 #include "options.h"
-#define CLIB_IMPLEMENTATION
-#include "extern/clib.h"
+#include "extern/ansi.h"
+#include <stdbool.h>
 #include <stdio.h>
 
 #define PTN(format, ...) \
@@ -20,11 +20,11 @@
 
 void help()
 {
-    PTN("%sUSAGE%s", BOLD, RESET);
+    PTN("%sUSAGE%s", ANSI_BOLD, ANSI_RESET);
     PTNI("changelogger <command> <options> <value>");
     PTN("");
 
-    PTN("%sCOMMANDS%s", BOLD, RESET);
+    PTN("%sCOMMANDS%s", ANSI_BOLD, ANSI_RESET);
     PTNI("init                          Initializes the changelog");
     PTNI("add <msg> [<options>]         Adds an entry");
     PTNI("list [<options>]              Lists all entries");
@@ -41,7 +41,7 @@ void help()
 
     PTN("");
 
-    PTN("%sOPTIONS%s", BOLD, RESET);
+    PTN("%sOPTIONS%s", ANSI_BOLD, ANSI_RESET);
     PTNI("-h --help                     Prints this message");
     PTNI("-v --version                  Prints the project version");
 
@@ -52,7 +52,7 @@ void help()
 
 void add_help()
 {
-    PTN("%sOPTIONS%s", BOLD, RESET);
+    PTN("%sOPTIONS%s", ANSI_BOLD, ANSI_RESET);
     PTNI("-h --help                     Prints this message");
     PTNI("-C --commits                  Add unreleased commit messages taken from the `git shortlog` command");
     PTNI("-s --status <status>          Specify the status of the entry (default is 'added')");
@@ -66,10 +66,10 @@ void add_help()
 
 void set_help()
 {
-    PTN("%sUSAGE%s", BOLD, RESET);
+    PTN("%sUSAGE%s", ANSI_BOLD, ANSI_RESET);
     PTNI("%s set <option> <value>", EXECUTABLE_NAME);
     PTN("");
-    PTN("%sVARIABLES%s", BOLD, RESET);
+    PTN("%sVARIABLES%s", ANSI_BOLD, ANSI_RESET);
     PTNI("-h --help                          Prints this message");
     PTNI("-V --version-full <version>        Set the version of the project (WARN: Use with care)");
     PTNI("--config-dir <directory>           Specify the configuration file path");
@@ -84,10 +84,10 @@ void set_help()
 
 void list_help()
 {
-    PTN("%sUSAGE%s", BOLD, RESET);
+    PTN("%sUSAGE%s", ANSI_BOLD, ANSI_RESET);
     PTNI("%s list <option> <value>", EXECUTABLE_NAME);
     PTN("");
-    PTN("%sOPTIONS%s", BOLD, RESET);
+    PTN("%sOPTIONS%s", ANSI_BOLD, ANSI_RESET);
     PTNI("-h --help                     Prints this message");
     PTNI("-V --version-full <value>     Set the version to filter the list");
     PTNI("-s --status <value>           Set the status to filter the list");
@@ -96,20 +96,20 @@ void list_help()
 
 void delete_help()
 {
-    PTN("%sUSAGE%s", BOLD, RESET);
+    PTN("%sUSAGE%s", ANSI_BOLD, ANSI_RESET);
     PTNI("%s delete <options>", EXECUTABLE_NAME);
     PTN("");
-    PTN("%sOPTIONS%s", BOLD, RESET);
+    PTN("%sOPTIONS%s", ANSI_BOLD, ANSI_RESET);
     PTNI("-h --help             Prints this message");
     PTNI("-A --all              List all entries and have them available for deletion");
 }
 
 void get_help()
 {
-    PTN("%sUSAGE%s", BOLD, RESET);
+    PTN("%sUSAGE%s", ANSI_BOLD, ANSI_RESET);
     PTNI("%s get <variable>", EXECUTABLE_NAME);
     PTN("");
-    PTN("%sVARIABLES%s", BOLD, RESET);
+    PTN("%sVARIABLES%s", ANSI_BOLD, ANSI_RESET);
     PTNI("version               Latest release");
     PTNI("export                Always export CHANGELOG.md");
     PTNI("remote                The remote git repo url");
@@ -117,24 +117,24 @@ void get_help()
     PTNI("push                  Always push the release on Github");
     PTNI("editor                Editor to use when editing a file is needed");
     PTN("");
-    PTN("%sOPTIONS%s", BOLD, RESET);
+    PTN("%sOPTIONS%s", ANSI_BOLD, ANSI_RESET);
     PTNI("-h --help             Prints this message");
     PTNI("-A --all              Print all variables");
 }
 
 void export_help()
 {
-    PTN("%sOPTIONS%s", BOLD, RESET);
+    PTN("%sOPTIONS%s", ANSI_BOLD, ANSI_RESET);
     PTNI("-h --help                                             Prints this message");
     PTNI("-F --format {md | markdown | json | yml | yaml }      Specify in which format to export");
 }
 
 void push_help()
 {
-    PTN("%sUSAGE%s", BOLD, RESET);
+    PTN("%sUSAGE%s", ANSI_BOLD, ANSI_RESET);
     PTNI("%s push -V <version>", EXECUTABLE_NAME);
     PTN("");
-    PTN("%sOPTIONS%s", BOLD, RESET);
+    PTN("%sOPTIONS%s", ANSI_BOLD, ANSI_RESET);
     PTNI("-h --help             Prints this message");
     PTNI("-V --version-full     Specify the version of the release you want to push");
     PTNI("-y --yes              Skip the confirmation message");
@@ -143,10 +143,10 @@ void push_help()
 
 void release_help()
 {
-    PTN("%sUSAGE%s", BOLD, RESET);
+    PTN("%sUSAGE%s", ANSI_BOLD, ANSI_RESET);
     PTNI("%s release --new {major | minor | patch} [-p]", EXECUTABLE_NAME);
     PTN("");
-    PTN("%sOPTIONS%s", BOLD, RESET);
+    PTN("%sOPTIONS%s", ANSI_BOLD, ANSI_RESET);
     PTNI("-h --help                         Prints this message");
     PTNI("-N --new {major | minor | patch}  Creates a new release");
     PTNI("-p --push                         Push the release on github");
@@ -158,10 +158,10 @@ void release_help()
 
 void edit_help()
 {
-    PTN("%sUSAGE%s", BOLD, RESET);
+    PTN("%sUSAGE%s", ANSI_BOLD, ANSI_RESET);
     PTNI("%s edit <options>", EXECUTABLE_NAME);
     PTN("");
-    PTN("%sOPTIONS%s", BOLD, RESET);
+    PTN("%sOPTIONS%s", ANSI_BOLD, ANSI_RESET);
     PTNI("-h --help             Prints this message");
     PTNI("-s --status           Specify new status");
     PTNI("-t --title            Specify new title/message");
@@ -171,10 +171,10 @@ void edit_help()
 
 void generate_help()
 {
-    PTN("%sUSAGE%s", BOLD, RESET);
+    PTN("%sUSAGE%s", ANSI_BOLD, ANSI_RESET);
     PTNI("%s generate <value>", EXECUTABLE_NAME);
     PTN("");
-    PTN("%sVALUES%s", BOLD, RESET);
+    PTN("%sVALUES%s", ANSI_BOLD, ANSI_RESET);
     PTNI("config                A starting point for your config file (~/.changelogger.yml)");
     PTNI("autocomplete          Autocomplete for the active shell");
     PTNI("man                   Man page for %s", EXECUTABLE_NAME);
@@ -182,19 +182,19 @@ void generate_help()
 
 void import_help()
 {
-    PTN("%sUSAGE%s", BOLD, RESET);
+    PTN("%sUSAGE%s", ANSI_BOLD, ANSI_RESET);
     PTNI("%s import <options>", EXECUTABLE_NAME);
     PTN("");
-    PTN("%sOPTIONS%s", BOLD, RESET);
+    PTN("%sOPTIONS%s", ANSI_BOLD, ANSI_RESET);
     PTNI("-h --help             Prints this message");
     PTNI("-f --file <path>      File to import");
 }
 
 void update_help()
 {
-    PTN("%sUSAGE%s", BOLD, RESET);
+    PTN("%sUSAGE%s", ANSI_BOLD, ANSI_RESET);
     PTNI("%s update", EXECUTABLE_NAME);
     PTN("");
-    PTN("%sOPTIONS%s", BOLD, RESET);
+    PTN("%sOPTIONS%s", ANSI_BOLD, ANSI_RESET);
     PTNI("-h --help             Prints this message");
 }

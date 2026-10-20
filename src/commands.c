@@ -4,8 +4,7 @@
 #include <stdlib.h>
 #include <strings.h>
 #include <sys/wait.h>
-#define CLIB_IMPLEMENTATION
-#include "extern/clib.h"
+#include "extern/ansi.h"
 #include "commands.h"
 
 Command get_command(char* command)
@@ -125,35 +124,38 @@ char* command_to_string(Command command)
 
 char* is_usable(
     ArgumentAbbr abbr, 
-    CliArguments args,
+    cli_args_t args,
     Command command, 
     Command* compatible_commands, size_t commands_size
 )
 {
-    char* commands_str = clib_buffer_init();
+    char* commands_str = str_buffer_init();
     for(size_t i = 0; i < commands_size; ++i){
         char* com;
         if(i == 0)
-            com = clib_format_text("%s%s%s", BOLD, command_to_string(compatible_commands[i]), RESET);
+            com = str_format("%s%s%s", ANSI_BOLD, command_to_string(compatible_commands[i]), ANSI_RESET);
         else if(i == commands_size - 1)
-            com = clib_format_text(" or %s%s%s", BOLD, command_to_string(compatible_commands[i]), RESET);
+            com = str_format(" or %s%s%s", ANSI_BOLD, command_to_string(compatible_commands[i]), ANSI_RESET);
         else 
-            com = clib_format_text(", %s%s%s", BOLD, command_to_string(compatible_commands[i]), RESET);
+            com = str_format(", %s%s%s", ANSI_BOLD, command_to_string(compatible_commands[i]), ANSI_RESET);
 
-        clib_str_append(&commands_str, com);
+        str_append(&commands_str, com);
         free(com);
     }
 
     for(size_t i = 0; i < commands_size; ++i) {
-        if(command == compatible_commands[i]) return NULL;
+        if(command == compatible_commands[i]) {
+            free(commands_str);
+            return NULL;
+        }
     }
 
-    char* flag = NULL;
+    char* flag = "";
     for(size_t i = 0; i < args.count; i++){
         if(args.args[i]->abr == abbr) flag = args.args[i]->full;
     }
 
-    char* ret = clib_format_text("--%s can only be used with %s", flag, commands_str);
+    char* ret = str_format("--%s can only be used with %s", flag, commands_str);
     free(commands_str);
     return ret;
 }

@@ -15,7 +15,7 @@
 #define CLI_VERSION "0.0.2"
 
 #ifndef CLIAPI
-    #define CLIAPI static
+    #define CLIAPI extern
 #endif // CLIAPI
 
 typedef struct {

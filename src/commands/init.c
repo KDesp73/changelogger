@@ -5,11 +5,11 @@
 
 void command_init(Options options)
 {
-    if(!clib_directory_exists(CHANGELOG_DIR)) {
-        clib_create_directory(CHANGELOG_DIR);
+    if(!fs_directory_exists(CHANGELOG_DIR)) {
+        fs_create_directory(CHANGELOG_DIR);
     } else INFO("%s/ is located in this directory", CHANGELOG_DIR);
 
-    if(!clib_file_exists(SQLITE_DB)) {
+    if(!fs_file_exists(SQLITE_DB)) {
         sqlite_create_database(SQLITE_DB);
         sqlite_execute_sql(SQLITE_DB, GENERATION_QUERY);
     } else INFO("%s is already created", SQLITE_DB);

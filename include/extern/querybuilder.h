@@ -1,7 +1,6 @@
 #ifndef QUERYBUILDER_H
 #define QUERYBUILDER_H
 
-#include "clib.h"
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>

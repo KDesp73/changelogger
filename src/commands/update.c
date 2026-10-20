@@ -1,11 +1,20 @@
 #include "commands.h"
 #include "config.h"
-#include "extern/clib.h"
+#include "utils.h"
 
 void command_update(Options options)
 {
-    clib_execute_command("bash <(curl -s https://raw.githubusercontent.com/KDesp73/changelogger/refs/heads/main/config.sh) update");
+    char* output = NULL;
+    int status = execute_command_capture(
+        "bash <(curl -s https://raw.githubusercontent.com/KDesp73/changelogger/refs/heads/main/config.sh) update",
+        &output
+    );
+    free(output);
+
+    if (status != 0) {
+        ERRO("Failed to update %s", EXECUTABLE_NAME);
+        exit(1);
+    }
 
     INFO("%s updated successfully", EXECUTABLE_NAME);
-    return;
 }
