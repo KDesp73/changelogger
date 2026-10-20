@@ -8,7 +8,57 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <sys/wait.h>
+#include <unistd.h>
+
+static int is_executable_file(const char* path)
+{
+    struct stat st;
+
+    if (stat(path, &st) != 0) return 0;
+    if (!S_ISREG(st.st_mode)) return 0;
+
+    return access(path, X_OK) == 0;
+}
+
+/*
+ * Look `name` up in $PATH, like the `which` builtin. Returns a malloc'd
+ * path on success (caller frees), or NULL when the file cannot be found
+ * or executed. Names containing '/' are checked directly instead.
+ */
+char* find_executable(const char* name)
+{
+    if (name == NULL || name[0] == '\0') return NULL;
+
+    if (strchr(name, '/') != NULL) {
+        return is_executable_file(name) ? str_format("%s", name) : NULL;
+    }
+
+    const char* path = getenv("PATH");
+    if (path == NULL) return NULL;
+
+    const char* entry = path;
+    for (;;) {
+        const char* colon = strchr(entry, ':');
+        size_t len = (colon != NULL) ? (size_t)(colon - entry) : strlen(entry);
+
+        /* An empty PATH entry means the current directory */
+        const char* dir = (len == 0) ? "." : entry;
+        size_t dir_len = (len == 0) ? 1 : len;
+
+        char* candidate = str_format("%.*s/%s", (int)dir_len, dir, name);
+        if (candidate != NULL) {
+            if (is_executable_file(candidate)) return candidate;
+            free(candidate);
+        }
+
+        if (colon == NULL) break;
+        entry = colon + 1;
+    }
+
+    return NULL;
+}
 
 int is_number(const char *str) 
 {
@@ -173,6 +223,11 @@ void clear_input_buffer()
     while ((c = getchar()) != '\n' && c != EOF); // Discard characters until newline or EOF
 }
 
+int input_finished(void)
+{
+    return feof(stdin) || ferror(stdin);
+}
+
 int is_true(const char* str)
 {
     return (
@@ -194,7 +249,13 @@ int yes_or_no(const char* message)
     while (1) {
         printf("%s [y/n]: ", message);
         if (scanf("%1s", choice) != 1) {
-            ERRO("Error reading input.\n");
+            if (input_finished()) {
+                /* A closed stdin must not spin here forever */
+                putchar('\n');
+                WARN("No input available, assuming 'n'");
+                return 0;
+            }
+            ERRO("Error reading input.");
             clear_input_buffer();
             continue;
         }
@@ -202,7 +263,7 @@ int yes_or_no(const char* message)
         if (choice[0] == 'y' || choice[0] == 'n') {
             break;
         } else {
-            ERRO("'%s' is not a valid option. Please enter 'y' or 'n'.\n", choice);
+            ERRO("'%s' is not a valid option. Please enter 'y' or 'n'.", choice);
             clear_input_buffer();
         }
     }

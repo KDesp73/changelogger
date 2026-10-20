@@ -40,13 +40,19 @@ void command_delete(Options options)
     while (1) {
         printf("Enter index to delete: ");
         if (scanf("%9s", index_str) != 1) {
-            ERRO("Error reading input.\n");
+            if (input_finished()) {
+                putchar('\n');
+                ERRO("No input available, aborting");
+                free(entries);
+                exit(1);
+            }
+            ERRO("Error reading input.");
             clear_input_buffer();
             continue;
         }
 
         if (!is_number(index_str)) {
-            ERRO("'%s' is not a number\n", index_str);
+            ERRO("'%s' is not a number", index_str);
             clear_input_buffer();
             continue;
         }

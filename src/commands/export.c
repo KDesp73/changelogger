@@ -1,8 +1,10 @@
 #include "commands.h"
 #include "config.h"
 #include "database.h"
+#include "parser.h"
 #include "templates.h"
 #include "utils.h"
+#include <unistd.h>
 
 void export_markdown();
 
@@ -32,10 +34,26 @@ void command_export(Options options)
         return;
     }
 
-    char* command = str_format("/usr/bin/clparse -f %s %s", fmt, CHANGELOG_FILE);
+    char* clparse = find_executable("clparse");
+    if (clparse == NULL) {
+        ERRO("clparse not found in PATH. Install it from https://github.com/marcaddeo/clparse");
+        exit(1);
+    }
+
+    char* compatible = clparse_compatible_copy(CHANGELOG_FILE);
+    if (compatible == NULL) {
+        ERRO("Failed to read %s", CHANGELOG_FILE);
+        free(clparse);
+        exit(1);
+    }
+
+    char* command = str_format("%s -f %s %s", clparse, fmt, compatible);
+    free(clparse);
     char* export_string = NULL;
     int status = execute_command_capture(command, &export_string);
     free(command);
+    unlink(compatible);
+    free(compatible);
 
     if (status != 0) {
         free(export_string);
@@ -68,9 +86,28 @@ void export_markdown()
     str_append_ln(&buffer, TEMPLATE_NOTE);
     
     sqlite3* db;
-    sqlite3_open(SQLITE_DB, &db);
+    if (sqlite3_open(SQLITE_DB, &db) != SQLITE_OK) {
+        ERRO("Failed to open %s: %s", SQLITE_DB, sqlite3_errmsg(db));
+        free(buffer);
+        sqlite3_close(db);
+        exit(1);
+    }
+
     size_t count;
-    Entry* entries = select_entries_order_by(db, "version DESC, status ASC, date DESC", &count);
+    int failed = 0;
+    Entry* entries = select_entries_order_by(db, "version DESC, status ASC, date DESC", &count, &failed);
+
+    /*
+     * A failed read must never touch the existing CHANGELOG.md: writing the
+     * header only would silently discard the whole changelog.
+     */
+    if (failed) {
+        ERRO("Failed to read the entries from %s: %s", SQLITE_DB, sqlite3_errmsg(db));
+        free(buffer);
+        sqlite3_close(db);
+        exit(1);
+    }
+
     if(entries == NULL) {
         INFO("Nothing to export");
         fs_write_file(CHANGELOG_FILE, buffer, "w");

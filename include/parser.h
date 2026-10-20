@@ -27,6 +27,8 @@ typedef struct {
 } Changelog;
 
 Changelog parse(const char* file);
+/* Path to a clparse-friendly copy of `file` (caller unlinks and frees), or NULL */
+char* clparse_compatible_copy(const char* file);
 void log_changelog(Changelog changelog);
 void free_changelog(Changelog* changelog);
 

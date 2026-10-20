@@ -1,7 +1,10 @@
 #include "parser.h"
 #include "status.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include "extern/fs.h"
 #include "extern/logging.h"
 #include "extern/str.h"
 #include <stdbool.h>
@@ -84,14 +87,122 @@ static void parse_change_fields(ParserRelease* release, size_t* change_capacity,
     }
 }
 
+/*
+ * clparse only understands "## 1.0.0 - date" release headers while
+ * changelogger writes the Keep a Changelog style "## [1.0.0] - date".
+ * Write a copy of `file` without the brackets to a temporary file and
+ * return its path. The caller must unlink() and free() it.
+ */
+char* clparse_compatible_copy(const char* file)
+{
+    char* content = fs_read_file(file, "r");
+    if (content == NULL) {
+        return NULL;
+    }
+
+    size_t len = strlen(content);
+    char* out = malloc(len + 1);
+    if (out == NULL) {
+        free(content);
+        return NULL;
+    }
+
+    /* Every transformation only removes characters, so `out` always fits */
+    size_t out_len = 0;
+    const char* line = content;
+    while (*line != '\0') {
+        const char* newline = strchr(line, '\n');
+        size_t line_len = (newline != NULL) ? (size_t)(newline - line) : strlen(line);
+
+        if (line_len > 4 && strncmp(line, "## [", 4) == 0) {
+            const char* close = memchr(line + 4, ']', line_len - 4);
+            if (close != NULL) {
+                out_len += (size_t)sprintf(out + out_len, "## %.*s",
+                                           (int)(close - (line + 4)), line + 4);
+                line = close + 1;
+                continue;
+            }
+        }
+
+        memcpy(out + out_len, line, line_len);
+        out_len += line_len;
+        line += line_len;
+
+        if (newline != NULL) {
+            out[out_len++] = '\n';
+            line++;
+        }
+    }
+    out[out_len] = '\0';
+    free(content);
+
+    const char* tmpdir = getenv("TMPDIR");
+    if (tmpdir == NULL || tmpdir[0] == '\0') {
+        tmpdir = "/tmp";
+    }
+    char* path = str_format("%s/changelogger-XXXXXX", tmpdir);
+    if (path == NULL) {
+        free(out);
+        return NULL;
+    }
+
+    int fd = mkstemp(path);
+    if (fd < 0) {
+        free(path);
+        free(out);
+        return NULL;
+    }
+
+    FILE* fp = fdopen(fd, "w");
+    if (fp == NULL) {
+        close(fd);
+        unlink(path);
+        free(path);
+        free(out);
+        return NULL;
+    }
+
+    size_t written = fwrite(out, 1, out_len, fp);
+    int close_status = fclose(fp);
+    free(out);
+
+    if (written != out_len || close_status != 0) {
+        unlink(path);
+        free(path);
+        return NULL;
+    }
+
+    return path;
+}
+
 Changelog parse(const char* file)
 {
     Changelog changelog = {0};
 
-    char* command = str_format("/usr/bin/clparse -f json %s", file);
+    char* clparse = find_executable("clparse");
+    if (clparse == NULL) {
+        ERRO("clparse not found in PATH. Install it from https://github.com/marcaddeo/clparse");
+        return changelog;
+    }
+
+    char* compatible = clparse_compatible_copy(file);
+    if (compatible == NULL) {
+        ERRO("Failed to read %s", file);
+        free(clparse);
+        return changelog;
+    }
+
+    char* quoted_file = shell_quote(compatible);
+    char* command = str_format("%s -f json %s", clparse, quoted_file);
+    free(clparse);
+    free(quoted_file);
+
     char* json_string = NULL;
     int status = execute_command_capture(command, &json_string);
     free(command);
+
+    unlink(compatible);
+    free(compatible);
 
     if (status != 0 || json_string == NULL) {
         free(json_string);

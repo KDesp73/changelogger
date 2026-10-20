@@ -4,18 +4,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <string.h>
 #include <assert.h>
 #include <getopt.h>
 #include <errno.h>
 
 #define CLI_VERSION_MAJOR 0
-#define CLI_VERSION_MINOR 0
-#define CLI_VERSION_PATCH 2
-#define CLI_VERSION "0.0.2"
+#define CLI_VERSION_MINOR 1
+#define CLI_VERSION_PATCH 0
+#define CLI_VERSION "0.1.0"
 
 #ifndef CLIAPI
-    #define CLIAPI extern
+    #define CLIAPI static
 #endif // CLIAPI
 
 typedef struct {
@@ -48,7 +49,24 @@ CLIAPI void cli_args_free(cli_args_t* arguments);
 CLIAPI void cli_args_to_options(struct option options[], cli_args_t args);
 CLIAPI void cli_generate_format_string(char* buffer, cli_args_t args);
 
-CLIAPI void cli_help(cli_args_t args, const char* usage, const char* footer);
+typedef bool (*HandlerFunc)(void* ctx);
+
+#define MAX_COMMANDS 32
+typedef struct {
+    const char* name;
+    const char* description;
+    HandlerFunc handler;
+} CommandEntry;
+
+typedef struct {
+    CommandEntry table[MAX_COMMANDS];
+    size_t count;
+} Dispatcher;
+CLIAPI void dispatcher_init(Dispatcher* d);
+CLIAPI void dispatcher_add(Dispatcher* d, const char* name, const char* description, HandlerFunc handler);
+CLIAPI HandlerFunc dispatcher_find(Dispatcher* d, const char* name);
+
+CLIAPI void cli_help(cli_args_t args, const Dispatcher* dispatcher, const char* usage, const char* footer);
 
 #ifdef CLI_IMPLEMENTATION
 CLIAPI char* cli_shift_args(int *argc, char ***argv) {
@@ -143,7 +161,7 @@ CLIAPI void cli_args_to_options(struct option options[], cli_args_t args)
     }
 }
 
-CLIAPI void cli_help(cli_args_t args, const char* usage, const char* footer)
+CLIAPI void cli_help(cli_args_t args, const Dispatcher* dispatcher, const char* usage, const char* footer)
 {
 #ifndef ANSI_RED
     const char* ANSI_RED = "\e[31m";
@@ -201,6 +219,23 @@ CLIAPI void cli_help(cli_args_t args, const char* usage, const char* footer)
         }
         printf("\n");
     }
+
+    if(dispatcher && dispatcher->count > 0){
+        printf("\n%sCOMMANDS%s\n", ANSI_BOLD, ANSI_RESET);
+
+        int cmd_max_length = 0;
+        for(size_t i = 0; i < dispatcher->count; ++i){
+            size_t len = strlen(dispatcher->table[i].name);
+            if(len > (size_t) cmd_max_length) cmd_max_length = len;
+        }
+        cmd_max_length += 2;
+
+        for(size_t i = 0; i < dispatcher->count; ++i){
+            printf("  %*s%s\n", -cmd_max_length, dispatcher->table[i].name,
+                   dispatcher->table[i].description ? dispatcher->table[i].description : "");
+        }
+    }
+
     printf("\n%s\n", footer);
 }
 
@@ -223,6 +258,29 @@ CLIAPI void cli_generate_format_string(char* buffer, cli_args_t args)
         if (args.args[i]->argument_required) strcat(buffer, ":");
     }
     strcat(buffer, "\0");
+}
+
+CLIAPI void dispatcher_init(Dispatcher* d)
+{
+    d->count = 0;
+}
+
+CLIAPI void dispatcher_add(Dispatcher* d, const char* name, const char* description, HandlerFunc handler)
+{
+    d->table[d->count].name = name;
+    d->table[d->count].description = description;
+    d->table[d->count].handler = handler;
+    d->count++;
+}
+
+CLIAPI HandlerFunc dispatcher_find(Dispatcher* d, const char* name)
+{
+    if(!name) return NULL;
+    for(size_t i = 0; i < d->count; ++i) {
+        if(!strcmp(d->table[i].name, name))
+            return d->table[i].handler;
+    }
+    return NULL;
 }
 
 #endif // CLI_IMPLEMENTATION

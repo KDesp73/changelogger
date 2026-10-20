@@ -39,13 +39,19 @@ void command_edit(Options options)
     while (1) {
         printf("Enter index to edit: ");
         if (scanf("%9s", index_str) != 1) {
-            ERRO("Error reading input.\n");
+            if (input_finished()) {
+                putchar('\n');
+                ERRO("No input available, aborting");
+                free(entries);
+                exit(1);
+            }
+            ERRO("Error reading input.");
             clear_input_buffer();
             continue;
         }
 
         if (!is_number(index_str)) {
-            ERRO("'%s' is not a number\n", index_str);
+            ERRO("'%s' is not a number", index_str);
             clear_input_buffer();
             continue;
         }
@@ -93,7 +99,13 @@ void command_edit(Options options)
     while (1) {
         printf("Select value to edit {(t)itle | (s)tatus}: ");
         if (scanf("%1s", choice) != 1) {
-            ERRO("Error reading input.\n");
+            if (input_finished()) {
+                putchar('\n');
+                ERRO("No input available, aborting");
+                free(entries);
+                exit(1);
+            }
+            ERRO("Error reading input.");
             clear_input_buffer();
             continue;
         }
@@ -101,7 +113,7 @@ void command_edit(Options options)
         if (choice[0] == 't' || choice[0] == 's') {
             break;
         } else {
-            ERRO("'%s' is not a valid option. Please enter 't' or 's'.\n", choice);
+            ERRO("'%s' is not a valid option. Please enter 't' or 's'.", choice);
             clear_input_buffer();
         }
     }
@@ -115,6 +127,13 @@ void command_edit(Options options)
             printf("Enter new message: ");
             ssize_t read = getline(&message, &message_cap, stdin);
             if (read == -1) {
+                if (input_finished()) {
+                    putchar('\n');
+                    ERRO("No input available, aborting");
+                    free(message);
+                    free(entries);
+                    exit(1);
+                }
                 fprintf(stderr, "Error reading input.\n");
                 continue;
             }
@@ -142,6 +161,12 @@ void command_edit(Options options)
         while(1){
             printf("Enter new status: ");
             if (fgets(status, sizeof(status), stdin) == NULL) {
+                if (input_finished()) {
+                    putchar('\n');
+                    ERRO("No input available, aborting");
+                    free(entries);
+                    exit(1);
+                }
                 fprintf(stderr, "Error reading input.\n");
                 continue;
             }

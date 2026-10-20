@@ -139,29 +139,95 @@ char* select_config_path(sqlite3 *db)
 }
 
 
-Entry* select_entries_order_by(sqlite3* db, const char* column, size_t *count)
+static void free_entries(Entry* entries, size_t count)
+{
+    for (size_t i = 0; i < count; ++i) {
+        free(entries[i].version.full);
+        free(entries[i].message);
+        free(entries[i].date.full);
+    }
+    free(entries);
+}
+
+/*
+ * Read every entry, ordered by `column`. Returns NULL when there is nothing
+ * to return; `failed` is set when the query itself did not succeed
+ * (prepare/step/allocation error), so callers can tell "no rows" apart from
+ * "the database could not be read".
+ */
+Entry* select_entries_order_by(sqlite3* db, const char* column, size_t *count, int* failed)
 {
     char *sql = str_format("SELECT * FROM Entries ORDER BY %s;", column);
-    sqlite3_stmt *stmt;
+    sqlite3_stmt *stmt = NULL;
     Entry *entries = NULL;
     size_t entry_count = 0;
+    int query_failed = 0;
+
+    *count = 0;
+    if (failed != NULL) *failed = 0;
+
+    if (sql == NULL) {
+        if (failed != NULL) *failed = 1;
+        return NULL;
+    }
 
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) == SQLITE_OK) {
-        while (sqlite3_step(stmt) == SQLITE_ROW) {
-            entries = realloc(entries, sizeof(Entry) * (entry_count + 1));
-            entries[entry_count].status = sqlite3_column_int(stmt, 0);
-            entries[entry_count].version.full = strdup((char*) sqlite3_column_text(stmt, 1));
-            entries[entry_count].message = strdup((const char *)sqlite3_column_text(stmt, 2));
-            entries[entry_count].date.full = strdup((char*) sqlite3_column_text(stmt, 4));
+        int step;
+        while ((step = sqlite3_step(stmt)) == SQLITE_ROW) {
+            const char* version_text = (const char*) sqlite3_column_text(stmt, 1);
+            const char* message_text = (const char*) sqlite3_column_text(stmt, 2);
+            const char* date_text = (const char*) sqlite3_column_text(stmt, 4);
 
-            parse_version(&entries[entry_count].version);
-            entry_count++;
+            if (version_text == NULL || message_text == NULL || date_text == NULL) {
+                query_failed = 1;
+                break;
+            }
+
+            Entry entry = {0};
+            entry.status = sqlite3_column_int(stmt, 0);
+            entry.version.full = strdup(version_text);
+            entry.message = strdup(message_text);
+            entry.date.full = strdup(date_text);
+
+            if (entry.version.full == NULL || entry.message == NULL || entry.date.full == NULL) {
+                free(entry.version.full);
+                free(entry.message);
+                free(entry.date.full);
+                query_failed = 1;
+                break;
+            }
+
+            Entry* grown = realloc(entries, sizeof(Entry) * (entry_count + 1));
+            if (grown == NULL) {
+                free(entry.version.full);
+                free(entry.message);
+                free(entry.date.full);
+                query_failed = 1;
+                break;
+            }
+
+            entries = grown;
+            parse_version(&entry.version);
+            entries[entry_count++] = entry;
         }
-    }
-    sqlite3_finalize(stmt);
-    *count = entry_count;
 
+        /* The loop only leaves with SQLITE_DONE when every row was read */
+        if (step != SQLITE_DONE) query_failed = 1;
+    } else {
+        query_failed = 1;
+    }
+
+    sqlite3_finalize(stmt); /* NULL is a no-op */
     free(sql);
+
+    if (query_failed) {
+        free_entries(entries, entry_count);
+        entries = NULL;
+        entry_count = 0;
+        if (failed != NULL) *failed = 1;
+    }
+
+    *count = entry_count;
     return entries;
 }
 
