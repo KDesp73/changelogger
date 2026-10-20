@@ -77,7 +77,7 @@ void command_delete(Options options)
     delete_q(qb, TABLE_ENTRIES);
     where_q(qb, condition);
     char* query = build_query(qb);
-    sqlite_execute_sql(SQLITE_DB, query);
+    db_execute(query);
     free(query);
     free(condition);
     free_query_builder(qb);

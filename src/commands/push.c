@@ -2,6 +2,7 @@
 #include "database.h"
 #include "utils.h"
 #include "push_utils.h"
+#include <string.h>
 
 void command_push(Options options)
 {
@@ -15,7 +16,13 @@ void command_push(Options options)
         sqlite3_close(db);
     }
 
-    handle_push_release(version, options);
+    if (version == NULL) {
+        PANIC("No version to push. Run '%s release' first", EXECUTABLE_NAME);
+    }
+
+    if (!handle_push_release(version, options)) {
+        exit(1);
+    }
 }
 
 #define DEFAULT_WARNING_MESSAGE \
@@ -43,12 +50,12 @@ int is_gh_cli_available()
     // on every push, and `gh auth status` writes its result to stderr,
     // which makes parsing its stdout unreliable across gh versions.
     if (system("gh --version >/dev/null 2>&1") != 0) {
-        ERRO("gh-cli is not available on your system.\n");
+        ERRO("gh-cli is not available on your system.");
         return 0;
     }
 
     if (system("gh auth status >/dev/null 2>&1") != 0) {
-        ERRO("gh-cli is not properly set up. Please run 'gh auth login' to authenticate.\n");
+        ERRO("gh-cli is not properly set up. Please run 'gh auth login' to authenticate.");
         return 0;
     }
 
@@ -68,23 +75,34 @@ int push_release(const char* version, const char* asset)
         asset_arg = shell_quote(asset);
     }
 
+    /*
+     * The version reaches this function from the database as well as from
+     * --version-full, so an imported CHANGELOG.md decides its content. It is
+     * quoted before it lands in a shell command, and rejected if it could
+     * escape the .changelog directory.
+     */
+    if (strchr(version, '/') != NULL) {
+        PANIC("Invalid version: %s", version);
+    }
+    char* version_q = shell_quote(version);
+
     char* gh_command = NULL;
     if (asset_arg != NULL) {
         gh_command = str_format(
             "gh release create v%s %s -F %s/%s.md -t v%s",
-            version,
+            version_q,
             asset_arg,
             CHANGELOG_DIR,
-            version,
-            version
+            version_q,
+            version_q
         );
     } else {
         gh_command = str_format(
             "gh release create v%s -F %s/%s.md -t v%s",
-            version,
+            version_q,
             CHANGELOG_DIR,
-            version,
-            version
+            version_q,
+            version_q
         );
     }
 
@@ -98,6 +116,7 @@ int push_release(const char* version, const char* asset)
     }
 
     free(asset_arg);
+    free(version_q);
     free(gh_command);
 
     if (status != 0) {
@@ -108,7 +127,7 @@ int push_release(const char* version, const char* asset)
     return 1;
 }
 
-void handle_push_release(const char* version, Options options)
+int handle_push_release(const char* version, Options options)
 {
     char* version_q = sql_quote(version);
     char* condition = str_format("version = %s", version_q);
@@ -118,11 +137,12 @@ void handle_push_release(const char* version, Options options)
     if(pushed) {
         WARN("This release is already pushed. Aborting.");
         free(condition);
-        return;
+        return 1; // Nothing left to do, but this is not a failure
     }
 
     make_sure_user_wants_to_proceed_with_releasing(options);
-    if(push_release(version, options.asset)){
+    int result = push_release(version, options.asset);
+    if(result){
         update(TABLE_RELEASES, RELEASES_PUSHED, "1", condition);
     } else {
         // push_release() already reported the failure. Leave pushed = 0
@@ -131,5 +151,7 @@ void handle_push_release(const char* version, Options options)
         WARN("Release v%s was not marked as pushed.", version);
     }
     free(condition);
+
+    return result;
 }
 

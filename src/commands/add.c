@@ -80,10 +80,12 @@ void add_commits()
     char* git_command = NULL;
     
     // Check if tag exists
-    char* tag_command = str_format("git pull --quiet && git tag --list v%s", latest);
+    char* latest_q = shell_quote(latest);
+    char* tag_command = str_format("git pull --quiet && git tag --list v%s", latest_q);
     char* versions = NULL;
     execute_command_capture(tag_command, &versions);
     free(tag_command);
+    free(latest_q);
     if(!STREQ(latest, "0.0.0") && is_blank(versions)){
         ERRO("v%s is not pushed", latest);
         Version v = {
@@ -101,7 +103,9 @@ void add_commits()
     if(STREQ(latest, "0.0.0")){
         git_command = str_format("git shortlog -z");
     } else {
-        git_command = str_format("git shortlog -z v%s..HEAD", latest);
+        char* range_q = shell_quote(latest);
+        git_command = str_format("git shortlog -z v%s..HEAD", range_q);
+        free(range_q);
     }
 
     char* out = NULL;
@@ -195,7 +199,7 @@ void add_entry(const char* message, Status status)
     char* values = str_format("%s, %d, %s, %s", message_q, status, version_q, date_q);
     values_q(qb, values);
     char* query = build_query(qb);
-    sqlite_execute_sql(SQLITE_DB, query);
+    db_execute(query);
 
     free(message_q);
     free(version_q);

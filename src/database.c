@@ -1,5 +1,6 @@
 #include "database.h"
 #include "date.h"
+#include "extern/logging.h"
 #include "extern/str.h"
 #include "config.h"
 #include "extern/querybuilder.h"
@@ -8,6 +9,31 @@
 #include "version.h"
 #include <stdlib.h>
 #include <string.h>
+
+void db_execute(const char* sql)
+{
+    if (sql == NULL) {
+        PANIC("db_execute: no statement given");
+    }
+
+    sqlite3* db = NULL;
+    if (sqlite3_open(SQLITE_DB, &db) != SQLITE_OK) {
+        PANIC("Failed to open %s: %s", SQLITE_DB, sqlite3_errmsg(db));
+    }
+
+    sqlite3_busy_timeout(db, DB_BUSY_TIMEOUT_MS);
+
+    char* error = NULL;
+    if (sqlite3_exec(db, sql, NULL, NULL, &error) != SQLITE_OK) {
+        ERRO("Failed to execute statement: %s",
+             error != NULL ? error : sqlite3_errmsg(db));
+        sqlite3_free(error);
+        sqlite3_close(db); // an unfinished transaction is rolled back here
+        exit(1);
+    }
+
+    sqlite3_close(db);
+}
 
 size_t select_version_major(sqlite3 *db)
 {
@@ -497,7 +523,7 @@ void update(const char* table, const char* column, const char* value, const char
     set_q(qb, column, value);
     where_q(qb, condition);
     char* query = build_query(qb);
-    sqlite_execute_sql(SQLITE_DB, query);
+    db_execute(query);
     free(query);
 }
 
@@ -634,6 +660,6 @@ void load_config(Config config)
 
     str_append(&sql, " WHERE id = 1;");
 
-    sqlite_execute_sql(SQLITE_DB, sql);
+    db_execute(sql);
     free(sql);
 }

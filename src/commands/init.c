@@ -11,7 +11,7 @@ void command_init(Options options)
 
     if(!fs_file_exists(SQLITE_DB)) {
         sqlite_create_database(SQLITE_DB);
-        sqlite_execute_sql(SQLITE_DB, GENERATION_QUERY);
+        db_execute(GENERATION_QUERY);
     } else INFO("%s is already created", SQLITE_DB);
 
     if(!config_exists()){
@@ -21,7 +21,7 @@ void command_init(Options options)
                       "version_patch, always_export, always_push, remote_repo");
         values_q(qb, "'', 0, 0, 0, 0, 0, ''"); // "Starting with version 0.0.0"
         char* query = build_query(qb);
-        sqlite_execute_sql(SQLITE_DB, query);
+        db_execute(query);
         free(query);
     } else INFO("Config is already initialized");
 }

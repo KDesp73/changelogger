@@ -37,6 +37,9 @@
 #define CONFIG_CONDITION "id = 1"
 #define VERSION_UNRELEASED "unreleased"
 
+/* How long a connection waits for a lock held by a concurrent invocation */
+#define DB_BUSY_TIMEOUT_MS 5000
+
 #define GENERATION_QUERY \
 "BEGIN TRANSACTION;" \
 "CREATE TABLE IF NOT EXISTS \"Entries\" (" \
@@ -92,6 +95,13 @@ Entry* select_entries_date_greater(sqlite3* db, const char* date, size_t *count)
  * still missing payloads that don't use obvious keywords.
  */
 void update(const char* table, const char* column, const char* value, const char* condition); // One value;
+/*
+ * Runs `sql` (a single statement or a script) against the changelog database.
+ * A failure is fatal: the caller cannot recover from it, and continuing would
+ * leave the data inconsistent. Closing the connection on failure also rolls
+ * back a script that opened a transaction and never reached COMMIT.
+ */
+void db_execute(const char* sql);
 char* select_str(const char* table, const char* column, const char* condition);
 int select_int(const char* table, const char* column, const char* condition);
 int config_exists();

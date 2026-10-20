@@ -39,7 +39,7 @@ void command_release(Options options)
         char* version_q = sql_quote(version);
         char* query = str_format("UPDATE Entries SET version = %s WHERE version = 'unreleased'", version_q);
         free(version_q);
-        sqlite_execute_sql(SQLITE_DB, query);
+        db_execute(query);
         free(query);
 
         if(!should_push) {
@@ -53,6 +53,8 @@ void command_release(Options options)
             // push_release() already reported why. The release stays
             // pending, so `changelogger push -V <version>` can retry it.
             WARN("Release v%s was not marked as pushed.", version);
+            free(version);
+            exit(1); // The release itself exists, but the requested push failed
         }
 
         free(version);
@@ -153,7 +155,7 @@ void insert_release(_Bool pushed)
     values_q(qb, values);
     char* query = build_query(qb);
 
-    sqlite_execute_sql(SQLITE_DB, query);
+    db_execute(query);
 
     free(version_q);
     free(date_q);

@@ -8,15 +8,57 @@
 #include "utils.h"
 #include "version.h"
 
-void load_version(Changelog changelog);
-void load_releases(Changelog changelog);
-void load_entries(Changelog changelog);
-void load_remote_repo(Changelog changelog);
+void load_version(Changelog changelog, char** script);
+void load_releases(Changelog changelog, char** script);
+void load_entries(Changelog changelog, char** script);
+void load_remote_repo(Changelog changelog, char** script);
+
+/*
+ * The import is built as one script and executed in a single transaction.
+ * Splitting it into per-statement calls would delete the old changelog before
+ * knowing whether the new one can be stored, and an interrupted import would
+ * leave a half-populated database behind.
+ */
+static void append_insert(char** script, const char* table, const char* columns, const char* values)
+{
+    query_builder_t* qb = create_query_builder();
+    insert_q(qb, table);
+    columns_q(qb, columns);
+    values_q(qb, values);
+    char* sql = build_query(qb);
+
+    str_append(script, sql);
+    str_append(script, ";\n");
+
+    free(sql);
+    free_query_builder(qb);
+}
+
+static void append_update(char** script, const char* table, const char* column,
+                          const char* value, const char* condition)
+{
+    query_builder_t* qb = create_query_builder();
+    update_q(qb, table);
+    set_q(qb, column, value);
+    where_q(qb, condition);
+    char* sql = build_query(qb);
+
+    str_append(script, sql);
+    str_append(script, ";\n");
+
+    free(sql);
+    free_query_builder(qb);
+}
 
 void command_import(Options options)
 {
     if (options.file == NULL) {
         PANIC("Specify the file you want to import");
+    }
+
+    // Fail before parsing and printing progress if there is nothing to import into.
+    if (!fs_file_exists(SQLITE_DB)) {
+        PANIC("No changelog found. Run '%s init' first", EXECUTABLE_NAME);
     }
 
     INFO("Importing %s", options.file);
@@ -36,18 +78,25 @@ void command_import(Options options)
         }
     }
 
-    sqlite_execute_sql(SQLITE_DB, "DELETE FROM Entries");
-    sqlite_execute_sql(SQLITE_DB, "DELETE FROM Releases");
+    char* script = str_buffer_init();
+    str_append_ln(&script, "BEGIN TRANSACTION;");
+    str_append_ln(&script, "DELETE FROM Entries;");
+    str_append_ln(&script, "DELETE FROM Releases;");
 
-    load_releases(changelog);
-    load_entries(changelog);
-    load_version(changelog);
-    load_remote_repo(changelog);
+    load_releases(changelog, &script);
+    load_entries(changelog, &script);
+    load_version(changelog, &script);
+    load_remote_repo(changelog, &script);
 
+    str_append_ln(&script, "COMMIT;");
+
+    db_execute(script);
+
+    free(script);
     free_changelog(&changelog);
 }
 
-void load_releases(Changelog changelog)
+void load_releases(Changelog changelog, char** script)
 {
     Date fallback_date;
     get_date(&fallback_date);
@@ -64,25 +113,18 @@ void load_releases(Changelog changelog)
         char* version_q = sql_quote(r.version);
         char* date_q = sql_quote(date_str);
 
-        query_builder_t* qb = create_query_builder();
-        insert_q(qb, TABLE_RELEASES);
-        columns_q(qb, "version, date, pushed, yanked");
         char* values = str_format("%s, %s, 0, %d", version_q, date_q, r.yanked);
-        values_q(qb, values);
-        char* sql = build_query(qb);
-        sqlite_execute_sql(SQLITE_DB, sql);
+        append_insert(script, TABLE_RELEASES, "version, date, pushed, yanked", values);
 
         free(version_q);
         free(date_q);
         free(values);
-        free(sql);
-        free_query_builder(qb);
     }
 
     free_date(&fallback_date);
 }
 
-void load_entries(Changelog changelog)
+void load_entries(Changelog changelog, char** script)
 {
     Date date;
     get_date(&date);
@@ -107,9 +149,6 @@ void load_entries(Changelog changelog)
             char* version_q = sql_quote(r.version != NULL ? r.version : VERSION_UNRELEASED);
             char* date_q = sql_quote(r.date != NULL ? r.date : date.full);
 
-            query_builder_t* qb = create_query_builder();
-            insert_q(qb, TABLE_ENTRIES);
-            columns_q(qb, "message, status, version, date");
             char* values = str_format(
                 "%s, %d, %s, %s",
                 message_q,
@@ -117,23 +156,19 @@ void load_entries(Changelog changelog)
                 version_q,
                 date_q
             );
-            values_q(qb, values);
-            char* sql = build_query(qb);
-            sqlite_execute_sql(SQLITE_DB, sql);
+            append_insert(script, TABLE_ENTRIES, "message, status, version, date", values);
 
             free(message_q);
             free(version_q);
             free(date_q);
             free(values);
-            free(sql);
-            free_query_builder(qb);
         }
     }
 
     free_date(&date);
 }
 
-void load_version(Changelog changelog)
+void load_version(Changelog changelog, char** script)
 {
     const char* latest_version = NULL;
     for (size_t i = 0; i < changelog.release_count; ++i) {
@@ -158,9 +193,9 @@ void load_version(Changelog changelog)
     char* minor = str_format("%zu", v.minor);
     char* patch = str_format("%zu", v.patch);
 
-    update(TABLE_CONFIG, CONFIG_VERSION_MAJOR, major, CONFIG_CONDITION);
-    update(TABLE_CONFIG, CONFIG_VERSION_MINOR, minor, CONFIG_CONDITION);
-    update(TABLE_CONFIG, CONFIG_VERSION_PATCH, patch, CONFIG_CONDITION);
+    append_update(script, TABLE_CONFIG, CONFIG_VERSION_MAJOR, major, CONFIG_CONDITION);
+    append_update(script, TABLE_CONFIG, CONFIG_VERSION_MINOR, minor, CONFIG_CONDITION);
+    append_update(script, TABLE_CONFIG, CONFIG_VERSION_PATCH, patch, CONFIG_CONDITION);
 
     free(major);
     free(minor);
@@ -168,7 +203,7 @@ void load_version(Changelog changelog)
     free(v.full);
 }
 
-void load_remote_repo(Changelog changelog)
+void load_remote_repo(Changelog changelog, char** script)
 {
     if (changelog.remote_repo == NULL) {
         return;
@@ -178,6 +213,6 @@ void load_remote_repo(Changelog changelog)
 
     printf("Loading remote repo %s\n", changelog.remote_repo);
 
-    update(TABLE_CONFIG, CONFIG_REMOTE_REPO, remote, CONFIG_CONDITION);
+    append_update(script, TABLE_CONFIG, CONFIG_REMOTE_REPO, remote, CONFIG_CONDITION);
     free(remote);
 }

@@ -15,8 +15,10 @@ int install_autocompletion(Shell shell)
     switch (shell) {
         case SHELL_ZSH:
             path = ZSH_AUTOCOMPLETE_PATH;
+            break;
         case SHELL_BASH:
             path = BASH_AUTOCOMPLETE_PATH;
+            break;
         case SHELL_FISH:
             path = FISH_AUTOCOMPLETE_PATH;
             break;
