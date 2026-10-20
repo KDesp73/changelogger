@@ -240,30 +240,46 @@ Options parse_options(int argc, char** argv, Command* command)
 
 int main(int argc, char** argv)
 {
-    if(fs_file_exists(SQLITE_DB)){
+    Command command;
+    Options options = parse_options(argc, argv, &command);
+
+    /*
+     * `init` is the upgrade path and `update` does not need the changelog at
+     * all, so they are the only commands that may run on an incompatible
+     * schema.
+     */
+    if(
+        command != COMMAND_INIT &&
+        command != COMMAND_UPDATE &&
+        command != COMMAND_GENERATE &&
+        fs_file_exists(SQLITE_DB) &&
+        !db_schema_current()
+    ) {
+        PANIC("The database at %s is incomplete or was created by a different version. Run '%s init' to update it.",
+              SQLITE_DB, EXECUTABLE_NAME);
+    }
+
+    if(fs_file_exists(SQLITE_DB) && command != COMMAND_UPDATE){
         DEBU("Loading config...");
         Config config = get_config();
         if(config.exists) load_config(config);
         free_config(&config);
     } 
 
-    Command command;
-    Options options = parse_options(argc, argv, &command);
-
     execute_command(command, options);
 
-    sqlite3* db;
-    sqlite3_open(SQLITE_DB, &db);
-    _Bool export = select_always_export(db);
-    sqlite3_close(db);
-
-    if(export && (
+    if(
          command == COMMAND_ADD ||
          command == COMMAND_EDIT ||
          command == COMMAND_RELEASE ||
-         command == COMMAND_DELETE)
+         command == COMMAND_DELETE
     ) {
-        execute_command(COMMAND_EXPORT, options);
+        sqlite3* db;
+        sqlite3_open(SQLITE_DB, &db);
+        _Bool export = select_always_export(db);
+        sqlite3_close(db);
+
+        if(export) execute_command(COMMAND_EXPORT, options);
     }
 
     return 0;

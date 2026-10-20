@@ -35,6 +35,48 @@ void db_execute(const char* sql)
     sqlite3_close(db);
 }
 
+int db_schema_current(void)
+{
+    sqlite3* db = NULL;
+    if (sqlite3_open(SQLITE_DB, &db) != SQLITE_OK) {
+        ERRO("Failed to open %s: %s", SQLITE_DB, sqlite3_errmsg(db));
+        sqlite3_close(db);
+        return 0;
+    }
+    sqlite3_busy_timeout(db, DB_BUSY_TIMEOUT_MS);
+
+    int current = 0;
+    sqlite3_stmt* stmt = NULL;
+    if (sqlite3_prepare_v2(db, "PRAGMA user_version;", -1, &stmt, NULL) == SQLITE_OK &&
+        sqlite3_step(stmt) == SQLITE_ROW) {
+        int version = sqlite3_column_int(stmt, 0);
+        /*
+         * 0 means the database predates the schema version. Either way the
+         * tables (and the Config row) must actually be there, which also
+         * catches a database that was damaged or edited by hand. A future
+         * schema version is rejected outright.
+         */
+        if (version == SCHEMA_VERSION || version == 0) {
+            const char* sql =
+                "SELECT (SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'Entries') +"
+                       " (SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'Config') +"
+                       " (SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'Releases') +"
+                       " (SELECT COUNT(*) FROM Config WHERE id = 1);";
+            sqlite3_stmt* check = NULL;
+            if (sqlite3_prepare_v2(db, sql, -1, &check, NULL) == SQLITE_OK &&
+                sqlite3_step(check) == SQLITE_ROW &&
+                sqlite3_column_int(check, 0) == 4) {
+                current = 1;
+            }
+            sqlite3_finalize(check);
+        }
+    }
+    sqlite3_finalize(stmt);
+
+    sqlite3_close(db);
+    return current;
+}
+
 size_t select_version_major(sqlite3 *db)
 {
     const char *sql = "SELECT version_major FROM Config WHERE id = 1;";
@@ -123,28 +165,6 @@ char* select_version_full(sqlite3* db)
     make_version(&v);
 
     return v.full;
-}
-
-void update_version_full(const char* version)
-{
-    if(!is_valid_version(version)) return;
-
-    Version v = {0};
-    v.full = strdup(version);
-
-    parse_version(&v);
-    make_version(&v);
-    char* patch = str_format("%zu", v.patch);
-    char* minor = str_format("%zu", v.minor);
-    char* major = str_format("%zu", v.major);
-
-    update(TABLE_CONFIG, CONFIG_VERSION_PATCH, patch, CONFIG_CONDITION);
-    update(TABLE_CONFIG, CONFIG_VERSION_MINOR, minor, CONFIG_CONDITION);
-    update(TABLE_CONFIG, CONFIG_VERSION_MAJOR, major, CONFIG_CONDITION);
-
-    free(patch);
-    free(minor);
-    free(major);
 }
 
 // Function to select the config path

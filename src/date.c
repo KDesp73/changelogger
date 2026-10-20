@@ -55,9 +55,13 @@ Date parse_date(const char* date_str) {
     char *date_part = NULL;
     char *time_part = NULL;
 
+    // A missing date must not crash the callers: treat it as the unknown date.
+    if (date_str == NULL) date_str = "";
+
     date.full = strdup(date_str);
 
-    date_part = strtok(strdup(date_str), " ");
+    char* copy = strdup(date_str);
+    date_part = strtok(copy, " ");
     time_part = strtok(NULL, " ");
 
     // Parse the date part (YYYY-MM-DD)
@@ -69,6 +73,8 @@ Date parse_date(const char* date_str) {
     if (time_part != NULL) {
         sscanf(time_part, "%zu:%zu:%zu", &date.hours, &date.minutes, &date.seconds);
     }
+
+    free(copy);
 
     date.date = (char *)malloc(11); // Format: YYYY-MM-DD
     date.time = (char *)malloc(9);  // Format: HH:MM:SS

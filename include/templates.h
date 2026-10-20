@@ -7,7 +7,7 @@
 #define TEMPLATE_YANKED "[YANKED]"
 
 #define TEMPLATE_RELEASE(version, date, yanked) \
-    str_format("\n## [%s] - %s %s", version, date, (yanked) ? TEMPLATE_YANKED : "")
+    str_format("\n## [%s] - %s%s", version, date, (yanked) ? " " TEMPLATE_YANKED : "")
 
 #define TEMPLATE_UNRELEASED "\n## [Unreleased]"
 

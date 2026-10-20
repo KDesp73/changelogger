@@ -4,6 +4,31 @@
 
 void command_edit(Options options)
 {
+    /*
+     * Entries may only point at versions that exist in Releases. Letting an
+     * arbitrary version through (which used to work) left entries orphaned and
+     * made `export` crash on the missing release date. "0.0.0" is how
+     * `parse_version` represents the unreleased version, so it is exempt too.
+     */
+    _Bool unreleased = version_full_set(options) &&
+                       (STREQ(options.version.full, VERSION_UNRELEASED) ||
+                        STREQ(options.version.full, "0.0.0"));
+
+    if (version_full_set(options) && !unreleased) {
+        char* version_q = sql_quote(options.version.full);
+        char* condition = str_format("version = %s", version_q);
+        char* release = select_str(TABLE_RELEASES, RELEASES_VERSION, condition);
+        free(condition);
+        free(version_q);
+
+        if (release == NULL) {
+            ERRO("There is no release with version '%s'", options.version.full);
+            INFO("Create it with '%s release --new patch' or import a changelog that contains it", EXECUTABLE_NAME);
+            exit(1);
+        }
+        free(release);
+    }
+
     Options list_options = {
         .version.full = VERSION_UNRELEASED,
         .argc = !options.all,
@@ -87,7 +112,7 @@ void command_edit(Options options)
 
         if(version_full_set(options)){
             char* condition = entry_condition(entries[index-1].message, entries[index-1].date.full);
-            char* formated_version = str_format("'%s'", options.version.full);
+            char* formated_version = sql_quote(unreleased ? VERSION_UNRELEASED : options.version.full);
             update(TABLE_ENTRIES, ENTRIES_VERSION, formated_version, condition);
             free(formated_version);
             free(condition);

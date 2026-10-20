@@ -4,7 +4,7 @@
 #include "extern/str.h"
 
 #define EXECUTABLE_NAME "changelogger"
-#define VERSION "0.0.20"
+#define VERSION "0.1.0"
 
 #define ENTRY_TITLE_WIDTH 60
 

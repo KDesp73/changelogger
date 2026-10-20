@@ -40,6 +40,12 @@
 /* How long a connection waits for a lock held by a concurrent invocation */
 #define DB_BUSY_TIMEOUT_MS 5000
 
+/*
+ * Schema version stored in `PRAGMA user_version`. Bump it whenever
+ * GENERATION_QUERY changes in a way that needs `init` to run again.
+ */
+#define SCHEMA_VERSION 1
+
 #define GENERATION_QUERY \
 "BEGIN TRANSACTION;" \
 "CREATE TABLE IF NOT EXISTS \"Entries\" (" \
@@ -105,7 +111,13 @@ void db_execute(const char* sql);
 char* select_str(const char* table, const char* column, const char* condition);
 int select_int(const char* table, const char* column, const char* condition);
 int config_exists();
-void update_version_full(const char* version);
+/*
+ * Returns 1 when the database has the tables and Config row that this binary
+ * expects. Databases created before the schema version was introduced report
+ * user_version 0 and are accepted when their tables are intact; `init`
+ * stamps them. A newer schema is rejected.
+ */
+int db_schema_current(void);
 
 #define SELECT_CONFIG_REMOTE \
     select_str(TABLE_CONFIG, CONFIG_REMOTE_REPO, CONFIG_CONDITION)

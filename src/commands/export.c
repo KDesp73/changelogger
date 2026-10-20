@@ -132,10 +132,32 @@ void export_markdown()
                 char* date_str = select_str(TABLE_RELEASES, RELEASES_DATE, condition);
                 int yanked = select_int(TABLE_RELEASES, RELEASES_YANKED, condition);
                 free(condition);
-                Date date = parse_date(date_str);
-                char* line = TEMPLATE_RELEASE(entries[i].version.full, date.date, yanked);
+
+                /*
+                 * The release row can be missing when an entry was moved to a
+                 * version that was never released (edit -V) or when the
+                 * database was modified by hand. Fall back to the entry date
+                 * instead of calling parse_date(NULL).
+                 */
+                Date release_date = {0};
+                const char* date = NULL;
+                if (date_str != NULL) {
+                    release_date = parse_date(date_str);
+                    date = release_date.date;
+                } else if (entries[i].date.full != NULL) {
+                    release_date = parse_date(entries[i].date.full);
+                    date = release_date.date;
+                } else {
+                    date = "unknown";
+                }
+
+                char* line = TEMPLATE_RELEASE(entries[i].version.full, date, yanked);
 
                 str_append_ln(&buffer, line);
+
+                free(line);
+                free(date_str);
+                free_date(&release_date);
             }
             str_append_ln(&release_buffer, "");
         }

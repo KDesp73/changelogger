@@ -46,3 +46,8 @@ DONE: run the import in a single transaction so a failed import keeps the old ch
 DONE: return a non-zero exit status when pushing a release fails []
 DONE: fix shell fall-through when installing zsh/bash autocompletion []
 DONE: quote versions before passing them to shell commands []
+DONE: never crash exporting an entry whose release row is missing (fall back to the entry date) []
+DONE: only let edit move entries to versions that exist in Releases []
+DONE: create a release (version bump, release row, entry move) in a single transaction []
+DONE: fail with a clear message when the database schema is incomplete and let init repair it []
+DONE: stop exporting a trailing space after the release date []
