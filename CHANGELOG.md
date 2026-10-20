@@ -5,27 +5,49 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [Unreleased]
-
-### Changed
-
-- Updated version to 0.0.20
-
-
-## [0.0.19] - 2024-11-18 
+## [0.1.0] - 2026-10-20
 
 ### Added
 
-- Added message length check
+- Portable `configure` installer with `--prefix`/`--bindir`, clparse and shell-completion setup
+
+### Changed
+
+- Replaced `config.sh` with `configure`
+- Command dispatch now uses `cli.h`
+- Updated version to 0.1.0
+
+### Fixed
+
+- Exported release dates no longer have a trailing space
+- Export no longer crashes when an entry's release is missing
+- `edit -V` rejects versions that have no release
+- Incomplete databases are reported and repaired by `init`
+- Imports and release creation run in a single transaction
+- Push state is recorded from gh's actual result
+- clparse is resolved from PATH
+- CHANGELOG.md is no longer truncated when the entry query fails
+- Database write and GitHub push failures now abort instead of being ignored
+
+### Security
+
+- Every SQL value is quoted and the query builder overflow is fixed
+
+
+## [0.0.19] - 2024-11-18
+
+### Added
+
 - Changing result table when not enough horizontal space
 - different results when piping is detected (list command)
+- Added message length check
 
 ### Changed
 
 - Updated version to 0.0.19
 
 
-## [0.0.18] - 2024-11-18 
+## [0.0.18] - 2024-11-18
 
 ### Added
 
@@ -36,7 +58,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Updated version to 0.0.18
 
 
-## [0.0.17] - 2024-11-18 
+## [0.0.17] - 2024-11-18
 
 ### Added
 
@@ -47,7 +69,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Updated version to 0.0.17
 
 
-## [0.0.16] - 2024-11-15 
+## [0.0.16] - 2024-11-15
 
 ### Added
 
@@ -62,14 +84,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Correct autocomplete scripts (Zsh, Bash)
 
 
-## [0.0.15] - 2024-11-15 
+## [0.0.15] - 2024-11-15
 
 ### Changed
 
 - updated table drawing when using `list`
 
 
-## [0.0.14] - 2024-10-31 
+## [0.0.14] - 2024-10-31
 
 ### Added
 
@@ -84,7 +106,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Updated the zsh autocomplete
 
 
-## [0.0.13] - 2024-10-22 
+## [0.0.13] - 2024-10-22
 
 ### Added
 
@@ -95,7 +117,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Updated version to 0.0.13
 
 
-## [0.0.12] - 2024-10-20 
+## [0.0.12] - 2024-10-20
 
 ### Added
 
@@ -109,7 +131,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Updated version to 0.0.12
 
 
-## [0.0.11] - 2024-08-22 
+## [0.0.11] - 2024-08-22
 
 ### Changed
 
@@ -128,27 +150,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Ability to edit version
 - added make install option
-- Added --commits option to add commits as entries
 - Config editor variable added
+- Added --commits option to add commits as entries
 
 ### Changed
 
 - Increased title length when listing entries
-- Edited help messages according to the latest changes
 - Updated version to 0.0.10
+- Edited help messages according to the latest changes
 
 ### Fixed
 
-- fixed sorting in case of unreleased
 - checking if tag is released
 - Sorting entries before exporting
+- fixed sorting in case of unreleased
 
 ### Security
 
 - Implemented sql injection checker
 
 
-## [0.0.9] - 2024-08-17 
+## [0.0.9] - 2024-08-17
 
 ### Added
 
@@ -163,7 +185,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Fixed set help message
 
 
-## [0.0.8] - 2024-08-17 
+## [0.0.8] - 2024-08-17
 
 ### Added
 
@@ -174,18 +196,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Updated version to 0.0.8
 
 
-## [0.0.7] - 2024-08-17 
+## [0.0.7] - 2024-08-17
 
 ### Added
 
-- Importing changelog file into the database
 - generate command implemented (config only)
+- Importing changelog file into the database
 - Added config file parsing and loading
 
 ### Changed
 
-- Using -y to skip warning message
 - Included import command to help messages
+- Using -y to skip warning message
 - Updated version to 0.0.7
 
 ### Fixed
@@ -193,7 +215,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - not loading file config if init was not executed
 
 
-## [0.0.6] - 2024-08-15 
+## [0.0.6] - 2024-08-15
 
 ### Added
 
@@ -208,25 +230,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Updating the pushed field when pushing
 
 
-## [0.0.5] - 2024-08-15 
+## [0.0.5] - 2024-08-15
 
 ### Added
 
-- push command implemented
-- Implemented set/get for always_push
 - Added pushed field in Releases table
-- list --releases added
+- Implemented set/get for always_push
+- push command implemented
 - --all to have all entries available
+- list --releases added
 
 ### Changed
 
+- Refactored command_list
 - Updated help messages
 - Release is not pushed unless its specified
-- Refactored command_list
 - Updated version to 0.0.5
 
 
-## [0.0.4] - 2024-08-15 
+## [0.0.4] - 2024-08-15
 
 ### Added
 
@@ -238,7 +260,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Updated version to 0.0.4
 
 
-## [0.0.3] - 2024-08-15 
+## [0.0.3] - 2024-08-15
 
 ### Added
 
@@ -257,7 +279,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Better way to handle help messages
 
 
-## [0.0.2] - 2024-08-13 
+## [0.0.2] - 2024-08-13
 
 ### Changed
 
@@ -268,12 +290,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - using the correct file on releases
 
 
-## [0.0.1] - 2024-08-13 
+## [0.0.1] - 2024-08-13
 
 ### Added
 
-- install.sh script
+- Implemented Version
+- Implemented Date
 - get command done
+- install.sh script
 - export command done
 - release command done
 - LICENSE added
@@ -281,8 +305,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Database creation query on init
 - Parse options method
 - Integrated SQLite library
-- Implemented Version
-- Implemented Date
 
 ### Removed
 
@@ -308,4 +330,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 [0.0.7]: https://github.com/KDesp73/changelogger/releases/tag/v0.0.7
 [0.0.8]: https://github.com/KDesp73/changelogger/releases/tag/v0.0.8
 [0.0.9]: https://github.com/KDesp73/changelogger/releases/tag/v0.0.9
+[0.1.0]: https://github.com/KDesp73/changelogger/releases/tag/v0.1.0
 
